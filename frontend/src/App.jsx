@@ -1,0 +1,114 @@
+import { useEffect, useState } from "react";
+import { api, sesion } from "./api.js";
+import { Alerta } from "./components/comunes.jsx";
+import Historial from "./components/Historial.jsx";
+import Login from "./components/Login.jsx";
+import Modelos from "./components/Modelos.jsx";
+import NuevoAnalisis from "./components/NuevoAnalisis.jsx";
+import Panel from "./components/Panel.jsx";
+
+const NOMBRE = "Riesgo de despliegue";
+const SUBTITULO = "Plataforma predictiva con IA";
+const PESTANAS = [
+  ["panel", "Panel", "M4 13h6V4H4zM14 20h6V4h-6zM4 20h6v-3H4z"],
+  ["nuevo", "Nuevo análisis", "M12 5v14M5 12h14"],
+  ["historial", "Historial", "M12 7v5l3 3M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z"],
+  ["modelos", "Modelos", "M4 6h16v12H4zM8 10h8M8 14h5"],
+];
+
+export default function App() {
+  const [usuario, setUsuario] = useState(null);
+  const [vista, setVista] = useState("panel");
+  const [modelos, setModelos] = useState([]);
+
+  const cargarUsuario = () => api.yo().then(setUsuario).catch(() => setUsuario(null));
+  const cargarModelos = () => api.modelos().then(setModelos).catch(() => setModelos([]));
+
+  useEffect(() => {
+    if (sesion.token()) cargarUsuario();
+  }, []);
+  useEffect(() => {
+    if (usuario) cargarModelos();
+  }, [usuario]);
+
+  if (!usuario) {
+    return (
+      <div className="acceso">
+        <header className="acceso__marca">
+          <p className="marca">{NOMBRE}</p>
+          <p className="secundario">{SUBTITULO}</p>
+        </header>
+        <main className="contenido">
+          <Login alEntrar={cargarUsuario} />
+        </main>
+      </div>
+    );
+  }
+
+  const activo = modelos.find((m) => m.activo);
+  const esAdmin = usuario.roles.includes("administrador");
+
+  function salir() {
+    sesion.cerrar();
+    setUsuario(null);
+    setModelos([]);
+    setVista("panel");
+  }
+
+  return (
+    <div className="app">
+      <aside className="lateral">
+        <header className="lateral__cabecera">
+          <p className="marca">{NOMBRE}</p>
+          <p className="secundario">{SUBTITULO}</p>
+        </header>
+
+        <nav className="menu" aria-label="Secciones de la plataforma">
+          {PESTANAS.map(([id, texto, icono]) => (
+            <button
+              key={id}
+              type="button"
+              className="menu__boton"
+              aria-current={vista === id ? "page" : undefined}
+              onClick={() => setVista(id)}
+            >
+              <svg viewBox="0 0 24 24" className="menu__icono" aria-hidden="true"><path d={icono} /></svg>
+              {texto}
+            </button>
+          ))}
+        </nav>
+
+        <div className="lateral__usuario">
+          <p>
+            <strong>{usuario.usuario}</strong>
+            <br />
+            <span className="secundario">{usuario.roles.join(", ") || "sin rol"}</span>
+          </p>
+          <button className="boton boton--secundario" type="button" onClick={salir}>Salir</button>
+        </div>
+      </aside>
+
+      <div className="principal">
+        <main className="contenido">
+          {!usuario.roles.length && (
+            <Alerta>Su cuenta no tiene un rol asignado. Contacte al administrador.</Alerta>
+          )}
+          {vista === "panel" && <Panel modelos={modelos} alNuevoAnalisis={() => setVista("nuevo")} />}
+          {vista === "nuevo" && <NuevoAnalisis modelos={modelos} />}
+          {vista === "historial" && <Historial modelos={modelos} />}
+          {vista === "modelos" && <Modelos modelos={modelos} esAdmin={esAdmin} alCambiar={cargarModelos} />}
+        </main>
+
+        <footer className="pie">
+          {activo ? (
+            <p>
+              Modelo activo: <strong>{activo.version}</strong> ({activo.nombre_modelo})
+            </p>
+          ) : (
+            <p>No hay un modelo activo registrado.</p>
+          )}
+        </footer>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,19 @@
+# Secretos
+.env
+backend/.env
+
+# Entornos y dependencias
+.venv/
+node_modules/
+__pycache__/
+
+# Datos originales y derivados pesados (se documentan, no se versionan)
+Datos/
+datos_procesados/historial_runs.pkl
+cache_github/
+
+# Base de datos local de desarrollo
+backend/db.sqlite3
+
+# Compilados del frontend
+frontend/dist/

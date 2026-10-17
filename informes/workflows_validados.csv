@@ -1,0 +1,640 @@
+repositorio,repo_github_id,workflow_path,workflow_github_id,despliegue_validado,ejecuciones_con_despliegue,mecanismos,filas_dataset,positivos_dataset,ambiguas_dataset
+0xpolygon/polygon-edge,287542207,.github/workflows/manual.deploy.nightly.devnet.yml,53345464,True,4,shell: terraform apply,5,2,2
+0xpolygon/polygon-edge,287542207,.github/workflows/nightly.yml,50584674,True,3,shell: terraform apply,3,0,1
+142vip/408csfamily,274091789,.github/workflows/CD.yaml,68754587,True,3,shell: vercel deploy,4,2,0
+142vip/408csfamily,274091789,.github/workflows/esc-deploy.yml,50079489,True,1,appleboy/ssh-action,1,1,0
+142vip/408csfamily,274091789,.github/workflows/vercel-deploy.yml,68084882,True,5,amondnet/vercel-action; shell: vercel deploy,5,3,0
+2anki/2anki.net,256559677,.github/workflows/deploy.2anki.net.yml,2460091,True,10,appleboy/ssh-action,10,1,0
+3kmfi6hp/edtunnel,650579041,.github/workflows/cf.yml,62585717,True,5,cloudflare/wrangler-action,5,0,0
+5e-bits/5e-srd-api,76232302,.github/workflows/ci.yml,4057954,True,5,akhileshns/heroku-deploy,5,0,1
+AirCodeLabs/aircode,574417043,.github/workflows/docs-en.yaml,42263553,True,5,shell: vercel deploy,5,0,0
+AirCodeLabs/aircode,574417043,.github/workflows/docs-zh-cn.yaml,42259284,True,5,shell: vercel deploy,5,0,0
+Dataherald/dataherald,656385153,.github/workflows/push-deploy-image-stage.yml,62844249,True,3,aws-actions/amazon-ecs-deploy-task-definition,5,0,2
+Infisical/infisical,521655652,.github/workflows/build-staging-img.yml,60170948,True,5,shell: helm upgrade,5,0,0
+Linen-dev/linen.dev,459627617,.github/workflows/cicd.yml,62178276,True,5,shell: vercel deploy,5,0,3
+MilanCommunity/Milan,448605691,.github/workflows/prodtest.yml,44478507,True,10,shell: vercel deploy,10,0,0
+MilanCommunity/Milan,448605691,.github/workflows/prodtestbeta.yml,65270186,True,5,shell: vercel deploy,5,0,0
+MountainDash/nonebot-bison,335602189,.github/workflows/release.yml,26568094,True,1,nwtgck/actions-netlify,2,1,1
+PrefectHQ/marvin,612350395,.github/workflows/deploy-cloudrun-revision-community.yaml,55646832,True,4,google-github-actions/deploy-cloudrun,5,0,1
+PrefectHQ/marvin,612350395,.github/workflows/deploy-cloudrun-revision-internal.yaml,55646833,True,5,google-github-actions/deploy-cloudrun,5,0,0
+Shaunwei/RealChar,658949840,.github/workflows/build_push_deploy.yaml,64600787,True,4,shell: kubectl rollout restart,5,0,1
+Shaunwei/RealChar,658949840,.github/workflows/push_prod.yaml,64745113,True,3,shell: kubectl rollout restart,5,0,2
+Shaunwei/RealChar,658949840,.github/workflows/react_build_push_deploy.yaml,64603482,True,4,shell: kubectl rollout restart,5,0,1
+Shaunwei/RealChar,658949840,.github/workflows/react_push_prod.yaml,64745114,True,3,shell: kubectl rollout restart,5,0,2
+StanGirard/quivr,640079149,.github/workflows/aws-strapi.yml,70121540,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,0
+StanGirard/quivr,640079149,.github/workflows/aws.yml,59022142,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,0
+StanGirard/quivr,640079149,.github/workflows/vercel-docs.yml,62014057,True,4,shell: vercel deploy,5,1,0
+StanGirard/quivr,640079149,.github/workflows/vercel.yml,61676294,True,5,shell: vercel deploy,5,0,0
+acemod/ace3,29069174,.github/workflows/documentation.yml,25663,True,5,nwtgck/actions-netlify,5,0,0
+adrienpoly/rubyvideo,654539568,.github/workflows/deploy.yml,60457267,True,2,shell: kamal deploy,3,1,0
+aidewoode/black_candy,120575426,.github/workflows/deploy.yml,68022196,True,10,shell: kamal deploy,10,0,0
+airgap-it/airgap-vault,140544417,.github/workflows/netflify.yml,11820689,True,5,shell: netlify deploy,5,0,2
+akshata29/chatpdf,614854112,.github/workflows/backendapp.yml,54698699,True,5,azure/webapps-deploy,5,0,0
+akshata29/chatpdf,614854112,.github/workflows/backendfpdoapp.yml,63170906,True,6,azure/webapps-deploy,10,0,5
+akshata29/chatpdf,614854112,.github/workflows/pythonapi.yml,54692147,True,3,azure/functions-action,5,2,1
+akshata29/chatpdf,614854112,.github/workflows/pythonfpdoapi.yml,63170907,True,3,azure/functions-action,5,2,0
+alii/searchy,392780771,.github/workflows/cloudflare.yml,11918944,True,5,cloudflare/wrangler-action,6,5,1
+allegro/turnilo,112598304,.github/workflows/ci.yml,41165454,True,4,shell: gcloud run deploy,1,1,0
+altair-graphql/altair,86188653,.github/workflows/firebase-hosting-merge.yml,7677006,True,5,firebaseextended/action-hosting-deploy,5,0,0
+andig/evcc,226368338,.github/workflows/release.yml,3786481,True,4,shell: flyctl deploy; superfly/flyctl-actions,10,0,6
+angular/components,49016322,.github/workflows/deploy-dev-app-main-push.yml,74773086,True,5,firebaseextended/action-hosting-deploy; shell: Firebase deploy,5,0,0
+angular/components,49016322,.github/workflows/deploy-dev-app.yml,14524856,True,3,firebaseextended/action-hosting-deploy; shell: Firebase deploy,5,0,2
+animavita/animavita,206103703,.github/workflows/deploy-backend.yml,45009605,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,0,0
+aot-technologies/forms-flow-ai,253983329,.github/workflows/qa-deployment.yml,64325877,True,5,shell: kubectl rollout restart,5,0,0
+apache/shenyu,140543886,.github/workflows/integrated-test-k8s-ingress-alibaba-dubbo.yml,69641743,True,5,shell: kubectl apply,1,0,1
+apache/shenyu,140543886,.github/workflows/integrated-test-k8s-ingress-apache-dubbo.yml,69335196,True,5,shell: kubectl apply,1,0,1
+apache/shenyu,140543886,.github/workflows/integrated-test-k8s-ingress-http.yml,68999806,True,9,shell: kubectl apply,2,0,0
+apache/shenyu,140543886,.github/workflows/integrated-test-k8s-ingress-motan.yml,69117491,True,10,shell: kubectl apply,2,0,0
+apache/shenyu,140543886,.github/workflows/integrated-test-k8s-ingress-spring-cloud.yml,68970851,True,9,shell: kubectl apply,2,0,0
+apache/shenyu,140543886,.github/workflows/integrated-test-k8s-ingress-websocket.yml,69450117,True,5,shell: kubectl apply,1,0,1
+apache/shenyu,140543886,.github/workflows/integrated-test-k8s-ingress.yml,62600423,True,4,shell: kubectl apply,1,0,1
+api-platform/demo,71341253,.github/workflows/cd.yml,14889867,True,5,shell: helm upgrade,1,0,1
+apollographql/apollo-android,69469299,.github/workflows/docs-publish.yml,22465237,True,2,shell: netlify deploy,5,0,3
+appbaseio/arc,170903794,.github/workflows/binary-publish.yml,15443214,True,8,appleboy/ssh-action,10,2,2
+argentlabs/dappland,545604995,.github/workflows/deploy.yml,38097054,True,5,shell: vercel deploy,5,1,0
+arkecosystem/core,111684364,.github/workflows/mainnet-sync.yml,7901960,True,1,appleboy/ssh-action,5,0,5
+ashdavies/playground,36688248,.github/workflows/google-cloud.yml,49381596,True,3,shell: terraform apply,3,0,0
+ashdavies/playground,36688248,.github/workflows/terraform.yml,71766366,True,4,shell: terraform apply,4,0,0
+ashmind/sharplab,18518837,.github/workflows/server-edge.yml,4672078,True,1,azure/webapps-deploy,1,0,1
+astarnetwork/astar-docs,465525455,.github/workflows/firebase-hosting-merge.yml,29306945,True,5,firebaseextended/action-hosting-deploy,5,0,0
+atomicdata-dev/atomic-server,277186121,.github/workflows/deploy_production.yml,48014408,True,2,appleboy/ssh-action; easingthemes/ssh-deploy,2,2,0
+atomicdata-dev/atomic-server,277186121,.github/workflows/deploy_staging.yml,47838067,True,9,appleboy/ssh-action; easingthemes/ssh-deploy,10,1,0
+atsign-foundation/at_client_sdk,307678346,.github/workflows/at_client_sdk.yaml,7505709,True,5,appleboy/ssh-action,2,0,0
+avrae/avrae,80693828,.github/workflows/deploy-nightly.yml,5778595,True,5,shell: aws ecs update-service,5,0,0
+avrae/avrae,80693828,.github/workflows/deploy-staging.yml,7284022,True,5,shell: aws ecs update-service,5,0,0
+avrae/avrae,80693828,.github/workflows/deploy.yml,5778596,True,4,shell: aws ecs update-service,5,0,1
+aws-actions/amazon-ecs-deploy-task-definition,220386210,.github/workflows/test-workflow.yml,498410,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,0
+aws-observability/aws-otel-collector,295875994,.github/workflows/perf.yml,3815528,True,5,shell: terraform apply,5,0,0
+aws/aws-xray-daemon,121416611,.github/workflows/continuous-build.yml,2889527,True,3,shell: terraform apply,3,0,0
+aws/aws-xray-sdk-go,97753296,.github/workflows/IntegrationTesting.yml,4448262,True,5,shell: terraform apply,5,0,5
+aws/aws-xray-sdk-python,103969019,.github/workflows/IntegrationTesting.yaml,3835511,True,5,shell: terraform apply,5,0,1
+aws/karpenter,278480393,.github/workflows/alpha-e2e-scale-trigger.yaml,73995737,True,4,shell: helm upgrade,5,3,2
+aws/karpenter,278480393,.github/workflows/e2e-matrix-trigger.yaml,62780605,True,5,shell: helm upgrade; shell: kubectl apply,5,0,1
+aws/karpenter,278480393,.github/workflows/e2e-matrix.yaml,58202190,True,3,shell: helm upgrade; shell: kubectl apply,3,3,0
+aws/karpenter,278480393,.github/workflows/e2e-scale-trigger.yaml,60409849,True,3,shell: helm upgrade,3,3,0
+axiaoxin-com/x-stock,359297799,.github/workflows/deploy.yml,10570478,True,3,appleboy/ssh-action,5,2,0
+axiaoxin-com/x-stock,359297799,.github/workflows/sync.yml,31086746,True,5,appleboy/ssh-action,5,0,0
+azat-io/eslint-plugin-perfectionist,636870455,.github/workflows/docs.yml,56452941,True,5,nwtgck/actions-netlify,5,0,0
+azure/aks-construction,379248577,.github/workflows/StandardCI.yml,10749441,True,5,shell: kubectl apply,2,0,0
+azure/commercial-marketplace-saas-accelerator,239046185,.github/workflows/cicd.yml,46826010,True,4,azure/webapps-deploy,5,1,1
+azure/communication-ui-library,331411128,.github/workflows/deploy-azure-webapps.yml,6202683,True,1,azure/webapps-deploy,1,0,1
+azure/communication-ui-library,331411128,.github/workflows/deploy-feature-azure-webapps.yml,58088010,True,1,azure/webapps-deploy,1,0,1
+azure/communication-ui-library,331411128,.github/workflows/deploy-release-azure-webapps.yml,19750516,True,1,azure/webapps-deploy,1,0,1
+azure/iotedge-lorawan-starterkit,145098743,.github/workflows/e2e-ci.yaml,14786069,True,4,azure/functions-action,4,1,3
+backube/snapscheduler,172356421,.github/workflows/tests.yml,138673,True,5,shell: helm install,1,0,1
+backube/volsync,390717642,.github/workflows/operator.yml,11739309,True,5,shell: helm install,3,1,0
+banchanart/banchan,378744379,.github/workflows/deploy.yaml,62967742,True,5,superfly/flyctl-actions,5,0,0
+banchanart/banchan,378744379,.github/workflows/deploy_to_dev.yaml,68173215,True,5,superfly/flyctl-actions,5,0,0
+banchanart/banchan,378744379,.github/workflows/deploy_to_prod.yaml,68173216,True,5,superfly/flyctl-actions,5,0,0
+barre/privaxy,490055087,.github/workflows/update-filters.yaml,25694084,True,5,cloudflare/wrangler-action,5,0,0
+bbuf/giantpandacv.com,305923251,.github/workflows/zdby.yml,53951364,True,5,appleboy/ssh-action,5,0,0
+bdunderscore/modular-avatar,529692070,.github/workflows/deploy-pages.yml,34494052,True,5,cloudflare/wrangler-action,5,0,0
+beefyfinance/beefy-api,301177237,.github/workflows/heroku-deploy.yaml,24858144,True,5,akhileshns/heroku-deploy,5,0,0
+bencherdev/bencher,282416261,.github/workflows/bencher.yml,25680890,True,2,shell: flyctl deploy; superfly/flyctl-actions,2,0,2
+betagouv/mon-entreprise,61212750,.github/workflows/deploy.yaml,6822705,True,5,nwtgck/actions-netlify,5,0,1
+binarykits/binarykits.zpl,88713815,.github/workflows/deploy_binarykits-zpl-viewer.yml,11962150,True,5,azure/webapps-deploy,5,0,0
+biomejs/biome,671654508,.github/workflows/website_deploy.yml,66490951,True,5,shell: vercel deploy,5,5,0
+biomejs/biome,671654508,.github/workflows/website_deploy_prod.yml,66507906,True,5,shell: vercel deploy,5,0,0
+biowasm/biowasm,206987038,.github/workflows/deploy.yml,2216397,True,5,cloudflare/wrangler-action,5,1,1
+bitfoundation/bitplatform,71365344,.github/workflows/adminpanel.cd.yml,49479017,True,1,azure/webapps-deploy,3,0,3
+bitfoundation/bitplatform,71365344,.github/workflows/blazorui.demo.cd.yml,60573197,True,1,azure/webapps-deploy,4,1,3
+bitfoundation/bitplatform,71365344,.github/workflows/platform.website.cd.yml,50386306,True,3,azure/webapps-deploy,3,0,0
+bitfoundation/bitplatform,71365344,.github/workflows/sales.website.cd.yml,50386307,True,2,azure/webapps-deploy,2,0,0
+bitwarden/server,46755185,.github/workflows/release.yml,8775421,True,5,azure/webapps-deploy,5,0,0
+bkimminich/juice-shop,24233689,.github/workflows/ci.yml,4102383,True,3,akhileshns/heroku-deploy,6,2,2
+blueprintui/blueprintui,40678349,.github/workflows/deploy.yml,44896999,True,4,firebaseextended/action-hosting-deploy,5,0,1
+bradyajohnston/molecularnodes,485261976,.github/workflows/docs.yml,57344624,True,5,shell: netlify deploy,1,0,1
+brainstormforce/astra,88477815,.github/workflows/deploy-developer-docs.yml,11371836,True,5,appleboy/ssh-action,5,0,0
+brefphp/bref,112659734,.github/workflows/website.yml,69007098,True,5,shell: vercel deploy,5,0,0
+bretfisher/docker-ci-automation,474728112,.github/workflows/10-add-k8s-test.yaml,22804804,True,3,shell: kubectl apply,3,0,0
+bretfisher/docker-ci-automation,474728112,.github/workflows/99-parallelize-jobs.yaml,22804807,True,3,shell: kubectl apply,3,1,0
+browniebroke/gatsby-image-gallery,163876302,.github/workflows/ci.yml,1896559,True,5,nwtgck/actions-netlify,3,0,0
+buildpacks/lifecycle,129179482,.github/workflows/test-s390x.yml,71352505,True,5,appleboy/ssh-action,5,0,0
+callstack/nativepack,340412012,.github/workflows/deploy.yml,7308565,True,6,shell: netlify deploy,10,0,4
+cbh123/emoji,688782933,.github/workflows/main.yml,68792290,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,0,0
+cezerin2/cezerin2,186217728,.github/workflows/deploy-prod.yml,57573438,True,1,firebaseextended/action-hosting-deploy,3,0,3
+chainsafe/gossamer,168006517,.github/workflows/staging.yml,12184484,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,4,0
+charliermarsh/ruff,523043277,.github/workflows/docs.yaml,46697185,True,9,cloudflare/wrangler-action,9,0,1
+charliermarsh/ruff,523043277,.github/workflows/playground.yaml,44005786,True,10,cloudflare/wrangler-action,10,0,1
+chen-tf/price-tracker-bot,394689663,.github/workflows/config_beta.yml,63991576,True,1,superfly/flyctl-actions,2,0,2
+chen-tf/price-tracker-bot,394689663,.github/workflows/config_prod.yml,63991577,True,1,superfly/flyctl-actions,1,0,1
+chen-tf/price-tracker-bot,394689663,.github/workflows/deploy_beta.yml,48794305,True,1,superfly/flyctl-actions,5,0,5
+chen-tf/price-tracker-bot,394689663,.github/workflows/deploy_prod.yml,48798349,True,1,superfly/flyctl-actions,5,0,5
+chillicream/hotchocolate,117102183,.github/workflows/publish-website.yml,69062892,True,4,azure/webapps-deploy,5,2,0
+chromeos/chromeos.dev,285606974,.github/workflows/nodejs.yml,2120899,True,3,firebaseextended/action-hosting-deploy,1,0,1
+cilium/cilium-cli,323610158,.github/workflows/aks-byocni.yaml,28250059,True,4,shell: helm install,5,1,0
+cilium/cilium-cli,323610158,.github/workflows/eks-tunnel.yaml,5665689,True,5,shell: helm install,5,1,0
+cilium/cilium-cli,323610158,.github/workflows/eks.yaml,5090807,True,5,shell: helm install,5,1,0
+cilium/cilium-cli,323610158,.github/workflows/externalworkloads.yaml,7195017,True,5,shell: helm install,5,0,0
+cilium/cilium-cli,323610158,.github/workflows/gke.yaml,5005455,True,5,shell: helm install,5,0,0
+cilium/cilium-cli,323610158,.github/workflows/multicluster.yaml,4858040,True,5,shell: helm install,5,0,0
+cinnyapp/cinny,359156123,.github/workflows/deploy-pull-request.yml,15241937,True,10,nwtgck/actions-netlify,10,0,0
+cinnyapp/cinny,359156123,.github/workflows/netlify-dev.yml,22910754,True,9,nwtgck/actions-netlify,10,0,1
+cinnyapp/cinny,359156123,.github/workflows/prod-deploy.yml,22910755,True,3,nwtgck/actions-netlify,3,0,0
+cisagov/crossfeed,274776339,.github/workflows/backend.yml,1680384,True,1,shell: sls deploy,1,0,1
+cisagov/crossfeed,274776339,.github/workflows/infrastructure.yml,1680386,True,1,shell: terraform apply,1,0,1
+cjbi/wetech-admin,108805608,.github/workflows/ci.yml,48589231,True,6,appleboy/ssh-action,10,0,4
+cjbi/wetech-admin,108805608,.github/workflows/schedule.yml,48589233,True,10,appleboy/ssh-action,10,0,0
+cliclitv/go-clicli,139707994,.github/workflows/main.yml,41368128,True,5,appleboy/ssh-action,5,0,0
+codebam/cf-workers-telegram-bot,459813878,.github/workflows/publish.yml,44134884,True,5,cloudflare/wrangler-action,5,0,0
+cokemine/nodestatus,334695943,.github/workflows/vercel.yml,26041944,True,4,amondnet/vercel-action,3,0,0
+connext/nxtp,378282555,.github/workflows/build-test-deploy.yml,27900856,True,6,shell: terraform apply,8,1,2
+corona-warn-app/cwa-website,262149353,.github/workflows/deploy-master.yml,1231041,True,3,azure/webapps-deploy,5,0,2
+coronasafe/care,247995671,.github/workflows/deployment.yaml,18234152,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/lf-production-deploy-new.yaml,61130073,True,5,shell: kubectl set image,5,0,2
+crowddotdev/crowd.dev,508240664,.github/workflows/lf-production-deploy-original.yaml,61130074,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/lf-staging-deploy-backend.yaml,65092801,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/lf-staging-deploy-data-sink-worker.yaml,65092802,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/lf-staging-deploy-frontend.yaml,65092803,True,5,shell: kubectl set image,5,5,0
+crowddotdev/crowd.dev,508240664,.github/workflows/lf-staging-deploy-integration-data-worker.yaml,65092804,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/lf-staging-deploy-integration-run-worker.yaml,65092805,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/lf-staging-deploy-integration-stream-worker.yaml,65092806,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/lf-staging-deploy-search-sync-worker.yaml,65092808,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/lf-staging-deploy-webhook-api.yaml,68054321,True,3,shell: kubectl set image,3,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/production-deploy-new.yaml,61130075,True,5,shell: kubectl set image,5,0,1
+crowddotdev/crowd.dev,508240664,.github/workflows/production-deploy-original.yaml,61130076,True,5,shell: kubectl set image,5,0,1
+crowddotdev/crowd.dev,508240664,.github/workflows/staging-deploy-backend.yaml,41669743,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/staging-deploy-data-sink-worker.yaml,58605346,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/staging-deploy-frontend.yaml,41643069,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/staging-deploy-integration-data-worker.yaml,58605345,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/staging-deploy-integration-run-worker.yaml,58605343,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/staging-deploy-integration-stream-worker.yaml,58605344,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/staging-deploy-integration-sync-worker.yaml,63868998,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/staging-deploy-search-sync-worker.yaml,61130077,True,5,shell: kubectl set image,5,0,0
+crowddotdev/crowd.dev,508240664,.github/workflows/staging-deploy-webhook-api.yaml,68054322,True,5,shell: kubectl set image,5,0,0
+crumbhole/argocd-lovely-plugin,414125826,.github/workflows/pull.yaml,13895279,True,5,shell: kubectl apply,3,0,0
+daangn/karrot-ui,346700901,.github/workflows/docs-deploy-alpha-pages.yml,45889234,True,10,cloudflare/wrangler-action,10,0,4
+daangn/karrot-ui,346700901,.github/workflows/docs-deploy-production-pages.yml,45982461,True,10,cloudflare/wrangler-action,10,0,0
+daangn/karrot-ui,346700901,.github/workflows/docs-deploy-storybook.yml,45982462,True,1,cloudflare/wrangler-action,1,0,1
+dagster-io/dagster,131619646,.github/workflows/build-storybook-ui.yml,52517390,True,5,amondnet/vercel-action,1,0,1
+danbooru/danbooru,502760,.github/workflows/deploy-betabooru.yaml,13440190,True,2,shell: kubectl rollout restart,5,0,3
+danielfrg/jupyter-flex,227915638,.github/workflows/docs.yml,1497998,True,2,firebaseextended/action-hosting-deploy,2,0,0
+dart-lang/site-www,63089994,.github/workflows/build.yml,5717600,True,1,firebaseextended/action-hosting-deploy,2,0,2
+data-client/data-client,170797156,.github/workflows/site-release.yml,66234892,True,11,shell: vercel deploy,11,0,0
+definitelytyped/dt-mergebot,248568185,.github/workflows/upload.yml,809397,True,1,azure/functions-action,4,0,4
+devbettercom/devbetterweb,152619864,.github/workflows/ci-cd.yml,10827936,True,1,azure/webapps-deploy,3,0,3
+dimensiondev/maskbook,178806582,.github/workflows/netlify.yml,12470015,True,4,nwtgck/actions-netlify,4,0,1
+direktiv/direktiv,341374526,.github/workflows/review_deploy.yaml,69130218,True,1,appleboy/ssh-action,1,0,1
+djangogirls/djangogirls,20439809,.github/workflows/deploy.yml,49446187,True,2,appleboy/ssh-action,3,2,1
+djay/covidthailand,339316247,.github/workflows/main.yml,5850940,True,5,nwtgck/actions-netlify,5,0,0
+dream-num/univer,543101941,.github/workflows/ci.yml,68375406,True,5,amondnet/vercel-action,3,0,0
+drivendataorg/cloudpathlib,282985411,.github/workflows/docs-master.yml,2662186,True,5,nwtgck/actions-netlify,5,0,0
+drivendataorg/cloudpathlib,282985411,.github/workflows/release.yml,2662153,True,1,nwtgck/actions-netlify,2,0,2
+dwyl/labels,70141339,.github/workflows/main.yml,20918383,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,1,0
+dyc3/opentogethertube,198065251,.github/workflows/main.yml,60079,True,1,shell: flyctl deploy; superfly/flyctl-actions,1,0,1
+dylanpdx/bettertwitfix,491931869,.github/workflows/deploy.yml,42411596,True,5,shell: serverless deploy,5,0,0
+e-maxx-eng/e-maxx-eng,22197389,.github/workflows/deploy-prod.yml,12199492,True,10,firebaseextended/action-hosting-deploy,10,0,0
+easingthemes/ssh-deploy,210941897,.github/workflows/e2e.yml,44230230,True,5,easingthemes/ssh-deploy,5,0,0
+eddiehubcommunity/linkfree,405139301,.github/workflows/vercel.yml,55079960,True,5,shell: vercel deploy,5,0,0
+edgedb/edgedb,95817032,.github/workflows/tests-managed-pg.yml,6840472,True,5,shell: terraform apply,5,5,0
+edgelesssys/constellation,529896509,.github/workflows/aws-terraform-module.yml,73925172,True,2,shell: terraform apply,3,3,0
+edgelesssys/constellation,529896509,.github/workflows/e2e-s3proxy.yml,72427421,True,3,shell: kubectl apply,4,4,0
+edgelesssys/constellation,529896509,.github/workflows/e2e-test-daily.yml,39203190,True,5,shell: helm install,5,1,1
+edgelesssys/constellation,529896509,.github/workflows/e2e-test-self-managed.yml,74716792,True,3,shell: terraform apply,5,0,5
+edgelesssys/constellation,529896509,.github/workflows/e2e-test-tf-module.yml,74377775,True,5,shell: terraform apply,5,2,0
+edgelesssys/constellation,529896509,.github/workflows/e2e-test-weekly.yml,39205899,True,2,shell: helm install; shell: kubectl apply,2,2,0
+edgelesssys/constellation,529896509,.github/workflows/e2e-test.yml,74899037,True,2,shell: helm install,4,0,4
+edgelesssys/constellation,529896509,.github/workflows/e2e-upgrade.yml,44046337,True,5,shell: helm install,5,3,0
+ediwang/moonglade,168287048,.github/workflows/azure-appservice-staging.yml,70737815,True,5,azure/webapps-deploy,5,0,0
+eggjs/egg,61421257,.github/workflows/vercel-production.yml,42284138,True,5,shell: vercel deploy,5,0,0
+ekzhang/classes.wtf,522145110,.github/workflows/ci.yml,31871915,True,3,superfly/flyctl-actions,3,0,0
+elixirschool/school_house,335130438,.github/workflows/deploy.yml,7784521,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,0,1
+epfml/disco,274528384,.github/workflows/deploy-server.yml,21554924,True,1,google-github-actions/deploy-appengine,4,0,4
+epicweb-dev/epic-stack,636447277,.github/workflows/deploy.yml,56300146,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,0,0
+epinio/epinio,311485110,.github/workflows/rke2-lh-ec2.yml,54197927,True,5,shell: kubectl apply,5,1,0
+eporsche/daybreak,354799085,.github/workflows/heroku.yml,8489810,True,5,akhileshns/heroku-deploy,5,5,0
+ethworks/usedapp,322542582,.github/workflows/deploy.yml,21553830,True,5,nwtgck/actions-netlify,2,0,0
+ethworks/usedapp,322542582,.github/workflows/release.yml,5767498,True,2,nwtgck/actions-netlify,5,1,2
+eugeny/terminus,77213120,.github/workflows/docs.yml,295,True,7,firebaseextended/action-hosting-deploy,7,0,2
+ever-co/ever-gauzy,189829392,.github/workflows/deploy-civo-demo.yml,71176997,True,5,shell: kubectl apply,5,0,0
+ever-co/ever-gauzy,189829392,.github/workflows/deploy-civo-prod.yml,71941784,True,5,shell: kubectl apply,5,0,0
+ever-co/ever-gauzy,189829392,.github/workflows/deploy-civo-stage.yml,71941785,True,5,shell: kubectl apply,5,0,0
+ever-co/ever-gauzy,189829392,.github/workflows/deploy-cw-demo.yml,65344980,True,5,shell: kubectl apply,5,0,0
+ever-co/ever-gauzy,189829392,.github/workflows/deploy-fly-demo.yml,63550486,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,2,0
+evilmartians/oklch-picker,461203410,.github/workflows/ci.yml,24573892,True,4,firebaseextended/action-hosting-deploy,5,1,0
+facebookincubator/cinder,348501270,.github/workflows/cinder-oss-build-and-test.yml,8534073,True,5,shell: aws ecs update-service,5,0,0
+fal-ai/dbt-fal,332564330,.github/workflows/docs_deployment.yml,23092900,True,1,amondnet/vercel-action,5,0,5
+featbit/featbit,529878640,.github/workflows/deploy-api.yml,62195401,True,3,aws-actions/amazon-ecs-deploy-task-definition,5,0,2
+featbit/featbit,529878640,.github/workflows/deploy-da.yml,62244071,True,3,aws-actions/amazon-ecs-deploy-task-definition,5,0,2
+featbit/featbit,529878640,.github/workflows/deploy-eval.yml,62244072,True,2,aws-actions/amazon-ecs-deploy-task-definition,5,0,3
+featbit/featbit,529878640,.github/workflows/deploy-ui.yml,61952186,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,0
+felienne/hedy,226863521,.github/workflows/deploy-to-alpha.yml,7241955,True,10,akhileshns/heroku-deploy,10,0,0
+felienne/hedy,226863521,.github/workflows/deploy-to-prod.yml,7225411,True,10,akhileshns/heroku-deploy,10,0,0
+ferraridamiano/converternow,268309074,.github/workflows/build_deploy.yml,5128537,True,1,firebaseextended/action-hosting-deploy,1,0,1
+filosottile/mostly-harmless,104578827,.github/workflows/fly.yml,12858345,True,1,shell: flyctl deploy; superfly/flyctl-actions,1,0,1
+financial-times/polyfill-service,21244924,.github/workflows/deploy-to-dev-and-test.yml,1049471,True,5,shell: terraform apply,5,0,1
+financial-times/polyfill-service,21244924,.github/workflows/deploy-to-production.yml,1049470,True,3,shell: terraform apply,5,0,2
+financial-times/polyfill-service,21244924,.github/workflows/deploy-to-staging-and-test.yml,1049469,True,4,shell: terraform apply,5,0,2
+firebase/firebase-android-sdk,146941185,.github/workflows/ci_tests.yml,32627447,True,1,shell: terraform apply,1,0,1
+flagsmith/flagsmith,136163130,.github/workflows/api-deploy-production-ecs.yml,20907552,True,3,aws-actions/amazon-ecs-deploy-task-definition,5,0,2
+flagsmith/flagsmith,136163130,.github/workflows/api-deploy-staging-ecs.yml,18101077,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,0
+flagsmith/flagsmith,136163130,.github/workflows/frontend-deploy-production.yml,10383852,True,4,shell: vercel --prod,4,0,0
+fleaflet/flutter_map,119082948,.github/workflows/master.yml,64213122,True,5,firebaseextended/action-hosting-deploy,5,0,0
+fleaflet/flutter_map,119082948,.github/workflows/push.yml,57030083,True,1,firebaseextended/action-hosting-deploy,5,0,5
+fleetdm/fleet,309820286,.github/workflows/deploy-fleet-website.yml,3968105,True,5,akhileshns/heroku-deploy; shell: git push heroku,5,0,0
+fleetdm/fleet,309820286,.github/workflows/dogfood-deploy.yml,24703183,True,5,shell: terraform apply,5,2,0
+fluttercommunity/plus_plugins,300620456,.github/workflows/build_deploy_website.yaml,3536823,True,5,firebaseextended/action-hosting-deploy,5,0,0
+fluxcd/flagger,149515625,.github/workflows/release.yml,4417669,True,4,shell: Helm install,5,3,0
+flyimg/flyimg,53397944,.github/workflows/cd.yml,4623678,True,3,appleboy/ssh-action,5,0,2
+fontsource/fontsource,264742473,.github/workflows/download-vm.yml,71344511,True,2,shell: flyctl deploy; superfly/flyctl-actions,3,2,1
+fontsource/fontsource,264742473,.github/workflows/website.yml,34087885,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,3,0
+foundationdb/fdb-kubernetes-operator,221993778,.github/workflows/pull_request.yml,576109,True,5,shell: kubectl apply,1,0,1
+freecodecamp/devdocs,13840241,.github/workflows/build.yml,7270215,True,5,akhileshns/heroku-deploy,5,0,0
+freelawproject/courtlistener,22257580,.github/workflows/docker-build.yml,28174921,True,5,shell: kubectl set image,5,0,0
+gaganpreet/fastapi-starter,398072998,.github/workflows/deploy-demo.yml,26904934,True,5,superfly/flyctl-actions,5,5,0
+game-ci/documentation,267601801,.github/workflows/firebase-hosting-merge.yml,48796742,True,5,firebaseextended/action-hosting-deploy,5,0,0
+genshinsim/gcsim,376835082,.github/workflows/deploy.yml,32049408,True,5,cloudflare/wrangler-action,5,0,0
+geocompx/geocompy,447558863,.github/workflows/netlify.yml,29410151,True,5,nwtgck/actions-netlify,5,0,0
+gmpetrov/databerry,619814004,.github/workflows/fly.yaml,53465249,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,0,0
+go-admin-team/go-admin,247032621,.github/workflows/build.yml,39281833,True,1,appleboy/ssh-action,3,3,0
+gofarsi/book,555287740,.github/workflows/cloudflare-wk.yml,44540548,True,5,cloudflare/wrangler-action,5,0,0
+gogatekeeper/gatekeeper,316338229,.github/workflows/release.yml,4231607,True,5,shell: kubectl apply,5,1,0
+google/crmint,138856518,.github/workflows/terraform.yml,42520311,True,10,shell: terraform apply,2,0,0
+google/devlibrary,362841575,.github/workflows/firebase-hosting-merge.yml,66399065,True,5,firebaseextended/action-hosting-deploy,5,5,0
+google/ground-platform,131027760,.github/workflows/firebase-deploy.yml,29797516,True,1,firebaseextended/action-hosting-deploy,4,4,0
+google/shaka-player,28246472,.github/workflows/demo-version-index.yaml,22293914,True,10,google-github-actions/deploy-appengine,10,0,0
+google/shaka-player,28246472,.github/workflows/nightly-demo.yaml,22293915,True,10,google-github-actions/deploy-appengine,10,0,1
+googlecloudplatform/microservices-demo,143460965,.github/workflows/ci-main.yaml,35950051,True,5,shell: kubectl apply,5,0,0
+googlecontainertools/kpt,208908993,.github/workflows/firebase-hosting-merge.yml,6425472,True,10,firebaseextended/action-hosting-deploy,10,0,0
+gothinkster/realworld,52631841,.github/workflows/continuous-deployment.yaml,55654197,True,3,nwtgck/actions-netlify,5,2,0
+gramps-project/gramps.js,315729209,.github/workflows/demo2.yml,35339969,True,5,google-github-actions/deploy-cloudrun,5,0,0
+grandnode/grandnode2,366064221,.github/workflows/grandnode.yml,22645432,True,5,azure/webapps-deploy,5,0,0
+gravitl/netmaker,351486934,.github/workflows/deletedroplets.yml,52740802,True,5,appleboy/ssh-action,5,0,0
+green-software-foundation/carbon-aware-sdk,409382013,.github/workflows/dev_carbon-aware-api.yml,36515581,True,5,azure/webapps-deploy,5,0,0
+gregrickaby/nextjs-wordpress,342459015,.github/workflows/deploy-backend.yml,37188214,True,5,easingthemes/ssh-deploy,5,0,1
+gristlabs/grist-core,266033395,.github/workflows/fly-cleanup.yml,61451164,True,5,superfly/flyctl-actions,5,0,0
+growthbook/growthbook,365373172,.github/workflows/deploy.yml,13119069,True,5,shell: aws ecs update-service,5,0,0
+hashicorp/setup-terraform,258271226,.github/workflows/setup-terraform.yml,1103492,True,5,shell: terraform apply,2,0,0
+hashicorp/terraform-provider-kubernetes,93446115,.github/workflows/acceptance_tests_aks.yaml,51899949,True,5,shell: terraform apply,5,0,0
+hashicorp/terraform-provider-kubernetes,93446115,.github/workflows/acceptance_tests_eks.yaml,24037720,True,5,shell: terraform apply,5,2,0
+hashicorp/terraform-provider-kubernetes,93446115,.github/workflows/acceptance_tests_gke.yaml,29807157,True,5,shell: terraform apply,5,0,0
+hashicorp/terraform-provider-vsphere,93446037,.github/workflows/acceptance-tests.yaml,63120072,True,5,shell: terraform apply,5,5,0
+haveibeenpwned/pwnedpasswordsazurefunction,343348857,.github/workflows/deploy-function.yml,12478639,True,5,azure/functions-action,5,0,0
+hay-kot/homebox,530469130,.github/workflows/publish.yaml,33589026,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,2,0
+he4rt/he4rt-bot-next,567083040,.github/workflows/deploy.yml,41049079,True,5,appleboy/ssh-action; easingthemes/ssh-deploy,5,0,0
+highlight/highlight,289073337,.github/workflows/deploy.yml,12791286,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,0
+hirosystems/ordinals-api,601777211,.github/workflows/vercel.yml,48402736,True,5,shell: vercel deploy,5,0,0
+hirosystems/stacks-blockchain-api,238719629,.github/workflows/netlify.yml,16446764,True,5,nwtgck/actions-netlify,3,0,1
+hoprnet/hoprnet,286462146,.github/workflows/load-tests.yaml,70788045,True,3,shell: kubectl apply,4,0,1
+httptoolkit/httptoolkit-ui,116742556,.github/workflows/ci.yml,3134096,True,4,nwtgck/actions-netlify,4,0,1
+hubtype/botonic,126741221,.github/workflows/botonic-docs-netlify-deploy.yml,56114491,True,1,nwtgck/actions-netlify,1,0,1
+hufe921/canvas-editor,427384949,.github/workflows/build.yml,22578580,True,1,appleboy/ssh-action,5,0,5
+ietf-tools/datatracker,465885927,.github/workflows/tests-az.yml,72505149,True,1,appleboy/ssh-action,5,0,5
+ignisda/ryot,623085657,.github/workflows/release.yml,55332735,True,1,shell: flyctl deploy; superfly/flyctl-actions,4,0,4
+ignite-hq/cli,274450818,.github/workflows/docs-deploy.yml,24995018,True,8,firebaseextended/action-hosting-deploy,8,0,0
+imjasonh/kontain.me,160939184,.github/workflows/deploy.yaml,13440181,True,5,shell: terraform apply,5,5,0
+instructure/instructure-ui,47776025,.github/workflows/manual-deploy-docs.yml,9188624,True,4,shell: netlify deploy,4,0,0
+instructure/instructure-ui,47776025,.github/workflows/release.yml,5378672,True,1,shell: netlify deploy,4,3,1
+intershop/intershop-pwa,221003033,.github/workflows/reports.yml,5558341,True,5,shell: az webapp config container set --resource-group $GROUP --name $APP --docker-registry-server-user *** --docker-registry-server-password *** --docker-custom-image-name $DOCKER_IMAGE_REPORTS || az webapp create --resource-group $GROUP --plan *** --name $APP --docker-registry-server-user *** --docker-registry-server-password *** --deploy,5,0,0
+iqengine/iqengine,591547457,.github/workflows/run_staging_deployment.yml,60835547,True,5,azure/container-apps-deploy-action,5,1,0
+iqss/dataverse,14051004,.github/workflows/deploy_beta_testing.yml,65051423,True,5,appleboy/ssh-action,5,5,0
+isno/thebytebook,547677901,.github/workflows/deploy.yml,51021649,True,5,easingthemes/ssh-deploy,5,0,0
+izderadicka/audioserve,116424493,.github/workflows/build_dev_image.yml,14626434,True,2,appleboy/ssh-action,4,0,4
+jasontaylordev/cleanarchitecture,213460285,.github/workflows/cicd.yml,63281202,True,2,azure/arm-deploy; azure/webapps-deploy,5,3,0
+jellyfin/jellyfin-android,281379981,.github/workflows/app-publish.yaml,9275374,True,3,appleboy/ssh-action,3,0,0
+jellyfin/jellyfin-androidtv,161651256,.github/workflows/app-publish.yaml,10323782,True,4,appleboy/ssh-action,5,0,1
+jellyfin/jellyfin-ffmpeg,170950640,.github/workflows/publish.yaml,20862204,True,5,appleboy/ssh-action,5,0,0
+jellyfin/jellyfin-kodi,161430363,.github/workflows/publish.yaml,9913106,True,1,appleboy/ssh-action,1,0,1
+jhipster/jhipster-online,97613632,.github/workflows/deploy.yml,2386487,True,5,shell: gcloud app deploy,5,0,0
+jihadkhawaja/Egroo,376017572,.github/workflows/Deploy-Chat.yml,65957710,True,1,appleboy/ssh-action,5,0,5
+joystream/joystream,174510850,.github/workflows/deploy-playground.yml,15741828,True,2,aws-actions/aws-cloudformation-github-deploy,3,0,3
+joystream/joystream,174510850,.github/workflows/joystream-node-docker.yml,2857111,True,2,aws-actions/aws-cloudformation-github-deploy,3,0,1
+jrief/django-formset,337778539,.github/workflows/deploy.yml,33732555,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,0,0
+k0sproject/k0s,271250363,.github/workflows/check-network.yaml,2877556,True,5,shell: terraform apply,5,0,0
+k0sproject/k0s,271250363,.github/workflows/ostests-matrix.yaml,67203608,True,1,shell: terraform apply,3,0,3
+k0sproject/k0s,271250363,.github/workflows/ostests-nightly.yaml,67203609,True,5,shell: terraform apply,5,0,0
+k0sproject/k0s,271250363,.github/workflows/release.yml,2386915,True,3,shell: terraform apply,5,0,2
+kaetram/kaetram-open,188906795,.github/workflows/server.yml,61242237,True,5,appleboy/ssh-action,5,0,0
+kawalcovid19/wargabantuwarga.com,383169156,.github/workflows/deploy.yml,11030255,True,5,shell: netlify deploy,5,0,0
+keikoproj/instance-manager,201135355,.github/workflows/functional-test.yaml,5486594,True,5,shell: kubectl set image,5,5,0
+kentcdodds/kentcdodds.com,320393623,.github/workflows/deployment.yml,12761793,True,4,superfly/flyctl-actions,9,1,5
+keystonejs/keystone,128193054,.github/workflows/website_production.yml,53912209,True,5,shell: vercel deploy,5,0,0
+kishikawakatsumi/swift-power-assert,613204525,.github/workflows/power-assert-playground-AutoDeployTrigger-0200c39d-5589-4dcd-bbfe-af104bba0e65.yml,72870760,True,4,azure/container-apps-deploy-action,4,2,1
+kishikawakatsumi/swift-power-assert,613204525,.github/workflows/power-assert-playground-AutoDeployTrigger-40c4f8b5-3f69-4786-ab1a-2ec0ca9b8ae3.yml,72704620,True,1,azure/container-apps-deploy-action,1,0,1
+kishikawakatsumi/swift-power-assert,613204525,.github/workflows/power-assert-playground-AutoDeployTrigger-ceaf4482-5577-44f9-aeac-e828a404a8be.yml,72705032,True,1,azure/container-apps-deploy-action,1,0,1
+kiwicom/orbit,121522380,.github/workflows/cron-tracking.yml,44579986,True,3,appleboy/ssh-action,4,3,1
+kube-hpc/hkube,111555721,.github/workflows/deploy.yml,2024682,True,5,shell: helm upgrade,5,2,3
+kubewarden/kubewarden-controller,318490971,.github/workflows/e2e-tests.yml,15893429,True,5,shell: helm upgrade; shell: kubectl apply,5,5,0
+laboratoria/bootcamp,90423733,.github/workflows/main.yml,23016767,True,1,firebaseextended/action-hosting-deploy,3,0,3
+labring/fastgpt,605673387,.github/workflows/deploy-docs.yml,67076336,True,5,amondnet/vercel-action,5,0,1
+labring/sealos,144849757,.github/workflows/deploy-docs-site.yml,66350103,True,5,amondnet/vercel-action,5,0,1
+langchain-ai/chat-langchain,589743600,.github/workflows/deploy-cloud-run.yaml,72975319,True,5,shell: vercel deploy,5,0,0
+langchain-ai/chat-langchain,589743600,.github/workflows/deploy-production.yaml,69076517,True,10,shell: flyctl deploy; shell: vercel deploy; superfly/flyctl-actions,10,0,0
+langchain-ai/langchainjs,598342280,.github/workflows/docs-prod.yml,73123078,True,4,shell: vercel deploy,5,1,0
+layer5io/meshery,157554479,.github/workflows/build-and-release-stable.yml,25032370,True,10,appleboy/ssh-action,10,0,0
+layer5io/meshery,157554479,.github/workflows/cncf-playground-reset.yaml,55385204,True,10,appleboy/ssh-action,10,5,0
+leemonade/leemons,343487704,.github/workflows/dev-docker-deploy.yml,50467078,True,3,shell: aws ecs update-service,5,0,2
+leepeuker/movary,332466212,.github/workflows/deploy-mkdocs.yml,59180804,True,3,appleboy/ssh-action,5,0,3
+leepeuker/movary,332466212,.github/workflows/deploy-openapi.yml,68667328,True,5,appleboy/ssh-action,5,0,1
+leifermendez/bot-whatsapp,353670076,.github/workflows/netlify.yml,44156713,True,10,shell: netlify deploy,10,8,0
+libraryofcongress/concordia,134269274,.github/workflows/dev-main-deploy.yml,64344642,True,5,shell: aws ecs update-service,5,0,0
+libraryofcongress/concordia,134269274,.github/workflows/feature-branch-deploy.yml,66990773,True,5,shell: aws ecs update-service,5,0,0
+libraryofcongress/concordia,134269274,.github/workflows/prod-deploy.yml,69424138,True,2,shell: aws ecs update-service,3,0,1
+libraryofcongress/concordia,134269274,.github/workflows/stage-release-deploy.yml,66881302,True,4,shell: aws ecs update-service,5,0,2
+libraryofcongress/concordia,134269274,.github/workflows/test-main-deploy.yml,66858555,True,5,shell: aws ecs update-service,5,0,0
+lihuacai168/anotherfasterrunner,320772042,.github/workflows/deploy_docker_compose.yml,55025052,True,5,appleboy/ssh-action,5,1,0
+lissy93/web-check,658364446,.github/workflows/deploy-aws.yml,67835247,True,5,shell: serverless deploy,5,0,0
+llaske/sugarizer,14368627,.github/workflows/main.yml,45956648,True,5,appleboy/ssh-action,5,0,0
+loft-sh/vcluster,355946670,.github/workflows/docs.yaml,8278358,True,5,shell: netlify deploy,3,0,0
+loxilb-io/loxilb,507759939,.github/workflows/eks.yaml,65788513,True,5,appleboy/ssh-action; shell: kubectl apply; shell: terraform apply,5,2,0
+loxilb-io/loxilb,507759939,.github/workflows/k0s-weave.yml,58832869,True,5,shell: kubectl apply,5,5,0
+marten-seemann/quic-interop-runner,215401285,.github/workflows/deploy.yml,2531312,True,5,appleboy/ssh-action,5,0,0
+marten-seemann/quic-interop-runner,215401285,.github/workflows/interop.yml,2284697,True,4,appleboy/ssh-action,5,1,0
+material-components/material-web,127049550,.github/workflows/firebase-hosting-merge.yml,64472498,True,7,firebaseextended/action-hosting-deploy,7,0,0
+matrix-org/matrix-js-sdk,31670053,.github/workflows/docs-pr-netlify.yaml,40176847,True,5,nwtgck/actions-netlify,5,0,0
+matrix-org/matrix-react-sdk,37144575,.github/workflows/netlify.yaml,12310422,True,5,nwtgck/actions-netlify,5,0,0
+matrix-org/synapse,22844864,.github/workflows/docs-pr-netlify.yaml,39643545,True,5,nwtgck/actions-netlify,5,2,0
+matteobruni/tsparticles,238514517,.github/workflows/nodejs.yml,1313610,True,1,firebaseextended/action-hosting-deploy,1,0,1
+maxday/lambda-perf,524718790,.github/workflows/aws-deploy.yml,48191824,True,5,shell: sls deploy,5,0,1
+mbrevda/react-image,72197909,.github/workflows/buildDeploy.yml,1238618,True,4,nwtgck/actions-netlify,5,1,2
+mhuebert/maria,73474311,.github/workflows/firebase-hosting-deploy.yml,34289493,True,3,firebaseextended/action-hosting-deploy,5,0,2
+micronaut-projects/micronaut-starter,250556269,.github/workflows/gcf-snapshot.yml,1070320,True,5,shell: gcloud functions deploy,5,0,0
+micronaut-projects/micronaut-starter,250556269,.github/workflows/gcr-snapshot.yml,1064292,True,5,shell: gcloud run deploy,5,0,0
+microsoft/azurechatgpt,665339628,.github/workflows/open-ai-app.yml,63020928,True,5,azure/webapps-deploy,5,0,1
+microsoft/chat-copilot,667491171,.github/workflows/copilot-deploy-pipeline.yml,63889114,True,1,azure/webapps-deploy,4,4,0
+microsoft/opensource-portal,46088926,.github/workflows/container.yml,1836998,True,9,shell: az webapp deploy,10,0,1
+mikepopoloski/slang,80874333,.github/workflows/docs.yml,34103982,True,3,appleboy/ssh-action,3,0,0
+mixcore/mix.core,144754986,.github/workflows/develop_dev-mixcore.yml,70777346,True,5,azure/webapps-deploy,5,0,0
+mkosir/frontend-monorepo-boilerplate,527712138,.github/workflows/ci.yml,35781831,True,5,nwtgck/actions-netlify,5,0,0
+mmdapl/408csfamily,600355372,.github/workflows/vercel-deploy.yml,68089883,True,1,amondnet/vercel-action,1,0,1
+mpromonet/webrtc-streamer,27565754,.github/workflows/deploy-docker.yml,44352282,True,5,azure/container-apps-deploy-action,5,0,0
+msgbyte/tailchat,377687390,.github/workflows/deploy-website.yml,33316032,True,5,amondnet/vercel-action,5,0,0
+msgbyte/tailchat,377687390,.github/workflows/vercel-nightly.yml,11141690,True,5,amondnet/vercel-action,5,0,0
+mu-editor/mu,47607357,.github/workflows/test.yml,4101496,True,5,appleboy/ssh-action,3,2,1
+mudblazor/mudblazor,288428676,.github/workflows/deploy-mudblazor-dev.yml,42207955,True,5,azure/webapps-deploy,5,0,0
+mudblazor/mudblazor,288428676,.github/workflows/deploy-mudblazor.yml,42207957,True,2,azure/webapps-deploy,4,0,2
+mudblazor/mudblazor,288428676,.github/workflows/deploy-trymudblazor.yml,42315849,True,3,azure/webapps-deploy,5,0,3
+mx-space/core,385975421,.github/workflows/release.yml,12917064,True,3,appleboy/ssh-action,5,3,0
+named-data/ndn-cxx,16391717,.github/workflows/docs.yml,11780409,True,5,easingthemes/ssh-deploy,5,1,0
+navinpeiris/phoenix-diff,70303017,.github/workflows/cd.yaml,39385020,True,8,shell: flyctl deploy; superfly/flyctl-actions,8,0,6
+navinpeiris/phoenix-diff,70303017,.github/workflows/ci.yml,5072542,True,3,shell: flyctl deploy; superfly/flyctl-actions,6,0,3
+ndolestudio/httpsms,497607901,.github/workflows/ci.yml,27077231,True,5,firebaseextended/action-hosting-deploy,5,0,0
+nearform/graphql-hooks,169704799,.github/workflows/create-react-app-server.yml,2563640,True,5,shell: gcloud run deploy,5,0,0
+neodb-social/neodb,406083592,.github/workflows/deploy.yml,47859454,True,5,appleboy/ssh-action,5,1,0
+nethermindeth/juno,449088368,.github/workflows/upgrade-nodes-on-test-envs.yml,55525017,True,3,appleboy/ssh-action,4,4,0
+netz98/n98-magerun,5259347,.github/workflows/deploy.yml,67936950,True,5,appleboy/ssh-action,5,0,0
+netz98/n98-magerun2,25814103,.github/workflows/deploy.yml,67877075,True,5,appleboy/ssh-action,5,0,0
+nftstorage/nft.storage,345946012,.github/workflows/api.yml,8376906,True,2,cloudflare/wrangler-action,3,0,1
+nginxinc/nginx-kubernetes-gateway,420195478,.github/workflows/ci.yml,15192326,True,5,shell: helm install; shell: kubectl apply,1,0,1
+nhost/nhost,337414495,.github/workflows/changesets.yaml,19952737,True,1,shell: vercel deploy,4,0,4
+noir-lang/noir,285004577,.github/workflows/docs-release.yml,75311745,True,3,nwtgck/actions-netlify,3,0,1
+noir-lang/noir,285004577,.github/workflows/publish-docs.yml,73972210,True,2,nwtgck/actions-netlify,3,3,0
+nonebot/nb-cli,290738792,.github/workflows/website-deploy.yml,36777376,True,5,nwtgck/actions-netlify,5,0,0
+nonebot/nonebot2,289605524,.github/workflows/website-deploy.yml,15852444,True,5,nwtgck/actions-netlify,5,0,0
+novuhq/novu,400215964,.github/workflows/dev-deploy-embed.yml,23471343,True,6,nwtgck/actions-netlify,10,2,4
+novuhq/novu,400215964,.github/workflows/dev-deploy-inbound-mail.yml,46311874,True,10,aws-actions/amazon-ecs-deploy-task-definition,10,0,0
+novuhq/novu,400215964,.github/workflows/dev-deploy-ws.yml,21460325,True,8,aws-actions/amazon-ecs-deploy-task-definition,10,1,1
+novuhq/novu,400215964,.github/workflows/prod-deploy-embed.yml,23471344,True,6,nwtgck/actions-netlify,8,0,5
+novuhq/novu,400215964,.github/workflows/prod-deploy-inbound-mail.yml,46624142,True,8,aws-actions/amazon-ecs-deploy-task-definition,7,0,0
+novuhq/novu,400215964,.github/workflows/prod-deploy-ws.yml,21555112,True,7,aws-actions/amazon-ecs-deploy-task-definition,6,0,1
+nuclia/nucliadb,478288303,.github/workflows/e2e.yml,64904096,True,5,shell: helm install,1,0,1
+nvidia/aistore,114185437,.github/workflows/deploy-website.yml,11761660,True,5,shell: netlify deploy,3,0,0
+nymtech/nym,232312458,.github/workflows/build-and-upload-binaries-ci.yml,47309916,True,4,easingthemes/ssh-deploy,5,1,2
+nymtech/nym,232312458,.github/workflows/build-ts-packages.yml,21378334,True,1,easingthemes/ssh-deploy,5,0,5
+nymtech/nym,232312458,.github/workflows/cd-docs.yml,54311747,True,5,shell: vercel deploy,5,0,3
+nymtech/nym,232312458,.github/workflows/ci-docs.yml,54100111,True,5,easingthemes/ssh-deploy,5,0,3
+nymtech/nym,232312458,.github/workflows/ci-nym-connect-desktop.yml,70258447,True,5,easingthemes/ssh-deploy,1,0,1
+nymtech/nym,232312458,.github/workflows/ci-nym-network-explorer.yml,70289402,True,4,easingthemes/ssh-deploy,5,1,0
+nymtech/nym,232312458,.github/workflows/connect-desktop-ci.yml,49176200,True,5,easingthemes/ssh-deploy,5,1,1
+nymtech/nym,232312458,.github/workflows/network-explorer.yml,13712095,True,5,easingthemes/ssh-deploy,5,0,5
+nymtech/nym,232312458,.github/workflows/nym-wallet-storybook.yml,21566743,True,2,easingthemes/ssh-deploy,2,0,2
+nymtech/nym,232312458,.github/workflows/sdk-docs-typescript.yml,65252591,True,5,easingthemes/ssh-deploy,5,1,1
+obsproject/obs-studio,13233158,.github/workflows/dispatch.yaml,63430660,True,1,cloudflare/wrangler-action,4,2,2
+open-policy-agent/gatekeeper,154894457,.github/workflows/dapr-pubsub.yaml,51896869,True,5,shell: helm upgrade,4,0,2
+openameba/spindle,281290555,.github/workflows/deploy-highlightjs-styles.yml,8944676,True,5,firebaseextended/action-hosting-deploy,5,1,0
+openameba/spindle,281290555,.github/workflows/deploy-hooks-catalog.yml,24879057,True,4,firebaseextended/action-hosting-deploy,5,1,0
+openameba/spindle,281290555,.github/workflows/deploy-theme-switch.yml,33588657,True,4,firebaseextended/action-hosting-deploy,5,1,1
+openameba/spindle,281290555,.github/workflows/deploy-ui-catalog.yml,2748933,True,5,firebaseextended/action-hosting-deploy,5,0,0
+openimsdk/open-im-server,370977430,.github/workflows/deploy.yml,63863563,True,5,appleboy/ssh-action,5,0,0
+openintrostat/ims,39019029,.github/workflows/build_book.yaml,5060416,True,5,nwtgck/actions-netlify,5,0,1
+openreplay/openreplay,362806180,.github/workflows/alerts-ee.yaml,48363312,True,2,shell: kubectl apply,5,3,0
+openreplay/openreplay,362806180,.github/workflows/alerts.yaml,48365161,True,5,shell: kubectl apply,5,0,0
+openreplay/openreplay,362806180,.github/workflows/api-ee.yaml,10062074,True,3,shell: kubectl apply,3,0,0
+openreplay/openreplay,362806180,.github/workflows/api.yaml,8911485,True,5,shell: kubectl apply,5,0,0
+openreplay/openreplay,362806180,.github/workflows/assist-ee.yaml,48703407,True,5,shell: kubectl apply,5,0,0
+openreplay/openreplay,362806180,.github/workflows/assist-stats.yaml,71275848,True,1,shell: kubectl apply,4,2,2
+openreplay/openreplay,362806180,.github/workflows/assist.yaml,48703408,True,3,shell: kubectl apply,3,2,1
+openreplay/openreplay,362806180,.github/workflows/crons-ee.yaml,48365162,True,2,shell: kubectl apply,5,3,0
+openreplay/openreplay,362806180,.github/workflows/frontend.yaml,8911486,True,5,shell: kubectl apply,5,0,1
+openreplay/openreplay,362806180,.github/workflows/peers-ee.yaml,48467832,True,4,shell: kubectl apply,5,1,2
+openreplay/openreplay,362806180,.github/workflows/peers.yaml,48467830,True,4,shell: kubectl apply,5,1,2
+openreplay/openreplay,362806180,.github/workflows/sourcemaps-reader-ee.yaml,52842818,True,4,shell: kubectl apply,5,1,2
+openreplay/openreplay,362806180,.github/workflows/sourcemaps-reader.yaml,38968523,True,4,shell: kubectl apply,5,1,2
+openreplay/openreplay,362806180,.github/workflows/workers-ee.yaml,9663512,True,4,shell: kubectl apply,5,1,0
+openreplay/openreplay,362806180,.github/workflows/workers.yaml,8911487,True,4,shell: kubectl apply,5,1,0
+openstatusHQ/openstatus,655783613,.github/workflows/deploy.yml,74992658,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,2,0
+orb-community/pktvisor,241899022,.github/workflows/build-develop.yml,29529361,True,2,appleboy/ssh-action; shell: terraform apply,2,0,0
+orb-community/pktvisor,241899022,.github/workflows/build-release.yml,26230979,True,1,appleboy/ssh-action; shell: terraform apply,1,0,1
+oshi/oshi,3407114,.github/workflows/aix.yaml,11991549,True,5,appleboy/ssh-action,5,0,0
+oshi/oshi,3407114,.github/workflows/solaris.yaml,11991554,True,5,appleboy/ssh-action,5,4,1
+ossrs/srs,34777562,.github/workflows/release.yml,12196176,True,5,appleboy/ssh-action,5,0,0
+ossrs/srs-stack,445196854,.github/workflows/api-release.yml,65541229,True,3,appleboy/ssh-action,3,0,0
+ossrs/srs-stack,445196854,.github/workflows/test-online.yml,66071392,True,10,appleboy/ssh-action,10,1,0
+ourongxing/chatgpt-vercel,609427511,.github/workflows/cloudflare.yml,54527531,True,2,cloudflare/wrangler-action,5,3,0
+owenthereal/jqplay,17960964,.github/workflows/build.yml,25944819,True,3,shell: flyctl deploy; superfly/flyctl-actions,5,0,2
+owenthereal/upterm,218876111,.github/workflows/release.yaml,5957773,True,3,shell: flyctl deploy; superfly/flyctl-actions,3,0,0
+owid/covid-19-data,246079929,.github/workflows/netlify-deploy.yml,7356387,True,5,shell: netlify deploy,5,0,0
+oxidecomputer/cio,278427026,.github/workflows/cloud-run-crons.yml,20806269,True,4,shell: gcloud run deploy,5,1,0
+oxidecomputer/cio,278427026,.github/workflows/cloud-run.yml,3987662,True,4,shell: gcloud run deploy,5,1,0
+p1ass/midare,266313259,.github/workflows/deploy.yaml,1426216,True,2,shell: gcloud run deploy,2,1,0
+paloaltonetworks/docusaurus-openapi-docs,460077424,.github/workflows/deploy-live.yml,21583987,True,1,firebaseextended/action-hosting-deploy,2,0,2
+parti-renaissance/espace-adherent,76485630,.github/workflows/ci-cd.yml,15216074,True,1,shell: kubectl set image,3,0,3
+peers/peerjs-server,7452705,.github/workflows/fly.yml,45712430,True,2,shell: flyctl deploy; superfly/flyctl-actions,2,1,0
+penumbra-zone/penumbra,359924608,.github/workflows/deploy-testnet.yml,25612904,True,4,shell: kubectl rollout restart; shell: kubectl set image,4,2,0
+phildl/remix-gospel-stack,533426847,.github/workflows/deploy.yml,35617121,True,2,superfly/flyctl-actions,2,0,0
+pixiv/charcoal,393244682,.github/workflows/docs-hosting-main.yml,51941492,True,5,firebaseextended/action-hosting-deploy,5,0,0
+plastic-labs/tutor-gpt,591667477,.github/workflows/fly.yml,49693627,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,0,1
+plastic-labs/tutor-gpt,591667477,.github/workflows/vercel.yml,68942166,True,3,shell: vercel deploy,5,0,5
+plausible/analytics,160427405,.github/workflows/terraform-e2e.yml,44689347,True,2,shell: terraform apply,2,0,0
+po-ui/po-angular,193748094,.github/workflows/publish_po_angular_ci.yml,2626276,True,3,azure/webapps-deploy,5,0,2
+podkrepi-bg/frontend,321915650,.github/workflows/release.yml,31349557,True,5,shell: kubectl apply,5,0,1
+pointfreeco/pointfreeco,102958914,.github/workflows/deploy.yml,2037662,True,5,akhileshns/heroku-deploy,5,0,0
+polymathnetwork/polymesh,178884117,.github/workflows/docs.yml,1182445,True,4,cloudflare/wrangler-action,6,3,0
+porter-dev/porter,297436961,.github/workflows/old_dev.yaml,59426164,True,1,shell: kubectl rollout restart,1,0,1
+porter-dev/porter,297436961,.github/workflows/old_production.yaml,59426165,True,1,shell: kubectl rollout restart,5,0,5
+prancer-io/cloud-validation-framework,169119722,.github/workflows/documentation.yaml,59544819,True,5,appleboy/ssh-action,5,0,0
+pranjaljain0/portfolio-react,256398704,.github/workflows/deploy-to-production.yml,2956031,True,4,amondnet/vercel-action,4,0,0
+primer/primer.style,147025437,.github/workflows/deploy.yml,22709377,True,5,azure/webapps-deploy,5,0,1
+primer/primer.style,147025437,.github/workflows/deploy_staging.yml,27497433,True,5,azure/webapps-deploy,5,0,0
+prisma/prisma-client-go,210595217,.github/workflows/docs-deploy.yml,60150801,True,10,shell: vercel deploy,10,0,0
+processing/p5.js-web-editor,57940487,.github/workflows/deploy-staging.yml,4796502,True,5,shell: kubectl set image,5,0,0
+processing/p5.js-web-editor,57940487,.github/workflows/deploy.yml,4933061,True,5,shell: kubectl set image,5,0,0
+proofzero/rollupid,440270571,.github/workflows/main-access.yaml,42492409,True,1,cloudflare/wrangler-action,5,0,5
+proofzero/rollupid,440270571,.github/workflows/main-account.yaml,42492410,True,1,cloudflare/wrangler-action,5,0,5
+proofzero/rollupid,440270571,.github/workflows/main-address.yaml,42492411,True,1,cloudflare/wrangler-action,5,0,5
+proofzero/rollupid,440270571,.github/workflows/main-analytics.yaml,63680963,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/main-console.yaml,38957076,True,5,cloudflare/wrangler-action,5,5,0
+proofzero/rollupid,440270571,.github/workflows/main-core.yaml,64110868,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/main-edges.yaml,42604765,True,1,cloudflare/wrangler-action,5,0,5
+proofzero/rollupid,440270571,.github/workflows/main-email.yaml,51091651,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/main-galaxy.yaml,38663044,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/main-images.yaml,43666003,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/main-logbridge.yaml,55750931,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/main-passport.yaml,39369647,True,5,cloudflare/wrangler-action,5,1,0
+proofzero/rollupid,440270571,.github/workflows/main-profile.yaml,43666006,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/main-starbase.yaml,40178563,True,1,cloudflare/wrangler-action,5,0,5
+proofzero/rollupid,440270571,.github/workflows/main-test.yaml,54966333,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/next-account.yaml,42492413,True,1,cloudflare/wrangler-action,4,0,4
+proofzero/rollupid,440270571,.github/workflows/next-address.yaml,42492414,True,1,cloudflare/wrangler-action,4,0,4
+proofzero/rollupid,440270571,.github/workflows/next-console.yaml,38957077,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/next-edges.yaml,42606680,True,1,cloudflare/wrangler-action,4,0,4
+proofzero/rollupid,440270571,.github/workflows/next-email.yaml,51091652,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/next-galaxy.yaml,38663049,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/next-images.yaml,43666007,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/next-passport.yaml,39369648,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/next-profile.yaml,43666010,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/next-starbase.yaml,40180596,True,1,cloudflare/wrangler-action,4,0,4
+proofzero/rollupid,440270571,.github/workflows/release-access.yaml,42492415,True,1,cloudflare/wrangler-action,4,0,4
+proofzero/rollupid,440270571,.github/workflows/release-account.yaml,42492416,True,1,cloudflare/wrangler-action,4,0,4
+proofzero/rollupid,440270571,.github/workflows/release-address.yaml,42492417,True,1,cloudflare/wrangler-action,4,0,4
+proofzero/rollupid,440270571,.github/workflows/release-console.yaml,38957078,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/release-core.yaml,64110867,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/release-edges.yaml,42608895,True,1,cloudflare/wrangler-action,4,0,4
+proofzero/rollupid,440270571,.github/workflows/release-email.yaml,51091653,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/release-galaxy.yaml,38663052,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/release-images.yaml,43666011,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/release-passport.yaml,39369649,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/release-profile.yaml,43666013,True,5,cloudflare/wrangler-action,5,0,0
+proofzero/rollupid,440270571,.github/workflows/release-starbase.yaml,40182019,True,1,cloudflare/wrangler-action,4,0,4
+python-discord/bot,120088519,.github/workflows/main.yml,50033390,True,2,azure/k8s-deploy,2,0,0
+python-discord/sir-lancebot,151298728,.github/workflows/main.yaml,50179819,True,2,azure/k8s-deploy,2,0,0
+python-discord/site,120370405,.github/workflows/main.yaml,50344113,True,3,azure/k8s-deploy,3,0,0
+python-discord/snekbox,134289141,.github/workflows/main.yaml,16944602,True,1,azure/k8s-deploy,1,0,1
+pythondigest/pythondigest,13857946,.github/workflows/backup.yml,42365290,True,5,appleboy/ssh-action,5,0,0
+pythondigest/pythondigest,13857946,.github/workflows/ci.yml,42051590,True,1,appleboy/ssh-action,5,0,5
+pyvista/pyvista,92974124,.github/workflows/docs.yml,15867180,True,4,nwtgck/actions-netlify,1,0,1
+quay/quay,220517730,.github/workflows/CI-nightly.yaml,60472180,True,5,appleboy/ssh-action,5,5,0
+rabbitmq/rabbitmq-perf-test,68935891,.github/workflows/publish-documentation.yml,42571895,True,2,cloudflare/wrangler-action,5,1,2
+rabbitmq/rabbitmq-perf-test,68935891,.github/workflows/release.yml,70892985,True,1,cloudflare/wrangler-action,1,0,1
+railseventstore/ecommerce,195810494,.github/workflows/rails_application.yml,12716672,True,5,akhileshns/heroku-deploy,5,0,0
+rancher/fleet,245747437,.github/workflows/e2e-multicluster-ci.yml,28155597,True,4,shell: kubectl apply,3,0,0
+rancher/fleet,245747437,.github/workflows/fleet-upgrade.yml,39445957,True,5,shell: kubectl apply,2,0,0
+rancher/fleet,245747437,.github/workflows/rancher-upgrade-fleet.yml,56720398,True,5,shell: helm upgrade; shell: kubectl apply,5,4,0
+reearth/reearth,353582645,.github/workflows/deploy_server_nightly.yml,59497964,True,5,shell: gcloud run deploy,5,0,0
+refinedev/refine,331293626,.github/workflows/next-push.yml,27299410,True,7,shell: helm upgrade,8,1,4
+refinedev/refine,331293626,.github/workflows/store-deploy.yml,32952954,True,6,shell: helm upgrade,8,3,0
+remirror/remirror,166780923,.github/workflows/docs.yml,1635462,True,3,nwtgck/actions-netlify,1,0,1
+remirror/remirror,166780923,.github/workflows/storybook.yml,8294074,True,4,amondnet/vercel-action,1,0,1
+remix-run/blues-stack,461012689,.github/workflows/deploy.yml,21003615,True,2,shell: flyctl deploy; superfly/flyctl-actions,2,1,0
+remix-run/indie-stack,465928257,.github/workflows/deploy.yml,21097849,True,3,shell: flyctl deploy; superfly/flyctl-actions,3,0,0
+remix-run/react-router-website,276772268,.github/workflows/deploy.yml,12123749,True,3,shell: flyctl deploy; superfly/flyctl-actions,3,2,0
+replicatedhq/kots,198856247,.github/workflows/release.yaml,13257874,True,2,shell: terraform apply,5,2,3
+rewbs/sd-parseq,547227418,.github/workflows/firebase-hosting-merge.yml,38291530,True,5,firebaseextended/action-hosting-deploy,5,0,0
+riccardoperra/codeimage,454158645,.github/workflows/main.yml,31878086,True,2,amondnet/vercel-action,1,0,1
+riccardoperra/codeimage,454158645,.github/workflows/prod-deploy.yml,36958245,True,5,amondnet/vercel-action; shell: netlify deploy,5,1,1
+rilldata/rill-developer,436466520,.github/workflows/cloud-admin.yml,53840948,True,10,nwtgck/actions-netlify,10,0,1
+rm-controls/rm_control,394543029,.github/workflows/deb_package.yml,16603725,True,5,appleboy/ssh-action,5,1,0
+rm-controls/rm_control,394543029,.github/workflows/doxygen.yml,13317214,True,5,nwtgck/actions-netlify,1,0,1
+roguelike-celebration/azure-mud,277951593,.github/workflows/prod.yml,59238857,True,5,azure/functions-action,5,0,0
+roguelike-celebration/azure-mud,277951593,.github/workflows/staging.yml,60039217,True,5,azure/functions-action,5,0,0
+rome/tools,241805592,.github/workflows/main.yml,15647529,True,5,shell: netlify deploy,5,0,5
+rpldy/react-uploady,221179329,.github/workflows/storybook-publish.yml,74391389,True,5,shell: netlify deploy,5,1,1
+rszamszur/fastapi-mvc,389362936,.github/workflows/docs.yml,19346876,True,5,nwtgck/actions-netlify,1,0,1
+rubytoolbox/rubytoolbox,94244583,.github/workflows/deploy.yml,4899307,True,5,akhileshns/heroku-deploy,5,0,0
+rust-lang-cn/book-cn,83279868,.github/workflows/main.yml,8895424,True,2,appleboy/ssh-action,2,0,0
+rustwasm/gloo,171954469,.github/workflows/publish-website.yml,10897294,True,4,firebaseextended/action-hosting-deploy,5,5,0
+saeloun/miru-web,433874407,.github/workflows/backup.yml,75412588,True,5,superfly/flyctl-actions,5,2,0
+saeloun/miru-web,433874407,.github/workflows/fly.yml,35225089,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,0,0
+scylladb/scylla-operator,161264999,.github/workflows/go.yaml,855911,True,5,shell: kubectl apply,5,5,0
+searchkit/searchkit,46511887,.github/workflows/publish-docs.yml,2949460,True,5,amondnet/vercel-action,5,0,0
+serverless-dns/serverless-dns,346385174,.github/workflows/cf.yml,16360710,True,5,cloudflare/wrangler-action,5,1,0
+serverless-dns/serverless-dns,346385174,.github/workflows/fly.yml,15131429,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,3,0
+shelf-nu/shelf.nu,600113513,.github/workflows/deploy.yml,48367065,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,0,1
+shorebirdtech/shorebird,608763354,.github/workflows/deploy_artifact_proxy_dev.yaml,53867247,True,2,google-github-actions/deploy-cloudrun,5,0,3
+shorebirdtech/shorebird,608763354,.github/workflows/deploy_discord_gcp_alerts.yaml,55261459,True,3,google-github-actions/deploy-cloudrun,5,0,2
+signalk/signalk-server,21731081,.github/workflows/release.yml,22718875,True,3,shell: flyctl deploy; superfly/flyctl-actions,5,4,1
+silkenweb/silkenweb,362756737,.github/workflows/website.yml,20733149,True,5,nwtgck/actions-netlify,5,0,0
+simolus3/drift,168944140,.github/workflows/main.yml,3742106,True,5,nwtgck/actions-netlify,5,0,0
+sismo-core/sismo-hub,503848149,.github/workflows/deploy_prod.yml,34529198,True,4,shell: serverless deploy,5,0,5
+sismo-core/sismo-hub,503848149,.github/workflows/deploy_staging.yml,32800871,True,5,shell: serverless deploy,5,0,2
+snowpackjs/astro,348060227,.github/workflows/test-hosts.yml,63895930,True,6,shell: vercel --prod,10,6,4
+solidjs/solid-start,352861350,.github/workflows/deploy-docs.yml,36854028,True,5,shell: wrangler publish,5,0,0
+solo-io/gloo,118510171,.github/workflows/docs-gen.yaml,6201197,True,5,firebaseextended/action-hosting-deploy,1,0,1
+space-wizards/robusttoolbox,29376123,.github/workflows/publish-client.yml,4053002,True,5,appleboy/ssh-action,5,0,0
+space-wizards/space-station-14,92001425,.github/workflows/publish.yml,1685808,True,5,appleboy/ssh-action,5,0,0
+spidernet-io/egressgateway,556611015,.github/workflows/netlify.yml,74697830,True,5,nwtgck/actions-netlify,3,0,3
+splunk/splunk-operator,214247981,.github/workflows/build-test-push-workflow.yml,12681779,True,5,shell: kubectl apply,5,1,2
+splunk/splunk-operator,214247981,.github/workflows/helm-test-workflow.yml,34484080,True,4,shell: kubectl apply,5,1,2
+splunk/splunk-operator,214247981,.github/workflows/int-test-workflow.yml,12683206,True,4,shell: kubectl apply,5,3,0
+splunk/splunk-operator,214247981,.github/workflows/nightly-int-test-workflow.yml,12725653,True,3,shell: kubectl apply,3,3,0
+standardnotes/server,504488350,.github/workflows/analytics.yml,39600829,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,5
+standardnotes/server,504488350,.github/workflows/api-gateway.yml,37869013,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,5
+standardnotes/server,504488350,.github/workflows/auth.yml,37870952,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,5
+standardnotes/server,504488350,.github/workflows/files.yml,37872896,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,5
+standardnotes/server,504488350,.github/workflows/revisions.yml,40879981,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,5
+standardnotes/server,504488350,.github/workflows/scheduler.yml,37875199,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,5
+standardnotes/server,504488350,.github/workflows/syncing-server.yml,37875425,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,5
+standardnotes/server,504488350,.github/workflows/websockets.yml,37868439,True,5,aws-actions/amazon-ecs-deploy-task-definition,5,0,5
+star-whale/starwhale,443097587,.github/workflows/release.yml,25742654,True,5,shell: helm upgrade,5,2,0
+starknet-io/starknet-website,563355926,.github/workflows/netlify-cms-auth.yml,54216218,True,4,cloudflare/wrangler-action,5,0,1
+sui-components/sui-components,74749548,.github/workflows/node.js.yml,3648886,True,5,shell: vercel deploy,3,0,0
+sunnylife42/docs,101524309,.github/workflows/deploy.yml,47882947,True,5,shell: vercel deploy,5,0,0
+supabase/realtime,210347143,.github/workflows/staging.yml,40068711,True,5,superfly/flyctl-actions,5,5,0
+supabase/realtime,210347143,.github/workflows/staging_supabench.yml,40068708,True,5,superfly/flyctl-actions,5,5,0
+supaglue-labs/supaglue,595311041,.github/workflows/deploy_management_ui.yml,53268950,True,5,shell: vercel deploy,5,0,0
+superfly/flyctl,199060308,.github/workflows/build.yml,7128932,True,5,superfly/flyctl-actions,5,3,0
+superfly/flyctl,199060308,.github/workflows/preflight_cleanup.yml,59788910,True,5,superfly/flyctl-actions,5,0,0
+supertokens/supertokens-node,224392118,.github/workflows/test-edge-function.yml,71055312,True,5,shell: netlify deploy,5,2,1
+swiftfiddle/swiftfiddle-web,127620235,.github/workflows/deploy.yml,4205893,True,5,shell: kubectl apply,5,0,0
+swishjam/swishjam,602223778,.github/workflows/heroku_deploy.yml,67757638,True,5,akhileshns/heroku-deploy,5,5,0
+sysown/proxysql,27358084,.github/workflows/CI-package-build.yml,65806065,True,4,appleboy/ssh-action; easingthemes/ssh-deploy,4,0,0
+sysown/proxysql,27358084,.github/workflows/package-build.yml,50381257,True,1,appleboy/ssh-action; easingthemes/ssh-deploy,5,0,5
+systeminit/si,195139803,.github/workflows/deploy-auth-api.yml,53350921,True,5,shell: aws ecs update-service,5,0,0
+t3rn/t3rn,262781691,.github/workflows/update-dev-docs.yml,48575420,True,5,amondnet/vercel-action,5,0,0
+tauri-apps/create-tauri-app,460543859,.github/workflows/deploy-scripts-worker.yml,31815454,True,5,cloudflare/wrangler-action,5,0,0
+taybenlor/runno,374116664,.github/workflows/firebase-hosting-merge.yml,11320154,True,5,firebaseextended/action-hosting-deploy,5,0,0
+telepresenceio/telepresence,82933315,.github/workflows/compatibility.yaml,39350369,True,5,shell: helm install,5,2,3
+temporalio/sdk-node,317256151,.github/workflows/ci.yml,6125773,True,2,shell: vercel deploy,1,0,1
+tensorflow/tfjs,123870315,.github/workflows/deploy-benchmark-prod.yml,13005970,True,3,firebaseextended/action-hosting-deploy,3,3,0
+tgscan-dev/tgscan,655630969,.github/workflows/main.yml,60790245,True,5,appleboy/ssh-action,5,0,0
+the-blue-alliance/the-blue-alliance,888427,.github/workflows/push.yml,1412500,True,5,shell: gcloud app deploy,5,0,0
+timothymiller/t4-app,633030618,.github/workflows/backend.yml,60006985,True,3,cloudflare/wrangler-action,5,2,0
+tinkoff-ai/etna,400528139,.github/workflows/docs-unstable.yml,22837160,True,1,nwtgck/actions-netlify,5,0,5
+traewelling/traewelling,240467172,.github/workflows/staging-environment.yml,42213294,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,0,0
+transloadit/uppy,46273445,.github/workflows/companion-deploy.yml,3871132,True,5,akhileshns/heroku-deploy,5,0,0
+turingai-team/chatgpt-discord-bot,576727438,.github/workflows/auto-deploy.yml,56429683,True,3,appleboy/ssh-action,5,3,2
+turms-im/turms,191290973,.github/workflows/deploy-playground.yml,18416159,True,5,appleboy/ssh-action,5,0,0
+tus/tusd,8825137,.github/workflows/release.yaml,14360560,True,5,akhileshns/heroku-deploy,5,0,1
+twilight-rs/twilight,205719706,.github/workflows/book.yml,28477715,True,1,cloudflare/wrangler-action,1,0,1
+uhyo/nitrogql,600447188,.github/workflows/deploy-website.yaml,68183919,True,3,shell: vercel deploy,3,0,0
+uhyo/nitrogql,600447188,.github/workflows/publish.yaml,53097159,True,5,shell: vercel deploy,5,0,1
+umihico/docker-selenium-lambda,346943840,.github/workflows/auto-update.yml,57799488,True,5,shell: sls deploy,5,2,0
+umihico/docker-selenium-lambda,346943840,.github/workflows/demo-test.yml,59866268,True,5,shell: sls deploy,5,0,0
+un-ts/prettier,209946816,.github/workflows/vercel.yml,29431351,True,5,amondnet/vercel-action,3,0,0
+united-manufacturing-hub/united-manufacturing-hub,328461176,.github/workflows/test-e2e.yaml,73858636,True,5,shell: kubectl apply,5,0,1
+unjs/ungh,562899571,.github/workflows/cloudflare.yml,39839962,True,1,cloudflare/wrangler-action,1,0,1
+unjs/unhead,560697479,.github/workflows/docs.yml,41246308,True,1,shell: vercel deploy,4,4,0
+unkeyed/unkey,651702652,.github/workflows/deploy-agent.yaml,65879194,True,5,superfly/flyctl-actions,5,2,0
+unleash/unleash,24594933,.github/workflows/reset_heroku.yml,52704572,True,5,akhileshns/heroku-deploy,5,0,0
+upstash/upstash-redis,394437978,.github/workflows/tests.yaml,21681315,True,4,shell: wrangler publish,4,1,1
+vapor/docs,64560805,.github/workflows/deploy.yml,1554125,True,5,aws-actions/aws-cloudformation-github-deploy,5,0,0
+vector-im/element-call,386767233,.github/workflows/netlify-livekit.yaml,60849848,True,5,nwtgck/actions-netlify,5,0,0
+vector-im/element-call,386767233,.github/workflows/netlify-pr.yaml,43664496,True,5,nwtgck/actions-netlify,5,0,0
+vmware-clarity/core,470654492,.github/workflows/release.yml,24120786,True,4,shell: netlify deploy,5,0,1
+vmware-tanzu/antrea,217420145,.github/workflows/conformance.yml,58887257,True,7,shell: helm install,10,1,3
+vuejs/vuefire,49235921,.github/workflows/docs.yml,40027608,True,5,firebaseextended/action-hosting-deploy,5,0,0
+watch-devtube/web,131342244,.github/workflows/server-deploy.yml,24816114,True,5,cloudflare/wrangler-action; shell: gcloud functions deploy,5,0,0
+webankfintech/fes.js,290644788,.github/workflows/docs.yml,2560017,True,4,easingthemes/ssh-deploy,5,1,1
+webdevcody/code-racer,663508414,.github/workflows/deploy-app.yml,64269127,True,2,shell: vercel deploy,5,3,0
+webdevcody/code-racer,663508414,.github/workflows/deploy-fly.yml,63959745,True,1,shell: fly deploy; superfly/flyctl-actions,4,0,4
+webdevcody/code-racer,663508414,.github/workflows/deploy-wss.yml,64269128,True,5,shell: flyctl deploy; superfly/flyctl-actions,5,3,0
+wicg/webmonetization,147883308,.github/workflows/publish-workers.yml,5699058,True,1,cloudflare/wrangler-action,1,0,1
+wireapp/wire-webapp,63881328,.github/workflows/deploy-to-test-env.yml,44644306,True,5,einaregilsson/beanstalk-deploy,5,0,0
+wireapp/wire-webapp,63881328,.github/workflows/test_build_deploy.yml,2627737,True,1,einaregilsson/beanstalk-deploy,1,0,1
+wise-old-man/wise-old-man,250676452,.github/workflows/api-deploy.yml,38247982,True,5,appleboy/ssh-action,5,0,0
+wise-old-man/wise-old-man,250676452,.github/workflows/deploy-app.yml,1786122,True,5,appleboy/ssh-action,5,0,0
+wise-old-man/wise-old-man,250676452,.github/workflows/league-api-deploy.yml,75325451,True,4,appleboy/ssh-action,4,0,0
+withtyped/withtyped,555497236,.github/workflows/release.yml,38147858,True,4,azure/webapps-deploy,5,0,1
+wolfi-dev/os,533917104,.github/workflows/dag-push-production.yaml,43663762,True,5,shell: kubectl set image,5,0,4
+wonderflow-bv/wanda,446459287,.github/workflows/production.yml,23564742,True,5,amondnet/vercel-action,5,0,0
+woowacourse/prolog,362963555,.github/workflows/back-dev.yml,11338956,True,5,einaregilsson/beanstalk-deploy,5,0,1
+woowacourse/prolog,362963555,.github/workflows/back-prod.yml,11546670,True,5,einaregilsson/beanstalk-deploy,5,0,0
+xoofx/unitynuget,195700835,.github/workflows/ci.yml,718124,True,2,azure/webapps-deploy,3,0,1
+yunyoujun/valaxy,467617659,.github/workflows/demo.yml,21926783,True,5,nwtgck/actions-netlify,5,0,0
+zeebe-io/zeebe,54298946,.github/workflows/benchmark.yml,38470999,True,14,shell: helm upgrade,15,0,4
+zeebe-io/zeebe,54298946,.github/workflows/dispatch-benchmark.yaml,44061970,True,1,shell: helm upgrade,5,0,5
+zeebe-io/zeebe,54298946,.github/workflows/medic-benchmarks.yml,41652989,True,9,shell: helm upgrade,11,2,2
+zekrotja/shinpuru,162452869,.github/workflows/docker-cd.yml,601312,True,1,appleboy/ssh-action,5,0,5
+zeshuaro/telegram-pdf-bot,97448967,.github/workflows/github-actions.yml,16279858,True,1,digitalocean/app_action,1,0,1
+zettlr/zettlr,115446081,.github/workflows/build.yml,510654,True,1,easingthemes/ssh-deploy,5,0,5
+zoneminder/zoneminder,9395939,.github/workflows/create-packages.yml,9688595,True,5,easingthemes/ssh-deploy,5,0,0

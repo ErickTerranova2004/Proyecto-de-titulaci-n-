@@ -1,0 +1,4 @@
+dataset,archivo,url_origen,licencia_mostrada,version_o_doi,fecha_descarga,tamano_bytes,sha256,md5,md5_oficial,md5_coincide,observaciones
+GHALogs,runs.json.gz,https://zenodo.org/records/14796970,CC BY-SA 4.0,v1.0.1,2026-10-14,1063390519,1ae1086b8f829ae5973e4416b6e7993da8ab24c30fb86efcafc464cf0d3e31b5,d6c83b48b14351b16766ca1f01290e87,d6c83b48b14351b16766ca1f01290e87,SI,
+GHALogs,repositories.json.gz,https://zenodo.org/records/14796970,CC BY-SA 4.0,v1.0.1,2026-10-14,69208463,62a37f28f4e36c906dc7f0a4f0701ec825195fda85e3ce0bdc8f9c2e96b50593,a44ed2c635348ecc8641f966748e32d2,a44ed2c635348ecc8641f966748e32d2,SI,
+GADFPD,final_research_dataset_MASTER.csv,https://data.mendeley.com/datasets/mggwn7rj9f/1,CC BY 4.0,1,2026-10-14,194638363,b6a89418e39e6144f4ac71496256474c7bc27651e099557fe074d7798da1e73e,02f483f08172d462cc6ec0df62307f42,,,

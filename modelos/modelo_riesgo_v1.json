@@ -1,0 +1,63 @@
+{
+  "version": "v1",
+  "modelo": "Árbol de decisión",
+  "fecha_entrenamiento": "2026-10-15T06:26:33.561549+00:00",
+  "variables_categoricas": [
+    "event"
+  ],
+  "variables_numericas": [
+    "msg_len",
+    "msg_lineas",
+    "msg_merge",
+    "msg_revert",
+    "msg_fix",
+    "msg_feat",
+    "msg_deps",
+    "msg_docs",
+    "msg_ci",
+    "autor_bot",
+    "reejecutado_por_otro",
+    "rama_principal",
+    "rama_bot",
+    "rama_tag",
+    "tiene_pr",
+    "es_reintento",
+    "hora_utc",
+    "dia_semana",
+    "fin_de_semana",
+    "retraso_commit_run_min",
+    "wf_n_prev",
+    "wf_tasa_fallo_prev",
+    "wf_ultimo_fallo",
+    "wf_horas_desde_ultimo",
+    "wf_duracion_media_prev_min",
+    "repo_n_prev",
+    "repo_tasa_fallo_prev",
+    "repo_n_workflows_prev"
+  ],
+  "tasa_base_entrenamiento": 0.18271954674220964,
+  "limites_riesgo": {
+    "medio": 0.18271954674220964,
+    "alto": 0.3654390934844193
+  },
+  "umbral_f1": 0.23903092235395715,
+  "metricas_prueba": {
+    "PR-AUC": 0.6868839824538674,
+    "ROC-AUC": 0.8395096096029218,
+    "Brier": 0.1288086613873654,
+    "LogLoss": 0.4130129196579385,
+    "Precision": 0.7378640776699029,
+    "Recall": 0.4578313253012048,
+    "F1": 0.5650557620817844,
+    "MCC": 0.4901111500503626,
+    "Balanced acc.": 0.7039618733714896,
+    "Accuracy": 0.8345120226308345,
+    "TN": 514.0,
+    "FP": 27.0,
+    "FN": 90.0,
+    "TP": 76.0
+  },
+  "filas_entrenamiento": 2118,
+  "filas_prueba": 707,
+  "etiqueta": "despliegue_no_completado (ver fase2_variable_objetivo.md)"
+}

@@ -1,0 +1,47 @@
+/*
+ * Tokens de diseño. Único archivo con valores de color del proyecto.
+ *
+ * Paleta de 5 colores. Las variaciones se obtienen solo con transparencia
+ * (color-mix con "transparent") o mezclando estas mismas variables.
+ *
+ * Contraste WCAG calculado sobre --color-fondo (#F5F6F8):
+ *   tinta 13,44:1 · alto 6,08:1 · bajo 4,67:1 · medio 3,92:1
+ *   tinta al 75 % (texto secundario) 6,19:1
+ *   fondo sobre tinta (botones principales) 13,44:1
+ * --color-medio NO alcanza 4,5:1 en texto normal: se usa solo en indicadores
+ * no textuales (franjas, bordes y barras; requisito WCAG 1.4.11 de 3:1).
+ */
+:root {
+  --color-fondo: #F5F6F8;
+  --color-tinta: #1F2A37;
+  --color-bajo: #2E7D4F;
+  --color-medio: #B26A00;
+  --color-alto: #B42318;
+
+  /* Variaciones por transparencia */
+  --tinta-secundaria: color-mix(in srgb, var(--color-tinta) 75%, var(--color-fondo));
+  --borde-suave: color-mix(in srgb, var(--color-tinta) 14%, transparent);
+  --borde-fuerte: color-mix(in srgb, var(--color-tinta) 40%, transparent);
+  --relleno-suave: color-mix(in srgb, var(--color-tinta) 5%, transparent);
+  --relleno-hover: color-mix(in srgb, var(--color-tinta) 9%, transparent);
+
+  /* Tipografía */
+  --fuente: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fuente-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --texto-sm: 14px;
+  --texto-base: 16px;
+  --texto-lg: 20px;
+  --texto-xl: 28px;
+
+  /* Espaciado */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 16px;
+  --esp-4: 24px;
+  --esp-5: 32px;
+
+  --radio: 6px;
+  --ancho-maximo: 1040px;
+
+  color-scheme: light;
+}
