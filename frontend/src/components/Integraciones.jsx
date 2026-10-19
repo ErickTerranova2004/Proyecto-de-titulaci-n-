@@ -39,9 +39,12 @@ export default function Integraciones() {
 
   return (
     <section className="vista" aria-labelledby="titulo-integraciones">
-      <h1 id="titulo-integraciones">Integración con GitHub</h1>
+      <header className="encabezado">
+        <h1 id="titulo-integraciones">Integración con GitHub</h1>
+        <p className="secundario">Estado de la conexión y recopilación de ejecuciones de los workflows validados.</p>
+      </header>
       <Alerta>{error}</Alerta>
-      {!estado && !error && <p role="status">Cargando…</p>}
+      {!estado && !error && <p role="status" className="secundario">Cargando…</p>}
 
       {estado && (
         <article className="tarjeta" aria-labelledby="titulo-conexion">
@@ -84,6 +87,7 @@ export default function Integraciones() {
       )}
 
       {estado && (
+        <div className="tarjeta tarjeta--tabla">
         <div className="tabla-contenedor">
           <table>
             <caption>Recopilación de ejecuciones completadas de los workflows validados de cada repositorio.</caption>
@@ -125,6 +129,7 @@ export default function Integraciones() {
               })}
             </tbody>
           </table>
+        </div>
         </div>
       )}
     </section>

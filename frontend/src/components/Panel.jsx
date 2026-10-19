@@ -53,11 +53,11 @@ function nivelDe(probabilidad, limites) {
 
 function Icono({ tipo }) {
   const trazos = {
-    analisis: "M4 19V5M4 19h16M8 15l3-4 3 2 4-6",
-    alto: "M12 4l9 16H3L12 4zM12 10v4M12 17v.5",
-    probabilidad: "M12 3a9 9 0 1 0 9 9h-9V3z",
-    verificado: "M5 12l4 4 10-10",
-    modelo: "M4 6h16v12H4zM8 10h8M8 14h5",
+    analisis: "M3 3v18h18M7 16l4-4 4 4 5-6",
+    alto: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z",
+    probabilidad: "M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6z",
+    verificado: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+    modelo: "M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9",
   };
   return (
     <svg viewBox="0 0 24 24" className="kpi__icono" aria-hidden="true">
@@ -69,9 +69,11 @@ function Icono({ tipo }) {
 function Kpi({ icono, titulo, valor, detalle, nivel }) {
   return (
     <article className={`kpi${nivel ? ` kpi--${nivel}` : ""}`}>
-      <Icono tipo={icono} />
-      <div>
+      <div className="kpi__cabecera">
         <h3 className="kpi__titulo">{titulo}</h3>
+        <Icono tipo={icono} />
+      </div>
+      <div>
         <p className="kpi__valor">{valor}</p>
         {detalle && <p className="kpi__detalle secundario">{detalle}</p>}
       </div>
@@ -79,25 +81,34 @@ function Kpi({ icono, titulo, valor, detalle, nivel }) {
   );
 }
 
-export default function Panel({ modelos, alNuevoAnalisis }) {
+export default function Panel({ modelos, alNuevoAnalisis, alActualizar }) {
   const [historial, setHistorial] = useState(null);
   const [repos, setRepos] = useState([]);
   const [error, setError] = useState("");
+  const [cargando, setCargando] = useState(false);
   const [periodo, setPeriodo] = useState("30");
   const [cargadoEn, setCargadoEn] = useState(null);
   const [seleccion, setSeleccion] = useState(null);
 
   function cargar() {
     setError("");
+    setCargando(true);
     Promise.all([api.historial(), api.repositorios()])
       .then(([h, r]) => {
         setHistorial(h);
         setRepos(r);
         setCargadoEn(new Date().toISOString());
       })
-      .catch((e) => setError(e.message));
+      .catch((e) => setError(e.message))
+      .finally(() => setCargando(false));
   }
   useEffect(cargar, []);
+
+  // También recarga los modelos por si un administrador cambió el activo.
+  function actualizar() {
+    alActualizar();
+    cargar();
+  }
 
   const activo = modelos.find((m) => m.activo);
   const limites = activo?.metadatos?.limites_riesgo;
@@ -166,7 +177,7 @@ export default function Panel({ modelos, alNuevoAnalisis }) {
   }
 
   return (
-    <section className="vista panel" aria-labelledby="titulo-panel">
+    <section className="vista" aria-labelledby="titulo-panel">
       <div className="panel__cabecera">
         <div>
           <h1 id="titulo-panel">Panel de riesgo de despliegue</h1>
@@ -182,13 +193,18 @@ export default function Panel({ modelos, alNuevoAnalisis }) {
               {PERIODOS.map(([id, texto]) => <option key={id} value={id}>{texto}</option>)}
             </select>
           </label>
-          <button className="boton boton--secundario" type="button" onClick={cargar}>Actualizar</button>
-          <button className="boton" type="button" onClick={alNuevoAnalisis}>Nuevo análisis</button>
+          <button className="boton boton--secundario" type="button" onClick={actualizar} disabled={cargando}>
+            {cargando ? "Actualizando…" : "Actualizar"}
+          </button>
+          <button className="boton" type="button" onClick={alNuevoAnalisis}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            Nuevo análisis
+          </button>
         </div>
       </div>
 
       <Alerta>{error}</Alerta>
-      {!datos && !error && <p role="status">Cargando…</p>}
+      {!datos && !error && <p role="status" className="secundario">Cargando datos del panel…</p>}
 
       {datos && (
         <>

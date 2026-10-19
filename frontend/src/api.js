@@ -14,9 +14,11 @@ async function solicitar(ruta, opciones = {}) {
   const respuesta = await fetch(`/api${ruta}`, { ...opciones, headers: cabeceras });
   const datos = await respuesta.json().catch(() => ({}));
   if (respuesta.status === 401) sesion.cerrar();
+  if (respuesta.status === 429) throw new Error("Límite de peticiones alcanzado. Espere unos segundos.");
   if (!respuesta.ok) {
     const mensaje =
       datos.detail ||
+      datos.non_field_errors?.[0] ||
       Object.entries(datos)
         .map(([campo, errores]) => `${campo}: ${[].concat(errores).join(" ")}`)
         .join(" · ") ||

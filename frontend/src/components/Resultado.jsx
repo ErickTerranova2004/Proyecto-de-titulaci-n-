@@ -76,18 +76,18 @@ function ResultadoReal({ prediccion, alActualizar }) {
 
   if (!real) {
     return (
-      <>
+      <div className="recuadro">
         <p className="secundario">Aún no se ha enlazado la ejecución real de este workflow y commit.</p>
         <button className="boton" type="button" disabled={cargando} onClick={verificar}>
           {cargando ? "Consultando GitHub…" : "Verificar resultado real"}
         </button>
         {mensaje && <p className="secundario" role="status">{mensaje}</p>}
         <Alerta>{error}</Alerta>
-      </>
+      </div>
     );
   }
   return (
-    <dl className="datos">
+    <dl className="datos recuadro">
       <dt>Etiqueta</dt>
       <dd>{ETIQUETAS[real.etiqueta] || real.etiqueta}</dd>
       {real.subtipo_etiqueta && (
@@ -204,7 +204,7 @@ export default function Resultado({ prediccion, modelos }) {
       <header>
         <h2 id={`resultado-${p.id}`}>Resultado del análisis</h2>
         <p className="secundario">
-          {p.repositorio} · {p.workflow_path} · commit <code>{p.head_sha.slice(0, 7)}</code> · rama {p.rama || "—"} ·
+          <strong>{p.repositorio}</strong> · {p.workflow_path} · commit <code>{p.head_sha.slice(0, 7)}</code> · rama {p.rama || "—"} ·
           evento {p.evento}
         </p>
         {p.cambio?.archivos_modificados != null && (
@@ -230,6 +230,7 @@ export default function Resultado({ prediccion, modelos }) {
         </div>
       </dl>
 
+      <div className="resultado__explicacion">
       {tasaNivel ? (
         <p>
           En la evaluación, falló el {porcentaje(tasaNivel.tasa)} de los casos con este nivel ({tasaNivel.n} ejecuciones
@@ -250,6 +251,7 @@ export default function Resultado({ prediccion, modelos }) {
         La probabilidad estima si el intento de despliegue <strong>no se completará con éxito</strong> en GitHub Actions.
         No mide incidentes posteriores en producción.
       </p>
+      </div>
 
       <section aria-labelledby={`factores-${p.id}`}>
         <h3 id={`factores-${p.id}`}>Factores que más influyen</h3>

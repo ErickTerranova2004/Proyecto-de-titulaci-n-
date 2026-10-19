@@ -6,26 +6,34 @@ const METRICAS = ["PR-AUC", "ROC-AUC", "Precision", "Recall", "F1", "Brier"];
 
 export default function Modelos({ modelos, esAdmin, alCambiar }) {
   const [error, setError] = useState("");
+  const [activando, setActivando] = useState(null);
 
   async function activar(id) {
     setError("");
+    setActivando(id);
     try {
       await api.activarModelo(id);
-      alCambiar();
+      await alCambiar();
     } catch (e) {
       setError(e.message);
+    } finally {
+      setActivando(null);
     }
   }
 
   return (
     <section className="vista" aria-labelledby="titulo-modelos">
-      <h1 id="titulo-modelos">Versiones del modelo</h1>
+      <header className="encabezado">
+        <h1 id="titulo-modelos">Versiones del modelo</h1>
+        <p className="secundario">
+          Modelos registrados. Las métricas corresponden a la partición temporal de prueba de cada versión.
+        </p>
+      </header>
       <Alerta>{error}</Alerta>
+      <div className="tarjeta tarjeta--tabla">
       <div className="tabla-contenedor">
         <table>
-          <caption>
-            Modelos registrados. Las métricas corresponden a la partición temporal de prueba de cada versión.
-          </caption>
+          <caption className="solo-lector">Versiones del modelo y sus métricas de prueba</caption>
           <thead>
             <tr>
               <th scope="col">Versión</th>
@@ -47,21 +55,29 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
               const limites = m.metadatos.limites_riesgo;
               return (
                 <tr key={m.id}>
-                  <td>{m.version}</td>
-                  <td>{m.nombre_modelo}</td>
-                  <td>{m.activo ? <strong>Activo</strong> : "Inactivo"}</td>
+                  <td><code className="codigo">{m.version}</code></td>
+                  <td><strong>{m.nombre_modelo}</strong></td>
+                  <td>{m.activo ? <span className="estado estado--activo">Activo</span> : <span className="secundario">Inactivo</span>}</td>
                   <td className="numero">{m.metadatos.filas_entrenamiento}</td>
                   <td className="numero">{m.metadatos.filas_prueba}</td>
                   {METRICAS.map((clave) => (
-                    <td key={clave} className="numero">{met[clave].toFixed(3)}</td>
+                    <td key={clave} className="numero destacado">{met[clave].toFixed(3)}</td>
                   ))}
-                  <td>{porcentaje(limites.medio)} / {porcentaje(limites.alto)}</td>
+                  <td className="font-mono">{porcentaje(limites.medio)} / {porcentaje(limites.alto)}</td>
                   <td><Fecha valor={m.registrado_en} /></td>
                   {esAdmin && (
                     <td>
-                      {!m.activo && (
-                        <button className="boton boton--secundario" type="button" onClick={() => activar(m.id)}>
-                          Activar<span className="solo-lector"> {m.version}</span>
+                      {m.activo ? (
+                        <span className="secundario">En uso</span>
+                      ) : (
+                        <button
+                          className="boton boton--secundario boton--pequeno"
+                          type="button"
+                          onClick={() => activar(m.id)}
+                          disabled={activando !== null}
+                        >
+                          {activando === m.id ? "Activando…" : "Activar"}
+                          <span className="solo-lector"> {m.version}</span>
                         </button>
                       )}
                     </td>
@@ -71,6 +87,7 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
             })}
           </tbody>
         </table>
+      </div>
       </div>
       {esAdmin && <Supervision modelos={modelos} />}
     </section>

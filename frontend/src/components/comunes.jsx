@@ -8,7 +8,6 @@ export const UsuarioContexto = createContext(null);
 export function useRoles() {
   const roles = useContext(UsuarioContexto)?.roles ?? [];
   return {
-    esAdmin: roles.includes("administrador"),
     puedeDecidir: roles.includes("lider_tecnico") || roles.includes("administrador"),
   };
 }
@@ -28,7 +27,11 @@ export function porcentaje(valor, decimales = 1) {
 
 export function Fecha({ valor }) {
   if (!valor) return "—";
-  return <time dateTime={valor}>{new Date(valor).toLocaleString("es-EC")}</time>;
+  return (
+    <time dateTime={valor} className="font-mono">
+      {new Date(valor).toLocaleString("es-EC", { dateStyle: "short", timeStyle: "short" })}
+    </time>
+  );
 }
 
 export function NivelRiesgo({ nivel, grande = false }) {

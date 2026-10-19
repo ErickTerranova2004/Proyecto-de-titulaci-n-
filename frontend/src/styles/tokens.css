@@ -1,37 +1,61 @@
 /*
- * Tokens de diseño. Único archivo con valores de color del proyecto.
+ * Tokens de diseño (tema oscuro). Único archivo con valores de color del
+ * proyecto: los componentes solo usan estas variables.
  *
- * Paleta de 5 colores. Las variaciones se obtienen solo con transparencia
- * (color-mix con "transparent") o mezclando estas mismas variables.
- *
- * Contraste WCAG calculado sobre --color-fondo (#F5F6F8):
- *   tinta 13,44:1 · alto 6,08:1 · bajo 4,67:1 · medio 3,92:1
- *   tinta al 75 % (texto secundario) 6,19:1
- *   fondo sobre tinta (botones principales) 13,44:1
- * --color-medio NO alcanza 4,5:1 en texto normal: se usa solo en indicadores
- * no textuales (franjas, bordes y barras; requisito WCAG 1.4.11 de 3:1).
+ * Contraste WCAG calculado sobre --color-tarjeta (#1E293B), la superficie
+ * más clara sobre la que se escribe texto:
+ *   tinta 14,0:1 · secundaria 5,7:1 · acento-texto 5,8:1
+ *   bajo 5,8:1 · medio 6,8:1 · alto-texto 5,3:1
+ *   texto claro sobre --color-acento (botones) 4,9:1
+ * --color-alto (#EF4444) solo se usa en indicadores no textuales (barras,
+ * bordes y muestras; WCAG 1.4.11 exige 3:1). El texto rojo usa --alto-texto.
  */
 :root {
-  --color-fondo: #F5F6F8;
-  --color-tinta: #1F2A37;
-  --color-bajo: #2E7D4F;
-  --color-medio: #B26A00;
-  --color-alto: #B42318;
+  /* Superficies */
+  --color-fondo: #0F172A;
+  --color-lateral: #0B1120;
+  --color-tarjeta: #1E293B;
+  --color-tarjeta-elevada: #334155;
 
-  /* Variaciones por transparencia */
-  --tinta-secundaria: color-mix(in srgb, var(--color-tinta) 75%, var(--color-fondo));
-  --borde-suave: color-mix(in srgb, var(--color-tinta) 14%, transparent);
-  --borde-fuerte: color-mix(in srgb, var(--color-tinta) 40%, transparent);
-  --relleno-suave: color-mix(in srgb, var(--color-tinta) 5%, transparent);
-  --relleno-hover: color-mix(in srgb, var(--color-tinta) 9%, transparent);
+  /* Acento (acciones principales, gráficos de tendencia) */
+  --color-acento: #2563EB;
+  --color-acento-hover: #1D4ED8;
+  --acento-texto: #60A5FA;
+  --acento-suave: color-mix(in srgb, var(--color-acento) 20%, transparent);
+  --acento-brillo: color-mix(in srgb, var(--color-acento) 35%, transparent);
+
+  /* Niveles de riesgo */
+  --color-bajo: #10B981;
+  --color-medio: #F59E0B;
+  --color-alto: #EF4444;
+  --alto-texto: #F87171;
+
+  /* Texto */
+  --tinta-principal: #F8FAFC;
+  --tinta-secundaria: #94A3B8;
+  --tinta-tenue: #64748B;
+
+  /* Bordes y rellenos */
+  --borde-suave: #334155;
+  --borde-fuerte: #475569;
+  --relleno-suave: rgba(255, 255, 255, 0.04);
+  --relleno-hover: rgba(255, 255, 255, 0.08);
+
+  /* Sombras */
+  --sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --sombra-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
+  --sombra-brillo: 0 0 20px var(--acento-brillo);
 
   /* Tipografía */
   --fuente: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --fuente-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
-  --texto-sm: 14px;
-  --texto-base: 16px;
-  --texto-lg: 20px;
-  --texto-xl: 28px;
+  --texto-xs: 12px;
+  --texto-sm: 13px;
+  --texto-base: 14px;
+  --texto-lg: 18px;
+  --texto-xl: 24px;
+  --texto-xxl: 32px;
 
   /* Espaciado */
   --esp-1: 4px;
@@ -39,8 +63,13 @@
   --esp-3: 16px;
   --esp-4: 24px;
   --esp-5: 32px;
+  --esp-6: 48px;
 
-  --radio: 6px;
+  /* Bordes redondeados */
+  --radio-sm: 6px;
+  --radio: 10px;
+  --radio-lg: 16px;
+  --radio-full: 9999px;
 
-  color-scheme: light;
+  color-scheme: dark;
 }

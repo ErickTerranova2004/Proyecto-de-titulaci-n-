@@ -11,20 +11,30 @@ import Panel from "./components/Panel.jsx";
 const NOMBRE = "Riesgo de despliegue";
 const SUBTITULO = "Plataforma predictiva con IA";
 const PESTANAS = [
-  ["panel", "Panel", "M4 13h6V4H4zM14 20h6V4h-6zM4 20h6v-3H4z"],
+  ["panel", "Panel", "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"],
   ["nuevo", "Nuevo análisis", "M12 5v14M5 12h14"],
-  ["historial", "Historial", "M12 7v5l3 3M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z"],
-  ["modelos", "Modelos", "M4 6h16v12H4zM8 10h8M8 14h5"],
+  ["historial", "Historial", "M12 7v5l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"],
+  [
+    "modelos",
+    "Modelos",
+    "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z",
+  ],
 ];
 // Solo para el administrador.
 const PESTANA_INTEGRACIONES = ["integraciones", "Integraciones", "M9 7H6a5 5 0 0 0 0 10h3M15 7h3a5 5 0 0 1 0 10h-3M8 12h8"];
 
 export default function App() {
   const [usuario, setUsuario] = useState(null);
+  const [cargando, setCargando] = useState(Boolean(sesion.token()));
   const [vista, setVista] = useState("panel");
   const [modelos, setModelos] = useState([]);
 
-  const cargarUsuario = () => api.yo().then(setUsuario).catch(() => setUsuario(null));
+  const cargarUsuario = () =>
+    api
+      .yo()
+      .then(setUsuario)
+      .catch(() => setUsuario(null))
+      .finally(() => setCargando(false));
   const cargarModelos = () => api.modelos().then(setModelos).catch(() => setModelos([]));
 
   useEffect(() => {
@@ -34,19 +44,8 @@ export default function App() {
     if (usuario) cargarModelos();
   }, [usuario]);
 
-  if (!usuario) {
-    return (
-      <div className="acceso">
-        <header className="acceso__marca">
-          <p className="marca">{NOMBRE}</p>
-          <p className="secundario">{SUBTITULO}</p>
-        </header>
-        <main className="contenido">
-          <Login alEntrar={cargarUsuario} />
-        </main>
-      </div>
-    );
-  }
+  if (cargando) return <p className="cargando" role="status">Cargando plataforma…</p>;
+  if (!usuario) return <Login alEntrar={cargarUsuario} />;
 
   const activo = modelos.find((m) => m.activo);
   const esAdmin = usuario.roles.includes("administrador");
@@ -85,10 +84,9 @@ export default function App() {
         <div className="lateral__usuario">
           <p>
             <strong>{usuario.usuario}</strong>
-            <br />
             <span className="secundario">{usuario.roles.join(", ") || "sin rol"}</span>
           </p>
-          <button className="boton boton--secundario" type="button" onClick={salir}>Salir</button>
+          <button className="boton boton--secundario boton--pequeno" type="button" onClick={salir}>Salir</button>
         </div>
       </aside>
 
@@ -97,7 +95,9 @@ export default function App() {
           {!usuario.roles.length && (
             <Alerta>Su cuenta no tiene un rol asignado. Contacte al administrador.</Alerta>
           )}
-          {vista === "panel" && <Panel modelos={modelos} alNuevoAnalisis={() => setVista("nuevo")} />}
+          {vista === "panel" && (
+            <Panel modelos={modelos} alNuevoAnalisis={() => setVista("nuevo")} alActualizar={cargarModelos} />
+          )}
           {vista === "nuevo" && <NuevoAnalisis modelos={modelos} />}
           {vista === "historial" && <Historial modelos={modelos} />}
           {vista === "modelos" && <Modelos modelos={modelos} esAdmin={esAdmin} alCambiar={cargarModelos} />}
