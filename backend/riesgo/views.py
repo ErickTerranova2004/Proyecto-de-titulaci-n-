@@ -1,23 +1,26 @@
 import logging
 import math
-from datetime import timedelta
 
+from django.conf import settings
 from django.db import transaction
-from django.db.models import Avg, Count, F
+from django.db.models import Max
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, mixins
 
-from riesgo.models import VersionModelo, Workflow
-from riesgo.permissions import (EsAdministrador, PuedePredecir,
-                                predicciones_visibles, repositorios_visibles,
-                                roles, tiene_acceso)
+from riesgo.models import (EjecucionWorkflow, Prediccion, Repositorio,
+                           VersionModelo, Workflow)
+from riesgo.permissions import (EsAdministrador, EsLiderOAdministrador,
+                                PuedePredecir, predicciones_visibles,
+                                repositorios_visibles, roles, tiene_acceso)
 from riesgo.serializers import (PrediccionSerializer, RepositorioSerializer,
+                                SolicitudDecisionSerializer,
                                 SolicitudPrediccionSerializer,
                                 VersionModeloSerializer)
 from riesgo.services import github
+from riesgo.services.sincronizacion import sincronizar_repositorio
 from riesgo.services.etiquetado import etiquetar_ejecucion
 from riesgo.services.features import calcular_variables, fecha
 from riesgo.services.predictor import SinModeloActivo, predecir
@@ -41,12 +44,18 @@ def _error(mensaje, codigo, estado):
 
 def _error_github(exc):
     if isinstance(exc, github.NoEncontrado):
+        if "/actions/workflows/" in str(exc):
+            return _error("El archivo del workflow ya no existe en GitHub "
+                          "(fue renombrado o eliminado después de los "
+                          "datos de GHALogs). Elija otro workflow.",
+                          "github_no_encontrado", status.HTTP_404_NOT_FOUND)
         return _error("Repositorio, workflow o commit no encontrado en "
                       "GitHub, o sin permisos de lectura.",
                       "github_no_encontrado", status.HTTP_404_NOT_FOUND)
     if isinstance(exc, github.LimiteExcedido):
         return Response({"detail": "Límite de la API de GitHub agotado. "
-                                   "Intente más tarde.",
+                                   "Intente más tarde o configure "
+                                   "GITHUB_TOKEN en backend/.env.",
                          "codigo": "github_limite", "reinicio": exc.reinicio},
                         status=status.HTTP_503_SERVICE_UNAVAILABLE)
     return _error("Error al consultar GitHub.", "github_error",
@@ -66,8 +75,52 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [PuedePredecir]
 
     def get_queryset(self):
-        return repositorios_visibles(self.request.user).prefetch_related(
+        # Solo los que tienen algún workflow utilizable.
+        return repositorios_visibles(self.request.user).filter(
+            workflows__despliegue_validado=True,
+            workflows__disponible_github=True).distinct().prefetch_related(
             "workflows")
+
+    @action(detail=True, methods=["post"],
+            permission_classes=[EsAdministrador])
+    def sincronizar(self, request, pk=None):
+        """Recopila desde GitHub las ejecuciones de sus workflows validados."""
+        repositorio = self.get_object()
+        try:
+            resultado = sincronizar_repositorio(repositorio,
+                                                github.GitHubClient())
+        except github.GitHubError as exc:
+            return _error_github(exc)
+        logger.info("Sincronización de %s por %s: %s ejecuciones",
+                    repositorio, request.user.username,
+                    resultado["ejecuciones_guardadas"])
+        return Response(resultado)
+
+
+@api_view(["GET"])
+@permission_classes([EsAdministrador])
+def integraciones(request):
+    """Estado de la integración con GitHub (sin revelar el token)."""
+    try:
+        limite = github.GitHubClient().limite()
+        error = ""
+    except Exception:  # noqa: BLE001 - se informa sin detalles internos
+        limite, error = {}, "No se pudo consultar el estado de la API de GitHub."
+    ultima = EjecucionWorkflow.objects.aggregate(Max("extraida_en"))[
+        "extraida_en__max"]
+    return Response({"github": {
+        "api_url": settings.GITHUB_API_URL,
+        "token_configurado": bool(settings.GITHUB_TOKEN),
+        "limite": limite.get("limit"),
+        "restantes": limite.get("remaining"),
+        "reinicio": limite.get("reset"),
+        "error": error,
+        "repositorios_registrados": Repositorio.objects.count(),
+        "workflows_validados": Workflow.objects.filter(
+            despliegue_validado=True).count(),
+        "ejecuciones_almacenadas": EjecucionWorkflow.objects.count(),
+        "ultima_extraccion": ultima,
+    }})
 
 
 class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
@@ -77,7 +130,7 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
     def get_queryset(self):
         consulta = predicciones_visibles(self.request.user).prefetch_related(
-            "ejecuciones_previas")
+            "ejecuciones_previas", "decisiones__usuario")
         repositorio = self.request.query_params.get("repositorio")
         if repositorio:
             consulta = consulta.filter(
@@ -103,6 +156,11 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                           "sin_acceso", status.HTTP_403_FORBIDDEN)
         workflow = Workflow.objects.filter(
             repositorio=repositorio, path=datos["workflow_path"]).first()
+        if workflow is not None and not workflow.disponible_github:
+            return _error(
+                f"El workflow {workflow.path} ya no existe en GitHub (fue "
+                "renombrado o eliminado). Elija otro workflow.",
+                "workflow_no_disponible", status.HTTP_400_BAD_REQUEST)
         if workflow is None or not workflow.despliegue_validado:
             return _error(
                 f"El workflow {datos['workflow_path']} no está validado como "
@@ -120,6 +178,13 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 datos["evento"])
             resultado = predecir(variables)
         except github.GitHubError as exc:
+            if (isinstance(exc, github.NoEncontrado)
+                    and "/actions/workflows/" in str(exc)):
+                # El archivo ya no existe: se retira de los nuevos análisis.
+                workflow.disponible_github = False
+                workflow.verificado_github_en = timezone.now()
+                workflow.save(update_fields=["disponible_github",
+                                             "verificado_github_en"])
             return _error_github(exc)
         except SinModeloActivo:
             return _error("No hay un modelo activo.", "sin_modelo",
@@ -198,31 +263,57 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                                            "verificada_en"])
         return Response(PrediccionSerializer(prediccion).data)
 
-    @action(detail=False)
-    def resumen(self, request):
-        desde = timezone.now() - timedelta(days=30)
-        consulta = self.get_queryset().filter(creada_en__gte=desde)
-        por_nivel = {f["nivel"]: f["total"] for f in
-                     consulta.values("nivel").annotate(total=Count("id"))}
-        repositorios = list(
-            consulta.annotate(
-                repositorio=F("workflow__repositorio__nombre_completo"))
-            .values("repositorio")
-            .annotate(total=Count("id"), prob_media=Avg("probabilidad"))
-            .order_by("-prob_media")[:10])
-        return Response({
-            "dias": 30,
-            "total": consulta.count(),
-            "por_nivel": {n: por_nivel.get(n, 0)
-                          for n in ("bajo", "medio", "alto")},
-            "repositorios": repositorios,
-        })
+    @action(detail=True, methods=["post"],
+            permission_classes=[EsLiderOAdministrador])
+    def decision(self, request, pk=None):
+        """El líder técnico autoriza, pospone o pide revisión del cambio."""
+        prediccion = self.get_object()
+        solicitud = SolicitudDecisionSerializer(data=request.data)
+        solicitud.is_valid(raise_exception=True)
+        prediccion.decisiones.create(usuario=request.user,
+                                     **solicitud.validated_data)
+        logger.info("Decisión %s sobre la predicción %s por %s",
+                    solicitud.validated_data["decision"], prediccion.id,
+                    request.user.username)
+        return Response(PrediccionSerializer(prediccion).data,
+                        status=status.HTTP_201_CREATED)
 
 
 class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = VersionModelo.objects.all()
     serializer_class = VersionModeloSerializer
     permission_classes = [PuedePredecir]
+
+    @action(detail=True, permission_classes=[EsAdministrador])
+    def supervision(self, request, pk=None):
+        """Comparación de las predicciones con los resultados reales."""
+        version = self.get_object()
+        predicciones = Prediccion.objects.filter(version_modelo=version)
+        evaluables = [
+            (p.nivel, p.probabilidad, p.ejecucion_real.y)
+            for p in predicciones.filter(
+                ejecucion_real__etiqueta__in=["despliegue_completado",
+                                              "despliegue_no_completado"])
+            .select_related("ejecucion_real")]
+        por_nivel = {}
+        for nivel in ("bajo", "medio", "alto"):
+            casos = [y for n, _, y in evaluables if n == nivel]
+            por_nivel[nivel] = {
+                "evaluables": len(casos),
+                "no_completados": sum(casos),
+                "tasa": (sum(casos) / len(casos)) if casos else None,
+            }
+        brier = (sum((p - y) ** 2 for _, p, y in evaluables) / len(evaluables)
+                 if evaluables else None)
+        return Response({
+            "version": version.version,
+            "predicciones": predicciones.count(),
+            "verificadas": predicciones.filter(
+                ejecucion_real__isnull=False).count(),
+            "evaluables": len(evaluables),
+            "por_nivel": por_nivel,
+            "brier": brier,
+        })
 
     @action(detail=True, methods=["post"],
             permission_classes=[EsAdministrador])

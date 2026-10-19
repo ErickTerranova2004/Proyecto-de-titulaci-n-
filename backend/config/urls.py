@@ -16,5 +16,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/token/", obtain_auth_token),
     path("api/yo/", views.yo),
+    path("api/integraciones/", views.integraciones),
     path("api/", include(router.urls)),
 ]

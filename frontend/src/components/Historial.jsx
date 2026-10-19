@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
-import { Alerta, Fecha, NivelRiesgo, porcentaje } from "./comunes.jsx";
+import { Alerta, DECISIONES, Fecha, NivelRiesgo, porcentaje } from "./comunes.jsx";
 import Resultado, { ETIQUETAS } from "./Resultado.jsx";
 
 export default function Historial({ modelos }) {
@@ -8,8 +8,9 @@ export default function Historial({ modelos }) {
   const [error, setError] = useState("");
   const [seleccion, setSeleccion] = useState(null);
 
+  const cargar = () => api.historial().then(setFilas).catch((e) => setError(e.message));
   useEffect(() => {
-    api.historial().then(setFilas).catch((e) => setError(e.message));
+    cargar();
   }, []);
 
   if (seleccion) {
@@ -17,7 +18,7 @@ export default function Historial({ modelos }) {
       <section className="vista" aria-labelledby="titulo-historial">
         <h1 id="titulo-historial">Historial de análisis</h1>
         <div>
-          <button className="boton boton--secundario" type="button" onClick={() => setSeleccion(null)}>
+          <button className="boton boton--secundario" type="button" onClick={() => { setSeleccion(null); cargar(); }}>
             ← Volver al historial
           </button>
         </div>
@@ -45,6 +46,7 @@ export default function Historial({ modelos }) {
                 <th scope="col">Riesgo</th>
                 <th scope="col" className="numero">Probabilidad</th>
                 <th scope="col">Resultado real</th>
+                <th scope="col">Decisión</th>
                 <th scope="col">Usuario</th>
                 <th scope="col"><span className="solo-lector">Acciones</span></th>
               </tr>
@@ -59,6 +61,7 @@ export default function Historial({ modelos }) {
                   <td><NivelRiesgo nivel={p.nivel} /></td>
                   <td className="numero">{porcentaje(p.probabilidad)}</td>
                   <td>{p.ejecucion_real ? ETIQUETAS[p.ejecucion_real.etiqueta] || p.ejecucion_real.etiqueta : "Pendiente"}</td>
+                  <td>{p.decisiones?.length ? DECISIONES[p.decisiones[0].decision] : "Sin decisión"}</td>
                   <td>{p.usuario}</td>
                   <td>
                     <button className="boton boton--secundario" type="button" onClick={() => setSeleccion(p)}>

@@ -40,6 +40,8 @@ erDiagram
     PREDICCION ||--o{ PREDICCION_EJECUCIONES_PREVIAS : "usó historial"
     EJECUCION_WORKFLOW ||--o{ PREDICCION_EJECUCIONES_PREVIAS : "forma parte del historial de"
     EJECUCION_WORKFLOW |o--o{ PREDICCION : "es el resultado real de"
+    PREDICCION ||--o{ DECISION_DESPLIEGUE : "recibe"
+    AUTH_USER ||--o{ DECISION_DESPLIEGUE : "registra"
 
     AUTH_USER {
         int id PK
@@ -95,6 +97,9 @@ erDiagram
         datetime fecha "nullable"
         string autor_hash "SHA-256 truncado, sin nombre ni correo"
         string mensaje_resumen
+        int archivos_modificados "nullable"
+        int adiciones "nullable"
+        int eliminaciones "nullable"
     }
     EJECUCION_WORKFLOW {
         bigint id PK
@@ -148,7 +153,17 @@ erDiagram
         bigint prediccion_id FK,UK
         bigint ejecucionworkflow_id FK,UK
     }
+    DECISION_DESPLIEGUE {
+        bigint id PK
+        bigint prediccion_id FK
+        int usuario_id FK "PROTECT"
+        string decision "autorizar | posponer | solicitar_revision"
+        text comentario "máx. 1000"
+        datetime creada_en
+    }
 ```
+
+Las métricas del cambio (`archivos_modificados`, `adiciones`, `eliminaciones`) se guardan para trazabilidad y supervisión; **no son variables del modelo v1.1**, que se entrenó sin ellas porque GHALogs no las contiene. `DECISION_DESPLIEGUE` es un registro de auditoría: cada decisión es una fila nueva y no se edita; la vigente es la más reciente.
 
 ### Restricciones de unicidad
 
@@ -170,7 +185,7 @@ erDiagram
 
 ### Borrado
 
-Las FK hacia `REPOSITORIO`, `WORKFLOW`, `COMMIT`, `VERSION_MODELO` y `EJECUCION_WORKFLOW` usan `PROTECT`: no se puede borrar un elemento referenciado por una predicción, para conservar la trazabilidad. `ACCESO_REPOSITORIO` usa `CASCADE`, porque si se borra el usuario o el repositorio desaparece el acceso.
+Las FK hacia `REPOSITORIO`, `WORKFLOW`, `COMMIT`, `VERSION_MODELO` y `EJECUCION_WORKFLOW` usan `PROTECT`: no se puede borrar un elemento referenciado por una predicción, para conservar la trazabilidad. `ACCESO_REPOSITORIO` usa `CASCADE`, porque si se borra el usuario o el repositorio desaparece el acceso. `DECISION_DESPLIEGUE` usa `CASCADE` hacia la predicción y `PROTECT` hacia el usuario que decidió.
 
 ## Flujo de una predicción
 
@@ -193,6 +208,10 @@ Las FK hacia `REPOSITORIO`, `WORKFLOW`, `COMMIT`, `VERSION_MODELO` y `EJECUCION_
 | Ver predicciones | Las propias de repositorios asignados | Todas las de repositorios asignados | Todas |
 | Verificar el resultado real | Las que puede ver | Las que puede ver | Todas |
 | Ver versiones del modelo y métricas | ✔ | ✔ | ✔ |
+| Registrar la decisión de despliegue | | En predicciones visibles | ✔ |
+| Ver la decisión registrada | Las que puede ver | Las que puede ver | Todas |
+| Supervisar el modelo con resultados reales | | | ✔ |
+| Ver el estado de la integración con GitHub y sincronizar | | | ✔ |
 | Activar una versión del modelo | | | ✔ |
 | Asignar accesos y validar workflows (admin de Django) | | | ✔ |
 
@@ -209,9 +228,12 @@ Al quitar un acceso, el usuario deja de ver ese repositorio y sus predicciones.
 | GET | `/api/predicciones/` | Historial visible (`?repositorio=`) |
 | GET | `/api/predicciones/{id}/` | Detalle con historial usado y resultado real |
 | POST | `/api/predicciones/{id}/verificar/` | Enlaza y etiqueta la ejecución real posterior |
-| GET | `/api/predicciones/resumen/` | Resumen de 30 días por nivel y repositorio (disponible en la API; el Panel calcula sus indicadores a partir de `/api/predicciones/` para poder filtrar por período) |
 | GET | `/api/modelos/` | Versiones del modelo |
+| POST | `/api/predicciones/{id}/decision/` | Registra autorizar / posponer / solicitar revisión (líder técnico o administrador) |
 | POST | `/api/modelos/{id}/activar/` | Activa una versión (administrador) |
+| GET | `/api/modelos/{id}/supervision/` | Tasa observada de no completados por nivel y Brier sobre predicciones verificadas (administrador) |
+| GET | `/api/integraciones/` | Estado de la API de GitHub (cuota, token configurado sí/no) y volumen almacenado (administrador) |
+| POST | `/api/repositorios/{id}/sincronizar/` | Recopila ejecuciones completadas de los workflows validados (administrador) |
 
 ## Interfaz: pantalla → elemento → tabla.campo
 
@@ -233,8 +255,11 @@ Cada dato visible viene de la API y, por ella, de la base de datos. Prefijo de t
 | Resultado | `<figure>` Factores SHAP | respuesta de la predicción | `prediccion.factores[]` (`variable`, `descripcion`, `valor`, `contribucion`, `efecto`) |
 | Resultado | `<ul>` Recomendaciones con código | ídem | `prediccion.recomendaciones[]` (`codigo`, `texto`) |
 | Resultado | Resultado real | `POST /api/predicciones/{id}/verificar/` | `ejecucionworkflow.etiqueta`, `subtipo_etiqueta`, `run_id`, `run_attempt`, `iniciada_en`, `conclusion`, `paso_fallido` (vía `prediccion.ejecucion_real_id`). Los rótulos de los códigos son *presentación* |
+| Resultado | "Cambio del commit" | respuesta de la predicción | `commit.archivos_modificados`, `commit.adiciones`, `commit.eliminaciones` |
+| Resultado | `<ol>` Decisiones registradas | ídem | `decisiondespliegue.decision`, `comentario`, `creada_en`; `auth_user.username` |
+| Resultado | `<form>` Registrar decisión (líder técnico y administrador) | `POST /api/predicciones/{id}/decision/` | nueva fila en `decisiondespliegue` |
 | Resultado | `<footer>` trazabilidad | respuesta de la predicción | `versionmodelo.version`; número de filas de `prediccion_ejecuciones_previas`; `prediccion.datos_github_extraidos_en`; `auth_user.username`; `prediccion.creada_en` |
-| Historial | `<table>` | `GET /api/predicciones/` | `prediccion.creada_en`, `repositorio.nombre_completo`, `workflow.path`, `commit.sha`, `prediccion.nivel`, `prediccion.probabilidad`, `ejecucionworkflow.etiqueta`, `auth_user.username` |
+| Historial | `<table>` | `GET /api/predicciones/` | `prediccion.creada_en`, `repositorio.nombre_completo`, `workflow.path`, `commit.sha`, `prediccion.nivel`, `prediccion.probabilidad`, `ejecucionworkflow.etiqueta`, la `decisiondespliegue.decision` más reciente, `auth_user.username` |
 | Panel | Filtro de período y "datos cargados" | — | Filtro aplicado en el navegador sobre `prediccion.creada_en`; la hora es la de la última carga de la API |
 | Panel | KPI "Análisis realizados" (y período anterior) | `GET /api/predicciones/` | `COUNT(prediccion.id)` en el período y en el período anterior de igual duración |
 | Panel | KPI "Riesgo Alto" | ídem | `COUNT` con `prediccion.nivel = 'alto'` y su porcentaje |
@@ -250,6 +275,9 @@ Cada dato visible viene de la API y, por ella, de la base de datos. Prefijo de t
 | Panel | `<figure>` Tendencia | ídem + `GET /api/modelos/` | `AVG(prediccion.probabilidad)` por día; líneas de umbral = `metadatos.limites_riesgo` |
 | Modelos | `<table>` | `GET /api/modelos/` | `versionmodelo.version`, `nombre_modelo`, `activo`, `registrado_en`; `metadatos.filas_entrenamiento`, `metadatos.filas_prueba`, `metadatos.metricas_prueba` (PR-AUC, ROC-AUC, Precision, Recall, F1, Brier), `metadatos.limites_riesgo` |
 | Modelos | `<button>` Activar (solo administrador) | `POST /api/modelos/{id}/activar/` | `versionmodelo.activo` |
+| Modelos | `<table>` Supervisión (solo administrador) | `GET /api/modelos/{id}/supervision/` | Por `prediccion.version_modelo_id`: `COUNT`; con `ejecucion_real_id`; evaluables; por `prediccion.nivel`, `SUM(y)/COUNT`; Brier = media de (`probabilidad` − y)² |
+| Integraciones (solo administrador) | `<dl>` Estado de la conexión | `GET /api/integraciones/` | `settings.GITHUB_API_URL`; `GITHUB_TOKEN` solo como sí/no; `/rate_limit` de GitHub; `COUNT` de `repositorio`, `workflow` validados y `ejecucionworkflow`; `MAX(ejecucionworkflow.extraida_en)` |
+| Integraciones | `<table>` Sincronizar por repositorio | `GET /api/repositorios/`, `POST /api/repositorios/{id}/sincronizar/` | Inserta o actualiza `ejecucionworkflow` (y `commit`) por (`run_id`, `run_attempt`) |
 
 ## Seguridad
 

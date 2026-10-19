@@ -22,7 +22,7 @@ La plataforma estima la **probabilidad de que un intento de despliegue no se com
 | `informes/` | Informes de cada fase y figuras |
 | `backend/` | API en Django + DRF (PostgreSQL) |
 | `frontend/` | Interfaz en React (Vite) |
-| `docs/` | Manual, arquitectura, plan de pruebas y validez |
+| `docs/` | Manual, arquitectura, plan de pruebas, validez y [cumplimiento de la propuesta](docs/cumplimiento_propuesta.md) |
 
 ## Reproducir los resultados
 

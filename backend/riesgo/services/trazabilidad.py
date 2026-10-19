@@ -44,6 +44,12 @@ def guardar_commit(repositorio, sha, datos=None):
                              if autor else "")
         commit.mensaje_resumen = (info.get("message") or "").split("\n")[0][
             :200]
+        estadisticas = datos.get("stats") or {}
+        if "files" in datos:
+            commit.archivos_modificados = len(datos["files"])
+        if "additions" in estadisticas:
+            commit.adiciones = estadisticas["additions"]
+            commit.eliminaciones = estadisticas.get("deletions")
         commit.save()
     return commit
 

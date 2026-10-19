@@ -1,5 +1,24 @@
 // Elementos reutilizables. Los textos de nivel son obligatorios: el riesgo
 // nunca se comunica solo con color.
+import { createContext, useContext } from "react";
+
+// Usuario autenticado (respuesta de /api/yo/) disponible para todas las vistas.
+export const UsuarioContexto = createContext(null);
+
+export function useRoles() {
+  const roles = useContext(UsuarioContexto)?.roles ?? [];
+  return {
+    esAdmin: roles.includes("administrador"),
+    puedeDecidir: roles.includes("lider_tecnico") || roles.includes("administrador"),
+  };
+}
+
+// Textos de presentación de DecisionDespliegue.decision.
+export const DECISIONES = {
+  autorizar: "Autorizar el despliegue",
+  posponer: "Posponer el despliegue",
+  solicitar_revision: "Solicitar revisión adicional",
+};
 
 export const NIVELES = { bajo: "Bajo", medio: "Medio", alto: "Alto" };
 

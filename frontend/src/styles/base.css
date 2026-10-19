@@ -262,7 +262,8 @@ legend {
 .campo label { font-size: var(--texto-sm); font-weight: 600; }
 
 input,
-select {
+select,
+textarea {
   font: inherit;
   width: 100%;
   min-width: 0;
@@ -274,6 +275,13 @@ select {
 }
 input:disabled,
 select:disabled { background: var(--relleno-suave); }
+textarea { resize: vertical; }
+
+.opcion { display: flex; align-items: center; gap: var(--esp-2); cursor: pointer; }
+.opcion input { width: auto; accent-color: var(--color-tinta); }
+
+.decisiones { margin: 0 0 var(--esp-3); padding-left: var(--esp-4); display: grid; gap: var(--esp-2); }
+.decisiones p { margin: var(--esp-1) 0 0; color: var(--tinta-secundaria); }
 
 .login { max-width: 400px; margin: var(--esp-5) auto; }
 

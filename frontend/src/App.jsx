@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { api, sesion } from "./api.js";
-import { Alerta } from "./components/comunes.jsx";
+import { Alerta, UsuarioContexto } from "./components/comunes.jsx";
 import Historial from "./components/Historial.jsx";
+import Integraciones from "./components/Integraciones.jsx";
 import Login from "./components/Login.jsx";
 import Modelos from "./components/Modelos.jsx";
 import NuevoAnalisis from "./components/NuevoAnalisis.jsx";
@@ -15,6 +16,8 @@ const PESTANAS = [
   ["historial", "Historial", "M12 7v5l3 3M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z"],
   ["modelos", "Modelos", "M4 6h16v12H4zM8 10h8M8 14h5"],
 ];
+// Solo para el administrador.
+const PESTANA_INTEGRACIONES = ["integraciones", "Integraciones", "M9 7H6a5 5 0 0 0 0 10h3M15 7h3a5 5 0 0 1 0 10h-3M8 12h8"];
 
 export default function App() {
   const [usuario, setUsuario] = useState(null);
@@ -56,6 +59,7 @@ export default function App() {
   }
 
   return (
+    <UsuarioContexto.Provider value={usuario}>
     <div className="app">
       <aside className="lateral">
         <header className="lateral__cabecera">
@@ -64,7 +68,7 @@ export default function App() {
         </header>
 
         <nav className="menu" aria-label="Secciones de la plataforma">
-          {PESTANAS.map(([id, texto, icono]) => (
+          {(esAdmin ? [...PESTANAS, PESTANA_INTEGRACIONES] : PESTANAS).map(([id, texto, icono]) => (
             <button
               key={id}
               type="button"
@@ -97,6 +101,7 @@ export default function App() {
           {vista === "nuevo" && <NuevoAnalisis modelos={modelos} />}
           {vista === "historial" && <Historial modelos={modelos} />}
           {vista === "modelos" && <Modelos modelos={modelos} esAdmin={esAdmin} alCambiar={cargarModelos} />}
+          {vista === "integraciones" && esAdmin && <Integraciones />}
         </main>
 
         <footer className="pie">
@@ -110,5 +115,6 @@ export default function App() {
         </footer>
       </div>
     </div>
+    </UsuarioContexto.Provider>
   );
 }

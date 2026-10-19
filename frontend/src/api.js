@@ -34,7 +34,11 @@ export const api = {
   historial: () => solicitar("/predicciones/"),
   verificar: (id) => solicitar(`/predicciones/${id}/verificar/`, { method: "POST" }),
   repositorios: () => solicitar("/repositorios/"),
-  resumen: () => solicitar("/predicciones/resumen/"),
   modelos: () => solicitar("/modelos/"),
   activarModelo: (id) => solicitar(`/modelos/${id}/activar/`, { method: "POST" }),
+  supervision: (id) => solicitar(`/modelos/${id}/supervision/`),
+  decidir: (id, datos) =>
+    solicitar(`/predicciones/${id}/decision/`, { method: "POST", body: JSON.stringify(datos) }),
+  integraciones: () => solicitar("/integraciones/"),
+  sincronizar: (id) => solicitar(`/repositorios/${id}/sincronizar/`, { method: "POST" }),
 };

@@ -100,6 +100,14 @@ class GitHubClient:
                          params=params, ttl=60 if head_sha else 300)
         return datos.get("workflow_runs", [])
 
+    def limite(self):
+        """Estado del límite de la API (esta consulta no consume cuota)."""
+        respuesta = self.sesion.get(f"{self.base_url}/rate_limit",
+                                    headers=self._cabeceras(), timeout=20)
+        if respuesta.status_code >= 400:
+            raise GitHubError(f"GitHub respondió {respuesta.status_code}")
+        return respuesta.json().get("rate", {})
+
     def jobs_intento(self, repo, run_id, intento):
         datos = self.get(
             f"/repos/{repo}/actions/runs/{run_id}/attempts/{intento}/jobs",

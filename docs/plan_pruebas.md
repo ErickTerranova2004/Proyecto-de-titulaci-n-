@@ -2,7 +2,7 @@
 
 ## 1. Pruebas automatizadas del backend (`manage.py test riesgo`)
 
-Resultado del 2026-10-15, tras la migración inicial limpia y con el **modelo v1.1 (Random Forest) activo**: **37 pruebas, todas correctas** (`Ran 37 tests ... OK`).
+Resultado del 2026-10-17, con la migración `0003` (disponibilidad de workflows en GitHub) y el **modelo v1.1 (Random Forest) activo**: **44 pruebas, todas correctas** (`Ran 44 tests ... OK`).
 
 ### Variables, seguridad y recomendaciones (`test_features.py`)
 
@@ -42,7 +42,7 @@ Resultado del 2026-10-15, tras la migración inicial limpia y con el **modelo v1
 
 | ID | Prueba | Tipo |
 |---|---|---|
-| T20 | Crea la predicción con trazabilidad (commit, 3 ejecuciones previas, códigos de regla, autor sin datos personales) | Integración |
+| T20 | Crea la predicción con trazabilidad (commit, 3 ejecuciones previas, códigos de regla, autor sin datos personales) y guarda las métricas del cambio (2 archivos, +12 / −3) | Integración |
 | T21 | Rechaza workflows no validados o no registrados (400, `workflow_no_validado`) | Funcional |
 | T22 | Rechaza repositorios no registrados (404) | Funcional |
 | T23 | Exige autenticación (401) | Seguridad |
@@ -52,7 +52,7 @@ Resultado del 2026-10-15, tras la migración inicial limpia y con el **modelo v1
 | T27 | Sin acceso al repositorio no puede predecir (403, `sin_acceso`) | Seguridad |
 | T28 | El administrador predice en cualquier repositorio | Seguridad |
 | T29 | `/api/repositorios/` lista solo los repositorios asignados y sus workflows validados | Seguridad |
-| T30 | Visibilidad: el desarrollador ve las propias, el líder todas las de sus repositorios, el admin todo; el resumen se filtra igual | Seguridad |
+| T30 | Visibilidad: el desarrollador ve las propias, el líder todas las de sus repositorios, el admin todo | Seguridad |
 | T31 | Detalle de una predicción sin acceso → 404 | Seguridad |
 | T32 | Al quitar el acceso, el usuario deja de ver las predicciones | Seguridad |
 | T33 | Verificar enlaza solo la ejecución del mismo workflow y commit iniciada después, y guarda etiqueta, subtipo y paso fallido | Integración |
@@ -60,6 +60,13 @@ Resultado del 2026-10-15, tras la migración inicial limpia y con el **modelo v1
 | T35 | Un caso ambiguo no se etiqueta como fallo (y = null) | Integración |
 | T36 | No se puede verificar una predicción sin acceso (404) | Seguridad |
 | T37 | Solo el administrador activa modelos | Seguridad |
+| T38 | Supervisión: tras verificar, cuenta el caso evaluable en su nivel y calcula Brier; el desarrollador recibe 403 | Funcional |
+| T39 | El líder técnico registra una decisión (201) y el desarrollador la ve en el detalle | Funcional |
+| T40 | Decisión: desarrollador 403, líder sin acceso al repositorio 404, decisión no válida 400 | Seguridad |
+| T41 | Integraciones: solo el administrador; la respuesta no contiene el token | Seguridad |
+| T42 | Sincronizar: solo el administrador; guarda las ejecuciones de los workflows validados | Integración |
+| T43 | Workflow cuyo archivo ya no existe en GitHub: responde 404, queda como no disponible, deja de ofrecerse y se rechaza con `workflow_no_disponible` | Integración |
+| T44 | Comando `verificar_workflows_github`: marca disponibles y no disponibles según la respuesta de GitHub | Integración |
 
 ## 2. Pruebas de punta a punta (manual)
 
@@ -71,6 +78,7 @@ Resultado del 2026-10-15, tras la migración inicial limpia y con el **modelo v1
 | 2026-10-15 | `registrar_modelo --modelo v1.1` + `validar_workflows_dataset` (dataset v1.1) | OK: v1.1 activo y v1 inactivo; 639 validados y 28 validaciones de v1 retiradas |
 | 2026-10-15 | `train_models.py` modificado reproduce v1 | OK: métricas idénticas a las publicadas |
 | 2026-10-15 | `npm run build` del frontend con selección de repositorio y workflow, códigos de regla y verificación | OK |
+| 2026-10-16 | `npm run build` con decisión del líder, supervisión e integraciones; búsqueda de colores fuera de `tokens.css` | OK: sin colores fuera de la paleta |
 
 Con la nueva regla, `novuhq/novu` `deploy.yml` ya no se admite: no está en el dataset. Un administrador tendría que validarlo con su evidencia.
 

@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils import timezone
 
-from riesgo.models import (AccesoRepositorio, Commit, EjecucionWorkflow,
+from riesgo.models import (AccesoRepositorio, Commit, DecisionDespliegue,
+                           EjecucionWorkflow,
                            Prediccion, Repositorio, VersionModelo, Workflow)
 
 
@@ -44,8 +45,8 @@ class AccesoRepositorioAdmin(admin.ModelAdmin):
 @admin.register(Workflow)
 class WorkflowAdmin(admin.ModelAdmin):
     list_display = ["repositorio", "path", "despliegue_validado",
-                    "validado_por", "validado_en"]
-    list_filter = ["despliegue_validado"]
+                    "disponible_github", "validado_por", "validado_en"]
+    list_filter = ["despliegue_validado", "disponible_github"]
     search_fields = ["repositorio__nombre_completo", "path"]
     autocomplete_fields = ["repositorio"]
     readonly_fields = ["validado_por", "validado_en"]
@@ -60,7 +61,8 @@ class WorkflowAdmin(admin.ModelAdmin):
 
 @admin.register(Commit)
 class CommitAdmin(admin.ModelAdmin):
-    list_display = ["repositorio", "sha", "fecha"]
+    list_display = ["repositorio", "sha", "fecha", "archivos_modificados",
+                    "adiciones", "eliminaciones"]
     search_fields = ["sha"]
 
 
@@ -69,6 +71,14 @@ class EjecucionWorkflowAdmin(admin.ModelAdmin):
     list_display = ["run_id", "run_attempt", "workflow", "conclusion",
                     "etiqueta", "subtipo_etiqueta"]
     list_filter = ["etiqueta", "conclusion"]
+
+
+@admin.register(DecisionDespliegue)
+class DecisionDespliegueAdmin(admin.ModelAdmin):
+    list_display = ["prediccion", "decision", "usuario", "creada_en"]
+    list_filter = ["decision"]
+    readonly_fields = ["prediccion", "usuario", "decision", "comentario",
+                       "creada_en"]
 
 
 @admin.register(VersionModelo)

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from riesgo.models import (EjecucionWorkflow, Prediccion, Repositorio,
-                           VersionModelo)
+from riesgo.models import (DecisionDespliegue, EjecucionWorkflow, Prediccion,
+                           Repositorio, VersionModelo)
 from riesgo.services.github import REPO, SHA, WORKFLOW
 
 EVENTOS = ["push", "workflow_dispatch", "release", "pull_request",
@@ -37,6 +37,20 @@ class EjecucionSerializer(serializers.ModelSerializer):
                   "etiqueta", "subtipo_etiqueta", "y", "etiquetada_en"]
 
 
+class SolicitudDecisionSerializer(serializers.Serializer):
+    decision = serializers.ChoiceField(choices=DecisionDespliegue.DECISIONES)
+    comentario = serializers.CharField(max_length=1000, required=False,
+                                       allow_blank=True, default="")
+
+
+class DecisionSerializer(serializers.ModelSerializer):
+    usuario = serializers.CharField(source="usuario.username")
+
+    class Meta:
+        model = DecisionDespliegue
+        fields = ["decision", "comentario", "usuario", "creada_en"]
+
+
 class PrediccionSerializer(serializers.ModelSerializer):
     usuario = serializers.CharField(source="usuario.username")
     repositorio = serializers.CharField(
@@ -44,16 +58,24 @@ class PrediccionSerializer(serializers.ModelSerializer):
     workflow_path = serializers.CharField(source="workflow.path")
     head_sha = serializers.CharField(source="commit.sha")
     version_modelo = serializers.CharField(source="version_modelo.version")
+    cambio = serializers.SerializerMethodField()
     ejecuciones_previas = serializers.SerializerMethodField()
     ejecucion_real = EjecucionSerializer(read_only=True)
+    decisiones = DecisionSerializer(many=True, read_only=True)
 
     class Meta:
         model = Prediccion
         fields = ["id", "usuario", "repositorio", "workflow_path", "head_sha",
-                  "rama", "evento", "variables", "probabilidad", "nivel",
-                  "factores", "recomendaciones", "version_modelo",
-                  "ejecuciones_previas", "ejecucion_real", "verificada_en",
-                  "datos_github_extraidos_en", "creada_en"]
+                  "rama", "evento", "cambio", "variables", "probabilidad",
+                  "nivel", "factores", "recomendaciones", "version_modelo",
+                  "ejecuciones_previas", "ejecucion_real", "decisiones",
+                  "verificada_en", "datos_github_extraidos_en", "creada_en"]
+
+    def get_cambio(self, prediccion):
+        commit = prediccion.commit
+        return {"archivos_modificados": commit.archivos_modificados,
+                "adiciones": commit.adiciones,
+                "eliminaciones": commit.eliminaciones}
 
     def get_ejecuciones_previas(self, prediccion):
         return [{"run_id": e.run_id, "run_attempt": e.run_attempt,
@@ -71,7 +93,7 @@ class RepositorioSerializer(serializers.ModelSerializer):
     def get_workflows(self, repositorio):
         return [{"path": w.path, "nombre": w.nombre}
                 for w in repositorio.workflows.all()
-                if w.despliegue_validado]
+                if w.despliegue_validado and w.disponible_github]
 
 
 class VersionModeloSerializer(serializers.ModelSerializer):

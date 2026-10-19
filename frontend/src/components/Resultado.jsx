@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
-import { Alerta, Fecha, NIVELES, NivelRiesgo, porcentaje } from "./comunes.jsx";
+import { Alerta, DECISIONES, Fecha, NIVELES, NivelRiesgo, porcentaje, useRoles } from "./comunes.jsx";
 
 // Textos de presentación para los códigos de EjecucionWorkflow.etiqueta y
 // EjecucionWorkflow.subtipo_etiqueta (los códigos vienen de la API).
@@ -112,6 +112,83 @@ function ResultadoReal({ prediccion, alActualizar }) {
   );
 }
 
+function Decision({ prediccion, alActualizar }) {
+  const { puedeDecidir } = useRoles();
+  const [decision, setDecision] = useState("");
+  const [comentario, setComentario] = useState("");
+  const [error, setError] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const decisiones = prediccion.decisiones ?? [];
+
+  async function enviar(evento) {
+    evento.preventDefault();
+    setError("");
+    setEnviando(true);
+    try {
+      alActualizar(await api.decidir(prediccion.id, { decision, comentario }));
+      setDecision("");
+      setComentario("");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <>
+      {decisiones.length ? (
+        <ol className="decisiones">
+          {decisiones.map((d) => (
+            <li key={d.creada_en}>
+              <strong>{DECISIONES[d.decision] || d.decision}</strong> · {d.usuario} · <Fecha valor={d.creada_en} />
+              {d.comentario && <p>{d.comentario}</p>}
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="secundario">El líder técnico aún no ha registrado una decisión sobre este despliegue.</p>
+      )}
+      {puedeDecidir && (
+        <form className="formulario" onSubmit={enviar}>
+          <fieldset>
+            <legend>Registrar decisión</legend>
+            {Object.entries(DECISIONES).map(([codigo, texto]) => (
+              <label key={codigo} className="opcion">
+                <input
+                  type="radio"
+                  name={`decision-${prediccion.id}`}
+                  value={codigo}
+                  checked={decision === codigo}
+                  onChange={() => setDecision(codigo)}
+                  required
+                />
+                {texto}
+              </label>
+            ))}
+            <div className="campo">
+              <label htmlFor={`comentario-${prediccion.id}`}>Comentario (opcional)</label>
+              <textarea
+                id={`comentario-${prediccion.id}`}
+                rows={3}
+                maxLength={1000}
+                value={comentario}
+                onChange={(e) => setComentario(e.target.value)}
+              />
+            </div>
+          </fieldset>
+          <div>
+            <button className="boton" type="submit" disabled={enviando}>
+              {enviando ? "Guardando…" : "Guardar decisión"}
+            </button>
+          </div>
+          <Alerta>{error}</Alerta>
+        </form>
+      )}
+    </>
+  );
+}
+
 export default function Resultado({ prediccion, modelos }) {
   const [p, setP] = useState(prediccion);
   useEffect(() => setP(prediccion), [prediccion]);
@@ -130,6 +207,12 @@ export default function Resultado({ prediccion, modelos }) {
           {p.repositorio} · {p.workflow_path} · commit <code>{p.head_sha.slice(0, 7)}</code> · rama {p.rama || "—"} ·
           evento {p.evento}
         </p>
+        {p.cambio?.archivos_modificados != null && (
+          <p className="secundario">
+            Cambio del commit: {p.cambio.archivos_modificados} archivos modificados · +{p.cambio.adiciones} / −
+            {p.cambio.eliminaciones} líneas
+          </p>
+        )}
       </header>
 
       <dl className={`riesgo riesgo--${p.nivel}`}>
@@ -188,6 +271,11 @@ export default function Resultado({ prediccion, modelos }) {
       <section aria-labelledby={`real-${p.id}`}>
         <h3 id={`real-${p.id}`}>Resultado real</h3>
         <ResultadoReal prediccion={p} alActualizar={setP} />
+      </section>
+
+      <section aria-labelledby={`decision-${p.id}`}>
+        <h3 id={`decision-${p.id}`}>Decisión del líder técnico</h3>
+        <Decision prediccion={p} alActualizar={setP} />
       </section>
 
       <footer className="secundario">

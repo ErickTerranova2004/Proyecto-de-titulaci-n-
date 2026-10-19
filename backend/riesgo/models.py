@@ -69,6 +69,11 @@ class Workflow(models.Model):
     validado_en = models.DateTimeField(null=True, blank=True)
     patron_paso_despliegue = models.CharField(max_length=500,
                                               default=PATRON_DESPLIEGUE)
+    # El archivo del workflow puede haberse renombrado o eliminado después de
+    # los datos de GHALogs. Se conserva el registro (trazabilidad), pero deja
+    # de ofrecerse para nuevos análisis.
+    disponible_github = models.BooleanField(default=True)
+    verificado_github_en = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["repositorio", "path"]
@@ -92,6 +97,11 @@ class Commit(models.Model):
     fecha = models.DateTimeField(null=True, blank=True)
     autor_hash = models.CharField(max_length=12, blank=True)
     mensaje_resumen = models.CharField(max_length=200, blank=True)
+    # Métricas del cambio de código (GitHub: stats y files del commit).
+    # Se recopilan y guardan; el modelo v1.1 no las usa como variables.
+    archivos_modificados = models.PositiveIntegerField(null=True, blank=True)
+    adiciones = models.PositiveIntegerField(null=True, blank=True)
+    eliminaciones = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
         constraints = [models.UniqueConstraint(
@@ -228,3 +238,28 @@ class Prediccion(models.Model):
 
     def __str__(self):
         return f"{self.workflow}@{self.commit.sha[:7]}: {self.nivel}"
+
+
+class DecisionDespliegue(models.Model):
+    """Decisión del líder técnico sobre una predicción (historial completo)."""
+
+    DECISIONES = [
+        ("autorizar", "Autorizar el despliegue"),
+        ("posponer", "Posponer el despliegue"),
+        ("solicitar_revision", "Solicitar revisión previa del cambio"),
+    ]
+
+    prediccion = models.ForeignKey(Prediccion, on_delete=models.CASCADE,
+                                   related_name="decisiones")
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                on_delete=models.PROTECT,
+                                related_name="decisiones")
+    decision = models.CharField(max_length=20, choices=DECISIONES)
+    comentario = models.TextField(blank=True, max_length=1000)
+    creada_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-creada_en"]
+
+    def __str__(self):
+        return f"{self.prediccion_id}: {self.decision}"

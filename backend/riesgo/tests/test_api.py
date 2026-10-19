@@ -1,5 +1,8 @@
 from datetime import timedelta
 from io import StringIO
+from pathlib import Path
+import shutil
+import tempfile
 from unittest import mock
 
 from django.contrib.auth.models import Group, User
@@ -8,14 +11,17 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from riesgo.models import AccesoRepositorio, Prediccion, Repositorio, Workflow
+from riesgo.models import (AccesoRepositorio, EjecucionWorkflow, Prediccion,
+                           Repositorio, Workflow)
 from riesgo.services import github
 
 SHA = "a" * 40
 COMMIT = {"sha": SHA, "commit": {
     "message": "fix: corrige configuración",
     "author": {"name": "dev"},
-    "committer": {"date": "2026-10-15T09:00:00Z"}}}
+    "committer": {"date": "2026-10-15T09:00:00Z"}},
+    "stats": {"additions": 12, "deletions": 3, "total": 15},
+    "files": [{"filename": "a.py"}, {"filename": "b.py"}]}
 RUNS = [{"id": 100 + i, "run_attempt": 1, "status": "completed",
          "conclusion": c, "workflow_id": 7, "head_sha": "c" * 40,
          "event": "push", "head_branch": "main",
@@ -54,6 +60,9 @@ class ClienteFalso:
 
     def jobs_intento(self, repo, run_id, intento):
         return self.JOBS
+
+    def limite(self):
+        return {"limit": 5000, "remaining": 4990, "reset": 1}
 
 
 class ClienteNoEncontrado(ClienteFalso):
@@ -126,6 +135,10 @@ class ApiTest(TestCase):
         self.assertEqual(prediccion.commit.mensaje_resumen,
                          "fix: corrige configuración")
         self.assertNotEqual(prediccion.commit.autor_hash, "dev")
+        # Métricas del cambio de código recopiladas desde GitHub.
+        self.assertEqual(cuerpo["cambio"], {"archivos_modificados": 2,
+                                            "adiciones": 12,
+                                            "eliminaciones": 3})
 
     def test_rechaza_workflow_no_validado(self):
         for ruta in (".github/workflows/ci.yml",
@@ -194,11 +207,6 @@ class ApiTest(TestCase):
         self.assertEqual(total(self.lider), 2)        # todas de acme/tienda
         self.assertEqual(total(self.lider_ajeno), 1)  # solo acme/ajeno
         self.assertEqual(total(self.admin), 3)        # todo
-        resumen = self.cliente(self.lider).get(
-            "/api/predicciones/resumen/").json()
-        self.assertEqual(resumen["total"], 2)
-        self.assertEqual(resumen["repositorios"][0]["repositorio"],
-                         "acme/tienda")
 
     def test_detalle_sin_acceso_devuelve_404(self):
         id_ = self.predecir(self.dev).json()["id"]
@@ -278,3 +286,112 @@ class ApiTest(TestCase):
         url = f"/api/modelos/{modelo_id}/activar/"
         self.assertEqual(self.cliente(self.dev).post(url).status_code, 403)
         self.assertEqual(self.cliente(self.admin).post(url).status_code, 200)
+
+    def test_supervision_compara_con_resultados_reales(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        jobs = [{"id": 1, "name": "deploy", "conclusion": "failure",
+                 "started_at": "x", "steps": [
+                     {"number": 1, "name": "Deploy to ECS",
+                      "conclusion": "failure"}]}]
+        self.verificar(self.dev, id_, [self.run_real(id_, 5)], jobs)
+        modelo = Prediccion.objects.get(id=id_).version_modelo_id
+        url = f"/api/modelos/{modelo}/supervision/"
+        self.assertEqual(self.cliente(self.dev).get(url).status_code, 403)
+        datos = self.cliente(self.admin).get(url).json()
+        self.assertEqual(datos["evaluables"], 1)
+        nivel = Prediccion.objects.get(id=id_).nivel
+        self.assertEqual(datos["por_nivel"][nivel]["no_completados"], 1)
+        self.assertIsNotNone(datos["brier"])
+
+    # --- Decisión del líder técnico ------------------------------------------
+
+    def test_lider_registra_decision(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        url = f"/api/predicciones/{id_}/decision/"
+        r = self.cliente(self.lider).post(
+            url, {"decision": "solicitar_revision", "comentario": "Revisar"},
+            format="json")
+        self.assertEqual(r.status_code, 201, r.content)
+        decision = r.json()["decisiones"][0]
+        self.assertEqual(decision["decision"], "solicitar_revision")
+        self.assertEqual(decision["usuario"], "lider")
+        # El desarrollador ve la decisión en el historial.
+        detalle = self.cliente(self.dev).get(f"/api/predicciones/{id_}/")
+        self.assertEqual(len(detalle.json()["decisiones"]), 1)
+
+    def test_decision_permisos_y_validacion(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        url = f"/api/predicciones/{id_}/decision/"
+        cuerpo = {"decision": "autorizar"}
+        self.assertEqual(self.cliente(self.dev).post(
+            url, cuerpo, format="json").status_code, 403)
+        self.assertEqual(self.cliente(self.lider_ajeno).post(
+            url, cuerpo, format="json").status_code, 404)
+        self.assertEqual(self.cliente(self.lider).post(
+            url, {"decision": "desplegar_ya"}, format="json").status_code, 400)
+
+    # --- Integración con GitHub (administrador) ------------------------------
+
+    def test_integraciones_solo_admin_y_sin_revelar_token(self):
+        with mock.patch.object(github, "GitHubClient", ClienteFalso), \
+                self.settings(GITHUB_TOKEN="ghp_" + "x" * 36):
+            self.assertEqual(self.cliente(self.lider).get(
+                "/api/integraciones/").status_code, 403)
+            r = self.cliente(self.admin).get("/api/integraciones/")
+        self.assertEqual(r.status_code, 200)
+        datos = r.json()["github"]
+        self.assertTrue(datos["token_configurado"])
+        self.assertEqual(datos["restantes"], 4990)
+        self.assertNotIn("x" * 36, r.content.decode())
+
+    def test_sincronizar_guarda_ejecuciones(self):
+        url = f"/api/repositorios/{self.repo.id}/sincronizar/"
+        with mock.patch.object(github, "GitHubClient", ClienteFalso):
+            self.assertEqual(self.cliente(self.lider).post(url).status_code,
+                             403)
+            r = self.cliente(self.admin).post(url)
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual(r.json()["ejecuciones_guardadas"], len(RUNS))
+        self.assertEqual(
+            EjecucionWorkflow.objects.filter(
+                workflow__repositorio=self.repo).count(), len(RUNS))
+
+    def test_workflow_eliminado_en_github_se_retira(self):
+        class SinArchivo(ClienteFalso):
+            def ejecuciones_workflow(self, repo, path, n=20, head_sha=None):
+                raise github.NoEncontrado(
+                    f"/repos/{repo}/actions/workflows/deploy.yml/runs")
+
+        r = self.predecir(self.dev, falso=SinArchivo)
+        self.assertEqual(r.status_code, 404)
+        self.assertIn("ya no existe", r.json()["detail"])
+        workflow = Workflow.objects.get(repositorio=self.repo,
+                                        path=DATOS["workflow_path"])
+        self.assertFalse(workflow.disponible_github)
+        # Ya no se ofrece ni admite nuevos análisis; el registro se conserva.
+        r = self.predecir(self.dev)
+        self.assertEqual(r.json()["codigo"], "workflow_no_disponible")
+        self.assertEqual(self.cliente(self.dev).get("/api/repositorios/")
+                         .json(), [])
+
+    def test_comando_verifica_workflows_en_github(self):
+        respuestas = {"acme/tienda": 404, "acme/ajeno": 200}
+
+        def head(sesion, url, **kwargs):
+            repo = url.split("githubusercontent.com/")[1].rsplit("/HEAD/")[0]
+            return mock.Mock(status_code=respuestas[repo])
+
+        with mock.patch("requests.Session.head", head):
+            call_command("verificar_workflows_github", salida=str(
+                Path(self.directorio_temporal()) / "no_disponibles.csv"),
+                stdout=StringIO())
+        disponibles = dict(Workflow.objects.filter(
+            despliegue_validado=True).values_list(
+            "repositorio__nombre_completo", "disponible_github"))
+        self.assertEqual(disponibles, {"acme/tienda": False,
+                                       "acme/ajeno": True})
+
+    def directorio_temporal(self):
+        directorio = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, directorio, ignore_errors=True)
+        return directorio

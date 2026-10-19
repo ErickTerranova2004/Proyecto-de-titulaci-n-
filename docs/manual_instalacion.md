@@ -58,6 +58,28 @@ npm run dev
 
 Abra http://localhost:5173 e inicie sesión con un usuario que tenga un rol asignado.
 
+### Retirar workflows que ya no existen en GitHub
+
+Los datos de GHALogs son de 2023 y muchos repositorios han renombrado o eliminado sus workflows desde entonces; GitHub responde 404 al analizarlos. Ejecute:
+
+```powershell
+cd backend
+..\.venv\Scripts\python.exe manage.py verificar_workflows_github
+```
+
+Marca como no disponibles los que ya no existen (no se borran: se conservan sus predicciones) y deja la lista en `informes\workflows_no_disponibles.csv`. No consume cuota de la API. Si un análisis encuentra un workflow eliminado, también lo retira automáticamente.
+
+### Recopilación periódica desde GitHub
+
+La recopilación de ejecuciones es independiente de los análisis. El administrador puede lanzarla desde la pantalla **Integraciones** o con el comando:
+
+```powershell
+cd backend
+..\.venv\Scripts\python.exe manage.py sincronizar_github owner/repo [owner/otro ...] --por-workflow 20
+```
+
+Guarda las últimas ejecuciones completadas de cada workflow validado del repositorio (sin duplicar: se identifican por `run_id` e intento). Para hacerlo periódicamente, programe ese comando en el **Programador de tareas** de Windows (o en `cron` en Linux), por ejemplo una vez al día. Cada consulta consume cuota de la API de GitHub; la pantalla Integraciones muestra la cuota restante.
+
 ## 6. Pruebas
 
 ```powershell
@@ -65,7 +87,7 @@ cd backend
 ..\.venv\Scripts\python.exe manage.py test riesgo
 ```
 
-Resultado esperado: `Ran 37 tests ... OK`.
+Resultado esperado: `Ran 44 tests ... OK`.
 
 ## 7. Reproducir el pipeline de datos y el modelo
 
