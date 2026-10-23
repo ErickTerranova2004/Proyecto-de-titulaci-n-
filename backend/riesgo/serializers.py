@@ -1,7 +1,9 @@
+from django.utils import timezone
 from rest_framework import serializers
 
 from riesgo.models import (DecisionDespliegue, EjecucionWorkflow, Prediccion,
                            Repositorio, VersionModelo)
+from riesgo.services import asignaciones
 from riesgo.services.github import REPO, SHA, WORKFLOW
 
 EVENTOS = ["push", "workflow_dispatch", "release", "pull_request",
@@ -52,18 +54,72 @@ class EjecucionSerializer(serializers.ModelSerializer):
                   "etiqueta", "subtipo_etiqueta", "y", "etiquetada_en"]
 
 
+def validar_fecha_limite(fecha):
+    """No se admiten fechas pasadas (día local de America/Guayaquil)."""
+    if fecha is not None and fecha < timezone.localdate():
+        raise serializers.ValidationError(
+            "La fecha límite no puede ser anterior a hoy.")
+    return fecha
+
+
 class SolicitudDecisionSerializer(serializers.Serializer):
     decision = serializers.ChoiceField(choices=DecisionDespliegue.DECISIONES)
     comentario = serializers.CharField(max_length=1000, required=False,
                                        allow_blank=True, default="")
+    fecha_limite = serializers.DateField(required=False, allow_null=True,
+                                         default=None,
+                                         validators=[validar_fecha_limite])
+
+
+class SolicitudFechaLimiteSerializer(serializers.Serializer):
+    fecha_limite = serializers.DateField(validators=[validar_fecha_limite])
 
 
 class DecisionSerializer(serializers.ModelSerializer):
     usuario = serializers.CharField(source="usuario.username")
+    estado = serializers.SerializerMethodField()
 
     class Meta:
         model = DecisionDespliegue
-        fields = ["decision", "comentario", "usuario", "creada_en"]
+        fields = ["id", "decision", "comentario", "usuario", "creada_en",
+                  "fecha_limite", "vista_por_desarrollador_en", "cumplida_en",
+                  "estado"]
+
+    def get_estado(self, decision):
+        return asignaciones.estado(decision)
+
+
+class AsignacionSerializer(serializers.ModelSerializer):
+    """Última decisión de una predicción con fecha límite."""
+
+    prediccion = serializers.IntegerField(source="prediccion_id")
+    repositorio = serializers.CharField(
+        source="prediccion.workflow.repositorio.nombre_completo")
+    workflow_path = serializers.CharField(source="prediccion.workflow.path")
+    nivel = serializers.CharField(source="prediccion.nivel")
+    desarrollador = serializers.CharField(
+        source="prediccion.usuario.username")
+    lider = serializers.CharField(source="usuario.username")
+    mensaje = serializers.CharField(source="comentario")
+    dias_restantes = serializers.SerializerMethodField()
+    estado = serializers.SerializerMethodField()
+    vista = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DecisionDespliegue
+        fields = ["id", "prediccion", "repositorio", "workflow_path", "nivel",
+                  "desarrollador", "lider", "decision", "mensaje",
+                  "fecha_limite", "dias_restantes", "estado", "vista",
+                  "vista_por_desarrollador_en", "cumplida_en", "creada_en"]
+
+    def get_dias_restantes(self, decision):
+        return asignaciones.dias_restantes(decision)
+
+    def get_estado(self, decision):
+        return asignaciones.estado(decision)
+
+    def get_vista(self, decision):
+        return decision.vista_por_desarrollador_en is not None
 
 
 class PrediccionSerializer(serializers.ModelSerializer):
@@ -100,10 +156,15 @@ class PrediccionSerializer(serializers.ModelSerializer):
 
 class RepositorioSerializer(serializers.ModelSerializer):
     workflows = serializers.SerializerMethodField()
+    workflows_validados = serializers.SerializerMethodField()
 
     class Meta:
         model = Repositorio
-        fields = ["id", "nombre_completo", "workflows"]
+        fields = ["id", "nombre_completo", "workflows", "workflows_validados"]
+
+    def get_workflows_validados(self, repositorio):
+        return sum(1 for w in repositorio.workflows.all()
+                   if w.despliegue_validado)
 
     def get_workflows(self, repositorio):
         return [{"path": w.path, "nombre": w.nombre}

@@ -2,6 +2,7 @@ import logging
 import math
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
@@ -14,13 +15,16 @@ from riesgo.models import (EjecucionWorkflow, Prediccion, Repositorio,
                            VersionModelo, Workflow)
 from riesgo.permissions import (EsAdministrador, EsLiderOAdministrador,
                                 PuedePredecir, predicciones_visibles,
-                                repositorios_visibles, roles, tiene_acceso)
-from riesgo.serializers import (PrediccionSerializer, RepositorioSerializer,
+                                repositorios_visibles, rol_principal, roles,
+                                tiene_acceso)
+from riesgo.serializers import (AsignacionSerializer, PrediccionSerializer,
+                                RepositorioSerializer,
                                 SolicitudDecisionSerializer,
+                                SolicitudFechaLimiteSerializer,
                                 SolicitudPrediccionSerializer,
                                 SolicitudRegistroSerializer,
                                 VersionModeloSerializer)
-from riesgo.services import github
+from riesgo.services import asignaciones, github
 from riesgo.services.sincronizacion import sincronizar_repositorio
 from riesgo.services.etiquetado import etiquetar_ejecucion
 from riesgo.services.features import calcular_variables, fecha
@@ -80,8 +84,14 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [PuedePredecir]
 
     def get_queryset(self):
-        # Solo los que tienen algún workflow utilizable.
-        return repositorios_visibles(self.request.user).filter(
+        visibles = repositorios_visibles(self.request.user)
+        # ?todos=1: todos los repositorios visibles (asignados), aunque no
+        # tengan workflows utilizables. Lo usan los paneles por rol.
+        if self.request.query_params.get("todos") == "1":
+            return visibles.prefetch_related("workflows")
+        # Por defecto, solo los que tienen algún workflow utilizable (selector
+        # de Nuevo análisis e Integraciones).
+        return visibles.filter(
             workflows__despliegue_validado=True,
             workflows__disponible_github=True).distinct().prefetch_related(
             "workflows")
@@ -341,13 +351,35 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         prediccion = self.get_object()
         solicitud = SolicitudDecisionSerializer(data=request.data)
         solicitud.is_valid(raise_exception=True)
-        prediccion.decisiones.create(usuario=request.user,
-                                     **solicitud.validated_data)
+        decision = prediccion.decisiones.create(usuario=request.user,
+                                                **solicitud.validated_data)
         logger.info("Decisión %s sobre la predicción %s por %s",
-                    solicitud.validated_data["decision"], prediccion.id,
-                    request.user.username)
+                    decision.decision, prediccion.id, request.user.username)
+        if decision.fecha_limite:
+            asignaciones.notificar_por_correo(decision)
         return Response(PrediccionSerializer(prediccion).data,
                         status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="fecha-limite",
+            permission_classes=[EsLiderOAdministrador])
+    def fecha_limite(self, request, pk=None):
+        """Añade o cambia la fecha límite de la última decisión."""
+        prediccion = self.get_object()
+        decision = prediccion.decisiones.order_by("-creada_en", "-id").first()
+        if decision is None:
+            return _error("Registre primero una decisión sobre este análisis.",
+                          "sin_decision", status.HTTP_400_BAD_REQUEST)
+        solicitud = SolicitudFechaLimiteSerializer(data=request.data)
+        solicitud.is_valid(raise_exception=True)
+        decision.fecha_limite = solicitud.validated_data["fecha_limite"]
+        # El desarrollador debe volver a ver la asignación con la nueva fecha.
+        decision.vista_por_desarrollador_en = None
+        decision.save(update_fields=["fecha_limite",
+                                     "vista_por_desarrollador_en"])
+        logger.info("Fecha límite de la predicción %s fijada por %s",
+                    prediccion.id, request.user.username)
+        asignaciones.notificar_por_correo(decision)
+        return Response(PrediccionSerializer(prediccion).data)
 
 
 class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -395,3 +427,70 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
             version.activo = True
             version.save(update_fields=["activo"])
         return Response(VersionModeloSerializer(version).data)
+
+
+class AsignacionViewSet(mixins.ListModelMixin, GenericViewSet):
+    """Asignaciones (última decisión con fecha límite) de las predicciones
+    visibles: el desarrollador recibe solo las de sus análisis."""
+
+    serializer_class = AsignacionSerializer
+    permission_classes = [PuedePredecir]
+
+    def get_queryset(self):
+        return (asignaciones.ultimas_decisiones(
+                    predicciones_visibles(self.request.user))
+                .filter(fecha_limite__isnull=False)
+                .select_related("usuario", "prediccion__usuario",
+                                "prediccion__workflow__repositorio")
+                .order_by("fecha_limite", "id"))
+
+    def _marcar(self, request, campo):
+        decision = self.get_object()
+        if decision.prediccion.usuario_id != request.user.id:
+            return _error("Solo el desarrollador que hizo el análisis puede "
+                          "marcar esta asignación.", "no_es_dueno",
+                          status.HTTP_403_FORBIDDEN)
+        ahora = timezone.now()
+        cambios = set()
+        for nombre in ("vista_por_desarrollador_en", campo):
+            if getattr(decision, nombre) is None:
+                setattr(decision, nombre, ahora)
+                cambios.add(nombre)
+        if cambios:
+            decision.save(update_fields=sorted(cambios))
+        return Response(AsignacionSerializer(decision).data)
+
+    @action(detail=True, methods=["post"])
+    def vista(self, request, pk=None):
+        return self._marcar(request, "vista_por_desarrollador_en")
+
+    @action(detail=True, methods=["post"])
+    def cumplida(self, request, pk=None):
+        return self._marcar(request, "cumplida_en")
+
+
+@api_view(["GET"])
+@permission_classes([EsAdministrador])
+def resumen_admin(request):
+    """Conteos para el panel del administrador (sin datos personales).
+
+    Cada usuario cuenta una vez, en su rol de mayor jerarquía (como el menú);
+    el superusuario cuenta como administrador.
+    """
+    usuarios = {"administrador": 0, "lider_tecnico": 0, "desarrollador": 0,
+                "sin_rol": 0}
+    for usuario in get_user_model().objects.prefetch_related("groups"):
+        usuarios[rol_principal(usuario) or "sin_rol"] += 1
+    usuarios["total"] = sum(usuarios.values())
+    workflows = Workflow.objects.all()
+    validados = workflows.filter(despliegue_validado=True)
+    return Response({
+        "usuarios": usuarios,
+        "workflows": {
+            "total": workflows.count(),
+            "validados": validados.count(),
+            "sin_validar": workflows.filter(despliegue_validado=False).count(),
+            "validados_disponibles_github": validados.filter(
+                disponible_github=True).count(),
+        },
+    })

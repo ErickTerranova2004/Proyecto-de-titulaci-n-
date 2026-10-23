@@ -7,11 +7,13 @@ from unittest import mock
 
 from django.contrib.auth.models import Group, User
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from riesgo.models import (AccesoRepositorio, EjecucionWorkflow, Prediccion,
+from riesgo.models import (AccesoRepositorio, DecisionDespliegue,
+                           EjecucionWorkflow, Prediccion,
                            Repositorio, Workflow)
 from riesgo.services import github
 
@@ -485,3 +487,163 @@ class ApiTest(TestCase):
         directorio = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, directorio, ignore_errors=True)
         return directorio
+
+    # --- Fecha límite y asignaciones -------------------------------------------
+
+    def decidir(self, usuario, id_, **extra):
+        datos = {"decision": "solicitar_revision", "comentario": "Revise el cambio"}
+        datos.update(extra)
+        return self.cliente(usuario).post(
+            f"/api/predicciones/{id_}/decision/", datos, format="json")
+
+    def test_lider_fija_fecha_limite_y_dev_la_recibe(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        manana = (timezone.localdate() + timedelta(days=1)).isoformat()
+        r = self.decidir(self.lider, id_, fecha_limite=manana)
+        self.assertEqual(r.status_code, 201, r.content)
+        self.assertEqual(r.json()["decisiones"][0]["fecha_limite"], manana)
+        lista = self.cliente(self.dev).get("/api/asignaciones/").json()
+        self.assertEqual(len(lista), 1)
+        self.assertEqual(lista[0]["mensaje"], "Revise el cambio")
+        self.assertEqual(lista[0]["estado"], "por_vencer")
+        self.assertFalse(lista[0]["vista"])
+        # Otro desarrollador del mismo repositorio no la recibe.
+        self.assertEqual(self.cliente(self.dev2).get("/api/asignaciones/").json(), [])
+
+    def test_fecha_limite_pasada_rechazada(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        ayer = (timezone.localdate() - timedelta(days=1)).isoformat()
+        self.assertEqual(self.decidir(self.lider, id_, fecha_limite=ayer).status_code, 400)
+        self.decidir(self.lider, id_)
+        r = self.cliente(self.lider).post(
+            f"/api/predicciones/{id_}/fecha-limite/", {"fecha_limite": ayer}, format="json")
+        self.assertEqual(r.status_code, 400)
+
+    def test_permisos_de_la_fecha_limite(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        hoy = timezone.localdate().isoformat()
+        url = f"/api/predicciones/{id_}/fecha-limite/"
+        # Sin decisión previa no se puede fijar la fecha.
+        r = self.cliente(self.lider).post(url, {"fecha_limite": hoy}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()["codigo"], "sin_decision")
+        self.decidir(self.lider, id_)
+        # El desarrollador no puede fijarla, ni al decidir ni después.
+        self.assertEqual(self.decidir(self.dev, id_, fecha_limite=hoy).status_code, 403)
+        self.assertEqual(self.cliente(self.dev).post(url, {"fecha_limite": hoy}, format="json").status_code, 403)
+        # Un líder de otro repositorio no ve la predicción.
+        self.assertEqual(self.cliente(self.lider_ajeno).post(url, {"fecha_limite": hoy}, format="json").status_code, 404)
+        self.assertEqual(self.decidir(self.lider_ajeno, id_, fecha_limite=hoy).status_code, 404)
+        # El líder del repositorio y el administrador sí.
+        self.assertEqual(self.cliente(self.lider).post(url, {"fecha_limite": hoy}, format="json").status_code, 200)
+        self.assertEqual(self.cliente(self.admin).post(url, {"fecha_limite": hoy}, format="json").status_code, 200)
+
+    def test_solo_el_dueno_marca_vista_y_cumplida(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        hoy = timezone.localdate().isoformat()
+        self.decidir(self.lider, id_, fecha_limite=hoy)
+        asignacion = self.cliente(self.dev).get("/api/asignaciones/").json()[0]
+        base = f"/api/asignaciones/{asignacion['id']}"
+        for usuario in (self.lider, self.admin):
+            self.assertEqual(self.cliente(usuario).post(f"{base}/cumplida/").status_code, 403)
+        self.assertEqual(self.cliente(self.dev2).post(f"{base}/vista/").status_code, 404)
+        r = self.cliente(self.dev).post(f"{base}/vista/")
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.json()["vista"])
+        r = self.cliente(self.dev).post(f"{base}/cumplida/")
+        self.assertEqual(r.json()["estado"], "cumplida")
+        # El líder ve el cambio en el historial del equipo.
+        decision = self.cliente(self.lider).get(f"/api/predicciones/{id_}/").json()["decisiones"][0]
+        self.assertIsNotNone(decision["vista_por_desarrollador_en"])
+        self.assertIsNotNone(decision["cumplida_en"])
+
+    def test_cambiar_fecha_limite_reinicia_vista(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        hoy = timezone.localdate()
+        self.decidir(self.lider, id_, fecha_limite=hoy.isoformat())
+        asignacion = self.cliente(self.dev).get("/api/asignaciones/").json()[0]
+        self.cliente(self.dev).post(f"/api/asignaciones/{asignacion['id']}/vista/")
+        nueva = (hoy + timedelta(days=5)).isoformat()
+        self.cliente(self.lider).post(
+            f"/api/predicciones/{id_}/fecha-limite/", {"fecha_limite": nueva}, format="json")
+        asignacion = self.cliente(self.dev).get("/api/asignaciones/").json()[0]
+        self.assertEqual(asignacion["fecha_limite"], nueva)
+        self.assertEqual(asignacion["estado"], "pendiente")
+        self.assertFalse(asignacion["vista"])
+
+    def test_asignacion_usa_la_ultima_decision(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        self.decidir(self.lider, id_, fecha_limite=timezone.localdate().isoformat())
+        self.decidir(self.lider, id_, decision="autorizar")
+        # La última decisión no tiene fecha límite: ya no hay asignación.
+        self.assertEqual(self.cliente(self.dev).get("/api/asignaciones/").json(), [])
+
+    def test_estado_de_la_asignacion(self):
+        from riesgo.services.asignaciones import estado
+
+        hoy = timezone.localdate()
+        decision = DecisionDespliegue(fecha_limite=hoy + timedelta(days=3))
+        self.assertEqual(estado(decision, hoy), "pendiente")
+        decision.fecha_limite = hoy + timedelta(days=1)
+        self.assertEqual(estado(decision, hoy), "por_vencer")
+        decision.fecha_limite = hoy
+        self.assertEqual(estado(decision, hoy), "por_vencer")
+        decision.fecha_limite = hoy - timedelta(days=1)
+        self.assertEqual(estado(decision, hoy), "vencida")
+        decision.cumplida_en = timezone.now()
+        self.assertEqual(estado(decision, hoy), "cumplida")
+
+    # --- Repositorios ?todos=1 y resumen del administrador ---------------------
+
+    def test_repositorios_todos_por_rol(self):
+        sin_workflows = Repositorio.objects.create(
+            nombre_completo="acme/vacio", propietario="acme", nombre="vacio")
+        AccesoRepositorio.objects.create(usuario=self.dev, repositorio=sin_workflows)
+        nombres = lambda r: sorted(x["nombre_completo"] for x in r.json())
+        # Por defecto se ocultan los repositorios sin workflows utilizables.
+        self.assertEqual(nombres(self.cliente(self.dev).get("/api/repositorios/")), ["acme/tienda"])
+        r = self.cliente(self.dev).get("/api/repositorios/?todos=1")
+        self.assertEqual(nombres(r), ["acme/tienda", "acme/vacio"])
+        validados = {x["nombre_completo"]: x["workflows_validados"] for x in r.json()}
+        self.assertEqual(validados, {"acme/tienda": 1, "acme/vacio": 0})
+        self.assertEqual(nombres(self.cliente(self.lider).get("/api/repositorios/?todos=1")), ["acme/tienda"])
+        self.assertEqual(nombres(self.cliente(self.admin).get("/api/repositorios/?todos=1")),
+                         ["acme/ajeno", "acme/tienda", "acme/vacio"])
+        self.assertEqual(self.cliente(self.sin_rol).get("/api/repositorios/?todos=1").status_code, 403)
+
+    def test_resumen_admin(self):
+        for usuario in (self.dev, self.lider):
+            self.assertEqual(self.cliente(usuario).get("/api/resumen-admin/").status_code, 403)
+        # Un usuario con dos roles cuenta una vez, en el de mayor jerarquía.
+        self.dev2.groups.add(Group.objects.get(name="lider_tecnico"))
+        User.objects.create_superuser("raiz", password="x")
+        r = self.cliente(self.admin).get("/api/resumen-admin/")
+        self.assertEqual(r.status_code, 200)
+        usuarios = r.json()["usuarios"]
+        self.assertEqual(usuarios, {"administrador": 2, "lider_tecnico": 3, "desarrollador": 1,
+                                    "sin_rol": 1, "total": User.objects.count()})
+        self.assertEqual(r.json()["workflows"], {"total": 3, "validados": 2, "sin_validar": 1,
+                                                 "validados_disponibles_github": 2})
+
+    # --- Comando crear_usuario -------------------------------------------------
+
+    def test_comando_crear_usuario_repetible(self):
+        call_command("crear_usuario", "nuevo_dev", rol="desarrollador", password="clave-1",
+                     repos=["acme/tienda", "acme/ajeno"], stdout=StringIO())
+        call_command("crear_usuario", "nuevo_dev", rol="desarrollador",
+                     repos=["acme/tienda"], stdout=StringIO())
+        usuario = User.objects.get(username="nuevo_dev")
+        self.assertEqual(User.objects.filter(username="nuevo_dev").count(), 1)
+        self.assertTrue(usuario.check_password("clave-1"))
+        self.assertEqual(list(usuario.groups.values_list("name", flat=True)), ["desarrollador"])
+        self.assertEqual(list(usuario.accesos.values_list("repositorio__nombre_completo", flat=True)),
+                         ["acme/tienda"])
+        self.assertFalse(usuario.is_superuser)
+        call_command("crear_usuario", "nuevo_admin", rol="administrador", password="clave-2",
+                     stdout=StringIO())
+        admin = User.objects.get(username="nuevo_admin")
+        self.assertTrue(admin.is_superuser and admin.is_staff)
+        with self.assertRaises(CommandError):
+            call_command("crear_usuario", "otro", rol="desarrollador", password="x",
+                         repos=["acme/no-existe"], stdout=StringIO())
+        self.assertFalse(User.objects.filter(username="otro").exists())

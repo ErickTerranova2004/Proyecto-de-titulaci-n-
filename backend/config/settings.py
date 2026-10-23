@@ -141,6 +141,22 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_API_URL = "https://api.github.com"
 MODELOS_DIR = Path(os.environ.get("MODELOS_DIR", PROJECT_DIR / "modelos"))
 
+# Correo de asignaciones al desarrollador: desactivado por defecto. Se envía
+# solo con CORREO_ASIGNACIONES=1; sin EMAIL_HOST se usa el backend de consola
+# (el mensaje se escribe en la terminal del servidor, útil en desarrollo).
+CORREO_ASIGNACIONES = os.environ.get("CORREO_ASIGNACIONES", "") == "1"
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+if EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL",
+                                    "riesgo-despliegue@localhost")
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
