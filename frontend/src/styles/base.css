@@ -1127,3 +1127,6 @@ td.destacado { color: var(--color-acento); }
   .barra-superior { padding: 14px 16px; }
   .contenido { padding: 20px 16px; }
 }
+
+/* Entradas del menú que abren el administrador de Django: mismo aspecto que los botones */
+a.menu__boton { text-decoration: none; }
