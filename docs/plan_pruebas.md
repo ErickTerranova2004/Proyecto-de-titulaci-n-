@@ -67,6 +67,16 @@ Resultado del 2026-10-17, con la migración `0003` (disponibilidad de workflows 
 | T42 | Sincronizar: solo el administrador; guarda las ejecuciones de los workflows validados | Integración |
 | T43 | Workflow cuyo archivo ya no existe en GitHub: responde 404, queda como no disponible, deja de ofrecerse y se rechaza con `workflow_no_disponible` | Integración |
 | T44 | Comando `verificar_workflows_github`: marca disponibles y no disponibles según la respuesta de GitHub | Integración |
+| T50 | El líder fija una fecha límite al decidir; solo el desarrollador dueño recibe la asignación (por vencer, no vista) | Funcional |
+| T51 | Fecha límite pasada rechazada (400) al decidir y al cambiarla | Seguridad |
+| T52 | Fecha límite: sin decisión previa 400; el desarrollador no puede fijarla (403); un líder de otro repositorio no ve la predicción (404); líder y administrador sí | Seguridad |
+| T53 | Solo el desarrollador dueño marca vista y cumplida (líder y admin 403, otro desarrollador 404); el líder ve las marcas | Seguridad |
+| T54 | Cambiar la fecha límite deja la asignación como no vista | Funcional |
+| T55 | La asignación usa solo la última decisión de la predicción | Funcional |
+| T56 | Estado de la asignación: pendiente, por vencer (0 o 1 días), vencida y cumplida | Unitaria |
+| T57 | `/api/repositorios/?todos=1` por rol: incluye repositorios sin workflows; por defecto no cambia; sin rol 403 | Seguridad |
+| T58 | `/api/resumen-admin/`: líder y desarrollador 403; usuarios por rol de mayor jerarquía (suman el total) y conteo de workflows | Seguridad |
+| T59 | Comando `crear_usuario`: repetible sin duplicar, `--repos` fija los accesos, el administrador es superusuario, repositorio inexistente no crea nada | Funcional |
 
 ## 2. Pruebas de punta a punta (manual)
 
@@ -81,9 +91,14 @@ Resultado del 2026-10-17, con la migración `0003` (disponibilidad de workflows 
 | 2026-10-16 | `npm run build` con decisión del líder, supervisión e integraciones; búsqueda de colores fuera de `tokens.css` | OK: sin colores fuera de la paleta |
 
 Con la nueva regla, `novuhq/novu` `deploy.yml` ya no se admite: no está en el dataset. Un administrador tendría que validarlo con su evidencia.
+| 2026-10-23 | `manage.py test riesgo` | OK: 59 pruebas |
+| 2026-10-23 | `npm run build` del frontend por perfiles (no hay ESLint en el proyecto) | OK |
+| 2026-10-23 | `crear_usuario` para `prueba_admin`, `prueba_lider` (2 repositorios) y `prueba_dev` (1); repetido sin duplicar | OK |
+| 2026-10-23 | Tres perfiles a la vez por el proxy de Vite: el líder decide con fecha límite sobre un análisis de `prueba_dev`; el desarrollador recibe la asignación (por vencer), la marca vista y cumplida; el líder ve las marcas; fecha pasada 400; `resumen-admin` 403 para líder y desarrollador | OK |
 
 ## 3. Pruebas funcionales pendientes para el usuario
 
-- Crear usuarios de los tres roles, asignarles repositorios en *Accesos a repositorios* y comprobar qué ve cada uno en la interfaz.
+- Abrir los tres perfiles a la vez (ventana normal, incógnito y otro navegador, con `scripts/iniciar_demo.ps1`) y comprobar en la interfaz: menú de cada rol, campana y aviso del desarrollador, tarjeta "Mis asignaciones", marcar cumplida y ver el cambio en Pendientes del líder.
+- Aceptar las notificaciones del navegador en el perfil del desarrollador y comprobar el aviso de una asignación nueva (tarda hasta 60 s).
 - Hacer un análisis sobre un repositorio validado con `GITHUB_TOKEN` configurado y, tras su siguiente ejecución, usar "Verificar resultado real".
 - Repetir `migrate`, `registrar_modelo` y `validar_workflows_dataset` sobre PostgreSQL.

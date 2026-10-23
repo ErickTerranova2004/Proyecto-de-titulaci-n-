@@ -158,12 +158,15 @@ erDiagram
         bigint prediccion_id FK
         int usuario_id FK "PROTECT"
         string decision "autorizar | posponer | solicitar_revision"
-        text comentario "máx. 1000"
+        text comentario "máx. 1000; mensaje al desarrollador"
         datetime creada_en
+        date fecha_limite "opcional; no anterior a hoy"
+        datetime vista_por_desarrollador_en "opcional"
+        datetime cumplida_en "opcional"
     }
 ```
 
-Las métricas del cambio (`archivos_modificados`, `adiciones`, `eliminaciones`) se guardan para trazabilidad y supervisión; **no son variables del modelo v1.1**, que se entrenó sin ellas porque GHALogs no las contiene. `DECISION_DESPLIEGUE` es un registro de auditoría: cada decisión es una fila nueva y no se edita; la vigente es la más reciente.
+Las métricas del cambio (`archivos_modificados`, `adiciones`, `eliminaciones`) se guardan para trazabilidad y supervisión; **no son variables del modelo v1.1**, que se entrenó sin ellas porque GHALogs no las contiene. `DECISION_DESPLIEGUE` es un registro de auditoría: cada decisión es una fila nueva y `decision` y `comentario` no se editan; la vigente es la más reciente. Solo `fecha_limite` (líder o administrador) y las marcas `vista_por_desarrollador_en` y `cumplida_en` (solo el desarrollador dueño de la predicción) cambian después, y únicamente en la última decisión; en el admin de Django son de solo lectura.
 
 ### Restricciones de unicidad
 
@@ -199,6 +202,30 @@ Las FK hacia `REPOSITORIO`, `WORKFLOW`, `COMMIT`, `VERSION_MODELO` y `EJECUCION_
 
 `POST /api/predicciones/{id}/verificar/` busca la primera ejecución **completada** del mismo workflow y commit **iniciada después** de la predicción. Después consulta la API de jobs de ese intento y aplica la regla de [fase2_variable_objetivo.md](../informes/fase2_variable_objetivo.md) (sección 6). Guarda `paso_fallido`, `etiqueta` y `subtipo_etiqueta` en `EJECUCION_WORKFLOW` y enlaza `PREDICCION.ejecucion_real`. Si todavía no existe esa ejecución, responde `"estado": "pendiente"`.
 
+## Perfiles de la interfaz por rol
+
+La interfaz separa los perfiles por menú y por los datos o bloques del panel; el diseño (layout, tarjetas, gráficos y colores) es el mismo para todos (`Panel.jsx` con `perfil`). Si un usuario tiene varios roles se usa el de mayor jerarquía (administrador > líder técnico > desarrollador; el superusuario es administrador), igual que `permissions.rol_principal`. La vista inicial es el panel del rol y una vista que no existe para el rol vuelve a él. Definición: `frontend/src/roles.js`. El pie de página no muestra el modelo activo.
+
+| Rol | Menú | El panel muestra |
+|---|---|---|
+| Desarrollador | Mi panel · Nuevo análisis · Mi historial | Sus análisis, sus repositorios asignados (`?todos=1`), sus resultados verificados y la tarjeta "Mis asignaciones"; campana con contador y aviso al entrar |
+| Líder técnico | Panel del equipo · Pendientes de decisión · Historial del equipo · Nuevo análisis | Riesgo alto por repositorio asignado, análisis por desarrollador, predicciones sin decisión; Pendientes y el historial muestran la fecha límite y si el desarrollador la vio o la cumplió |
+| Administrador | Panel de administración · Usuarios y accesos · Workflows · Modelos · Integraciones | Usuarios por rol y workflows (`/api/resumen-admin/`), estado de GitHub, modelo activo y supervisión. "Usuarios y accesos" y "Workflows" abren `/admin/` de Django en una pestaña nueva |
+
+Lo que ve cada rol lo decide la asignación de repositorios (`ACCESO_REPOSITORIO`): el líder ve los análisis de todos los desarrolladores asignados a sus repositorios; el desarrollador, solo los suyos.
+
+### Fecha límite y alarma del desarrollador
+
+El líder técnico (o el administrador) puede fijar una fecha límite al decidir, o añadirla o cambiarla después. El comentario de la decisión es el mensaje que recibe el desarrollador. Una predicción puede tener varias decisiones: **la fecha límite y las marcas valen solo para la última**. Una *asignación* es la última decisión de una predicción con `fecha_limite`; su estado se calcula al consultar, con días locales de `America/Guayaquil` (`timezone.localdate()`): **cumplida** (tiene `cumplida_en`), **vencida** (faltan menos de 0 días), **por vencer** (faltan 0 o 1) o **pendiente**. Cambiar la fecha vuelve a dejar la asignación como no vista.
+
+La alarma funciona dentro de la aplicación: consulta `/api/asignaciones/` cada 60 s y al volver a la pestaña, muestra una campana con contador, un aviso al entrar con la asignación más próxima y recordatorios ("vence mañana", "vence hoy", "vencida"). Si el usuario lo permite tras pulsar un botón, usa notificaciones del navegador para asignaciones nuevas o por vencer. El correo es opcional y está desactivado por defecto (`CORREO_ASIGNACIONES=1`; sin `EMAIL_HOST` se usa el backend de consola).
+
+### Limitaciones conocidas
+
+- **La alarma solo avisa con la aplicación abierta.** Sin correo configurado ni notificaciones push, no hay aviso con la aplicación cerrada.
+- **No hay fecha de última sincronización por repositorio**: `/api/integraciones/` solo informa la última extracción global.
+- El administrador de Django por el proxy de Vite funciona desde `localhost`; desde otra dirección de la red hace falta añadirla a `DJANGO_ALLOWED_HOSTS` y `CSRF_TRUSTED_ORIGINS`.
+
 ## Roles y permisos
 
 | Acción | Desarrollador | Líder técnico | Administrador |
@@ -214,6 +241,10 @@ Las FK hacia `REPOSITORIO`, `WORKFLOW`, `COMMIT`, `VERSION_MODELO` y `EJECUCION_
 | Ver el estado de la integración con GitHub y sincronizar | | | ✔ |
 | Activar una versión del modelo | | | ✔ |
 | Asignar accesos y validar workflows (admin de Django) | | | ✔ |
+| Fijar o cambiar la fecha límite de una decisión | | En predicciones visibles | ✔ |
+| Ver asignaciones con fecha límite | Las de sus análisis | Las de sus repositorios | Todas |
+| Marcar una asignación como vista o cumplida | Solo las de sus análisis | | |
+| Ver el resumen de usuarios por rol y workflows | | | ✔ |
 
 Al quitar un acceso, el usuario deja de ver ese repositorio y sus predicciones.
 
@@ -223,13 +254,17 @@ Al quitar un acceso, el usuario deja de ver ese repositorio y sus predicciones.
 |---|---|---|
 | POST | `/api/auth/token/` | Obtiene el token con usuario y contraseña |
 | GET | `/api/yo/` | Usuario y roles |
-| GET | `/api/repositorios/` | Repositorios visibles con sus workflows validados |
+| GET | `/api/repositorios/` | Repositorios visibles con algún workflow validado y disponible (selector de Nuevo análisis). Con `?todos=1`: todos los repositorios visibles, con `workflows_validados` (paneles por rol) |
 | POST | `/api/predicciones/` | Nueva predicción. Errores con `codigo`: `repositorio_no_registrado`, `sin_acceso`, `workflow_no_validado`, `github_*`, `sin_modelo` |
 | GET | `/api/predicciones/` | Historial visible (`?repositorio=`) |
 | GET | `/api/predicciones/{id}/` | Detalle con historial usado y resultado real |
 | POST | `/api/predicciones/{id}/verificar/` | Enlaza y etiqueta la ejecución real posterior |
 | GET | `/api/modelos/` | Versiones del modelo |
-| POST | `/api/predicciones/{id}/decision/` | Registra autorizar / posponer / solicitar revisión (líder técnico o administrador) |
+| POST | `/api/predicciones/{id}/decision/` | Registra autorizar / posponer / solicitar revisión, con `fecha_limite` opcional no anterior a hoy (líder técnico o administrador con acceso al repositorio) |
+| POST | `/api/predicciones/{id}/fecha-limite/` | Añade o cambia la fecha límite de la última decisión (400 `sin_decision` si no hay ninguna) |
+| GET | `/api/asignaciones/` | Últimas decisiones con fecha límite de las predicciones visibles: mensaje, fecha, repositorio, estado, `dias_restantes` y si fue vista |
+| POST | `/api/asignaciones/{id}/vista/` y `/cumplida/` | Marca la asignación (solo el desarrollador dueño de la predicción; si no, 403) |
+| GET | `/api/resumen-admin/` | Conteos sin datos personales: usuarios por rol principal (suman el total) y workflows validados, sin validar y disponibles en GitHub (administrador) |
 | POST | `/api/modelos/{id}/activar/` | Activa una versión (administrador) |
 | GET | `/api/modelos/{id}/supervision/` | Tasa observada de no completados por nivel y Brier sobre predicciones verificadas (administrador) |
 | GET | `/api/integraciones/` | Estado de la API de GitHub (cuota, token configurado sí/no) y volumen almacenado (administrador) |
@@ -241,8 +276,9 @@ Cada dato visible viene de la API y, por ella, de la base de datos. Prefijo de t
 
 | Pantalla | Elemento (HTML) | Endpoint | tabla.campo |
 |---|---|---|---|
-| Todas | `<header>` usuario y roles | `GET /api/yo/` | `auth_user.username`; `auth_group.name` (vía `auth_user_groups`) |
-| Todas | `<footer>` modelo activo | `GET /api/modelos/` | `versionmodelo.version`, `versionmodelo.nombre_modelo` donde `versionmodelo.activo = true` |
+| Todas | Barra lateral: usuario, rol principal y menú del rol | `GET /api/yo/` | `auth_user.username`; `auth_group.name` (vía `auth_user_groups`); `is_superuser` cuenta como administrador |
+| Desarrollador | Campana, aviso y tarjeta "Mis asignaciones" | `GET /api/asignaciones/`, `POST /api/asignaciones/{id}/vista|cumplida/` | Última `decisiondespliegue` con `fecha_limite`: `comentario`, `fecha_limite`, `vista_por_desarrollador_en`, `cumplida_en`; `repositorio.nombre_completo` |
+| Líder técnico | Pendientes de decisión | `GET /api/predicciones/`, `GET /api/asignaciones/` | Predicciones sin `decisiondespliegue`; asignaciones con su seguimiento |
 | Iniciar sesión | `<form>` usuario y contraseña | `POST /api/auth/token/` | `auth_user.username`, `auth_user.password` (hash) → `authtoken_token.key` |
 | Nuevo análisis | `<select>` Repositorio | `GET /api/repositorios/` | `repositorio.nombre_completo`, filtrado por `accesorepositorio.usuario_id` (el admin ve todos) |
 | Nuevo análisis | `<select>` Workflow de despliegue | `GET /api/repositorios/` | `workflow.path` donde `workflow.despliegue_validado = true` |
@@ -257,7 +293,8 @@ Cada dato visible viene de la API y, por ella, de la base de datos. Prefijo de t
 | Resultado | Resultado real | `POST /api/predicciones/{id}/verificar/` | `ejecucionworkflow.etiqueta`, `subtipo_etiqueta`, `run_id`, `run_attempt`, `iniciada_en`, `conclusion`, `paso_fallido` (vía `prediccion.ejecucion_real_id`). Los rótulos de los códigos son *presentación* |
 | Resultado | "Cambio del commit" | respuesta de la predicción | `commit.archivos_modificados`, `commit.adiciones`, `commit.eliminaciones` |
 | Resultado | `<ol>` Decisiones registradas | ídem | `decisiondespliegue.decision`, `comentario`, `creada_en`; `auth_user.username` |
-| Resultado | `<form>` Registrar decisión (líder técnico y administrador) | `POST /api/predicciones/{id}/decision/` | nueva fila en `decisiondespliegue` |
+| Resultado | `<form>` Registrar decisión con fecha límite opcional (líder técnico y administrador) | `POST /api/predicciones/{id}/decision/` | nueva fila en `decisiondespliegue` (`fecha_limite`) |
+| Resultado | `<form>` Añadir o cambiar la fecha límite | `POST /api/predicciones/{id}/fecha-limite/` | `decisiondespliegue.fecha_limite` de la última decisión |
 | Resultado | `<footer>` trazabilidad | respuesta de la predicción | `versionmodelo.version`; número de filas de `prediccion_ejecuciones_previas`; `prediccion.datos_github_extraidos_en`; `auth_user.username`; `prediccion.creada_en` |
 | Historial | `<table>` | `GET /api/predicciones/` | `prediccion.creada_en`, `repositorio.nombre_completo`, `workflow.path`, `commit.sha`, `prediccion.nivel`, `prediccion.probabilidad`, `ejecucionworkflow.etiqueta`, la `decisiondespliegue.decision` más reciente, `auth_user.username` |
 | Panel | Filtro de período y "datos cargados" | — | Filtro aplicado en el navegador sobre `prediccion.creada_en`; la hora es la de la última carga de la API |
@@ -265,7 +302,7 @@ Cada dato visible viene de la API y, por ella, de la base de datos. Prefijo de t
 | Panel | KPI "Riesgo Alto" | ídem | `COUNT` con `prediccion.nivel = 'alto'` y su porcentaje |
 | Panel | KPI "Probabilidad media" | ídem | `AVG(prediccion.probabilidad)` |
 | Panel | KPI "Resultados verificados" | ídem | predicciones con `prediccion.ejecucion_real_id`; evaluables = `ejecucionworkflow.etiqueta` con y definido; no completados = y = 1 |
-| Panel | KPI "Modelo activo" | `GET /api/modelos/` | `versionmodelo.version`, `nombre_modelo`, `metadatos.metricas_prueba["PR-AUC"]` |
+| Panel de administración | KPI "Modelo activo" | `GET /api/modelos/` | `versionmodelo.version`, `nombre_modelo`, `metadatos.metricas_prueba["PR-AUC"]` |
 | Panel | "Flujo de la plataforma" | `GET /api/repositorios/`, `/api/predicciones/`, `/api/modelos/` | Repositorios accesibles (`repositorio`); workflows validados (`workflow.despliegue_validado`); análisis registrados (`prediccion`); n.º de variables (`metadatos.variables_categoricas` + `variables_numericas`); versión del modelo. El texto "Factores SHAP en cada análisis" es *presentación* |
 | Panel | `<figure>` Dona por nivel | `GET /api/predicciones/` | `COUNT` agrupado por `prediccion.nivel` |
 | Panel | `<figure>` Barras por día | ídem | `COUNT` por día de `prediccion.creada_en` y por `prediccion.nivel` |
@@ -276,7 +313,7 @@ Cada dato visible viene de la API y, por ella, de la base de datos. Prefijo de t
 | Modelos | `<table>` | `GET /api/modelos/` | `versionmodelo.version`, `nombre_modelo`, `activo`, `registrado_en`; `metadatos.filas_entrenamiento`, `metadatos.filas_prueba`, `metadatos.metricas_prueba` (PR-AUC, ROC-AUC, Precision, Recall, F1, Brier), `metadatos.limites_riesgo` |
 | Modelos | `<button>` Activar (solo administrador) | `POST /api/modelos/{id}/activar/` | `versionmodelo.activo` |
 | Modelos | `<table>` Supervisión (solo administrador) | `GET /api/modelos/{id}/supervision/` | Por `prediccion.version_modelo_id`: `COUNT`; con `ejecucion_real_id`; evaluables; por `prediccion.nivel`, `SUM(y)/COUNT`; Brier = media de (`probabilidad` − y)² |
-| Integraciones (solo administrador) | `<dl>` Estado de la conexión | `GET /api/integraciones/` | `settings.GITHUB_API_URL`; `GITHUB_TOKEN` solo como sí/no; `/rate_limit` de GitHub; `COUNT` de `repositorio`, `workflow` validados y `ejecucionworkflow`; `MAX(ejecucionworkflow.extraida_en)` |
+| Panel de administración | "Estado de GitHub" | `GET /api/integraciones/` | `settings.GITHUB_API_URL`; `GITHUB_TOKEN` solo como sí/no; `/rate_limit` de GitHub; `COUNT` de `repositorio`, `workflow` validados y `ejecucionworkflow`; `MAX(ejecucionworkflow.extraida_en)` |
 | Integraciones | `<table>` Sincronizar por repositorio | `GET /api/repositorios/`, `POST /api/repositorios/{id}/sincronizar/` | Inserta o actualiza `ejecucionworkflow` (y `commit`) por (`run_id`, `run_attempt`) |
 
 ## Seguridad

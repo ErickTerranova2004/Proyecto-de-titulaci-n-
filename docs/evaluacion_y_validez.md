@@ -109,3 +109,5 @@ Interpretación:
 - Obtener el YAML histórico por `head_sha` (con token) para eliminar el sesgo de selección y determinar la intención de despliegue a partir de las condiciones del workflow.
 - Acumular etiquetas observadas con la API de jobs mediante la verificación de predicciones (subtipo `en_paso_de_despliegue`).
 - Añadir métricas del cambio (archivos y líneas) y reentrenar con datos recientes y repositorios empresariales.
+- Añadir ESLint al frontend con un script `npm run lint` (hoy solo se verifica con `npm run build`).
+- Avisos de asignaciones con la aplicación cerrada (correo configurado o notificaciones push) y fecha de última sincronización por repositorio.
