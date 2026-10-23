@@ -257,6 +257,12 @@ class DecisionDespliegue(models.Model):
     decision = models.CharField(max_length=20, choices=DECISIONES)
     comentario = models.TextField(blank=True, max_length=1000)
     creada_en = models.DateTimeField(auto_now_add=True)
+    # Asignación al desarrollador dueño de la predicción. Solo cuentan en la
+    # última decisión de cada predicción. `decision` y `comentario` no cambian
+    # después de creados; estos campos sí.
+    fecha_limite = models.DateField(null=True, blank=True)
+    vista_por_desarrollador_en = models.DateTimeField(null=True, blank=True)
+    cumplida_en = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-creada_en"]
