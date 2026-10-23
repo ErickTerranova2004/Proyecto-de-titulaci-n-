@@ -4,6 +4,7 @@ backend/.env
 
 # Entornos y dependencias
 .venv/
+backend/venv/
 node_modules/
 __pycache__/
 

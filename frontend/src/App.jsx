@@ -9,9 +9,9 @@ import NuevoAnalisis from "./components/NuevoAnalisis.jsx";
 import Panel from "./components/Panel.jsx";
 
 const NOMBRE = "Riesgo de despliegue";
-const SUBTITULO = "Plataforma predictiva con IA";
+const SUBTITULO = "Inteligencia para decisiones de despliegue";
 const PESTANAS = [
-  ["panel", "Panel", "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"],
+  ["panel", "Resumen ejecutivo", "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"],
   ["nuevo", "Nuevo análisis", "M12 5v14M5 12h14"],
   ["historial", "Historial", "M12 7v5l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"],
   [
@@ -47,7 +47,6 @@ export default function App() {
   if (cargando) return <p className="cargando" role="status">Cargando plataforma…</p>;
   if (!usuario) return <Login alEntrar={cargarUsuario} />;
 
-  const activo = modelos.find((m) => m.activo);
   const esAdmin = usuario.roles.includes("administrador");
 
   function salir() {
@@ -62,11 +61,11 @@ export default function App() {
     <div className="app">
       <aside className="lateral">
         <header className="lateral__cabecera">
-          <p className="marca">{NOMBRE}</p>
+          <span className="marca__simbolo" aria-hidden="true">RD</span><p className="marca">{NOMBRE}</p>
           <p className="secundario">{SUBTITULO}</p>
         </header>
 
-        <nav className="menu" aria-label="Secciones de la plataforma">
+        <p className="menu__etiqueta">ESPACIO DE TRABAJO</p><nav className="menu" aria-label="Secciones de la plataforma">
           {(esAdmin ? [...PESTANAS, PESTANA_INTEGRACIONES] : PESTANAS).map(([id, texto, icono]) => (
             <button
               key={id}
@@ -86,12 +85,12 @@ export default function App() {
             <strong>{usuario.usuario}</strong>
             <span className="secundario">{usuario.roles.join(", ") || "sin rol"}</span>
           </p>
-          <button className="boton boton--secundario boton--pequeno" type="button" onClick={salir}>Salir</button>
+          <button className="boton boton--secundario boton--pequeno" type="button" onClick={salir}>Cerrar sesión</button>
         </div>
       </aside>
 
       <div className="principal">
-        <main className="contenido">
+        <header className="barra-superior"><div><span className="barra-superior__seccion">Gestión de riesgo</span><span className="barra-superior__separador" aria-hidden="true">/</span><strong>{[...PESTANAS, PESTANA_INTEGRACIONES].find(([id]) => id === vista)?.[1]}</strong></div><span className="barra-superior__perfil">{usuario.usuario}</span></header><main className="contenido">
           {!usuario.roles.length && (
             <Alerta>Su cuenta no tiene un rol asignado. Contacte al administrador.</Alerta>
           )}
@@ -104,17 +103,9 @@ export default function App() {
           {vista === "integraciones" && esAdmin && <Integraciones />}
         </main>
 
-        <footer className="pie">
-          {activo ? (
-            <p>
-              Modelo activo: <strong>{activo.version}</strong> ({activo.nombre_modelo})
-            </p>
-          ) : (
-            <p>No hay un modelo activo registrado.</p>
-          )}
-        </footer>
       </div>
     </div>
     </UsuarioContexto.Provider>
   );
 }
+

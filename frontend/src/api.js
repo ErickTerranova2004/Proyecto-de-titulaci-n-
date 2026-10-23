@@ -43,4 +43,6 @@ export const api = {
     solicitar(`/predicciones/${id}/decision/`, { method: "POST", body: JSON.stringify(datos) }),
   integraciones: () => solicitar("/integraciones/"),
   sincronizar: (id) => solicitar(`/repositorios/${id}/sincronizar/`, { method: "POST" }),
+  registrarWorkflow: (datos) =>
+    solicitar("/repositorios/registrar/", { method: "POST", body: JSON.stringify(datos) }),
 };

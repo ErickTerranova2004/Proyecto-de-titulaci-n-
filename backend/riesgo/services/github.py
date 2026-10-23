@@ -24,9 +24,22 @@ SHA = re.compile(r"^[0-9a-fA-F]{7,40}$")
 class GitHubError(Exception):
     """Error genérico de GitHub."""
 
+    def __init__(self, mensaje="", estado=None):
+        super().__init__(mensaje)
+        self.estado = estado
+
 
 class NoEncontrado(GitHubError):
     """Recurso inexistente o sin permisos de lectura."""
+
+
+class RamaNoEncontrada(GitHubError):
+    """La rama indicada no existe en el repositorio."""
+
+    def __init__(self, rama, principal):
+        super().__init__(f"La rama {rama} no existe")
+        self.rama = rama
+        self.principal = principal
 
 
 class LimiteExcedido(GitHubError):
@@ -76,7 +89,8 @@ class GitHubClient:
         if respuesta.status_code >= 400:
             logger.warning("GitHub respondió %s en %s",
                            respuesta.status_code, ruta)
-            raise GitHubError(f"GitHub respondió {respuesta.status_code}")
+            raise GitHubError(f"GitHub respondió {respuesta.status_code}",
+                              respuesta.status_code)
         datos = respuesta.json()
         cache.set(clave, datos, ttl)
         return datos
@@ -89,7 +103,20 @@ class GitHubClient:
         return self.get(f"/repos/{repo}/commits/{sha}", ttl=86400)
 
     def ultimo_commit(self, repo, rama):
-        return self.get(f"/repos/{repo}/commits/{rama}", ttl=60)
+        try:
+            return self.get(f"/repos/{repo}/commits/{rama}", ttl=60)
+        except GitHubError as exc:
+            # GitHub responde 422 si la rama no existe en el repositorio.
+            if exc.estado != 422:
+                raise
+            principal = self.repositorio(repo).get("default_branch")
+            if not principal or principal == rama:
+                raise
+            raise RamaNoEncontrada(rama, principal) from exc
+
+    def workflow(self, repo, workflow_path):
+        archivo = workflow_path.rsplit("/", 1)[-1]
+        return self.get(f"/repos/{repo}/actions/workflows/{archivo}")
 
     def ejecuciones_workflow(self, repo, workflow_path, n=20, head_sha=None):
         archivo = workflow_path.rsplit("/", 1)[-1]

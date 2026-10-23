@@ -173,6 +173,32 @@ class ApiTest(TestCase):
         self.assertEqual(r.status_code, 404)
         self.assertEqual(Prediccion.objects.count(), 0)
 
+    def test_rama_inexistente_indica_la_rama_principal(self):
+        class SinRama(ClienteFalso):
+            def ultimo_commit(self, repo, rama):
+                raise github.RamaNoEncontrada(rama, "master")
+
+        r = self.predecir(self.dev, dict(DATOS, head_sha="", rama="main"),
+                          falso=SinRama)
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()["codigo"], "rama_no_encontrada")
+        self.assertIn("master", r.json()["detail"])
+        self.assertEqual(Prediccion.objects.count(), 0)
+
+    def test_cliente_github_detecta_rama_inexistente(self):
+        def respuesta(estado, datos=None):
+            return mock.Mock(status_code=estado, headers={},
+                             json=mock.Mock(return_value=datos or {}))
+
+        sesion = mock.Mock()
+        sesion.get.side_effect = [respuesta(422),
+                                  respuesta(200, {"default_branch": "master"})]
+        cliente = github.GitHubClient(token="", base_url="https://gh",
+                                      sesion=sesion)
+        with self.assertRaises(github.RamaNoEncontrada) as ctx:
+            cliente.ultimo_commit("acme/inexistente-rama", "main")
+        self.assertEqual(ctx.exception.principal, "master")
+
     # --- Acceso por repositorio ---------------------------------------------
 
     def test_sin_acceso_no_puede_predecir(self):
@@ -390,6 +416,70 @@ class ApiTest(TestCase):
             "repositorio__nombre_completo", "disponible_github"))
         self.assertEqual(disponibles, {"acme/tienda": False,
                                        "acme/ajeno": True})
+
+    # --- Alta manual de workflows (administrador) ---------------------------
+
+    EVIDENCIA = "Despliega la API a Heroku en el paso 'Deploy to production'."
+
+    def registrar(self, usuario, datos, falso=None):
+        class RepoNuevo(ClienteFalso):
+            def repositorio(self, repo):
+                return {"id": 99, "full_name": "acme/nuevo"}
+
+            def workflow(self, repo, path):
+                return {"name": "Deploy"}
+
+        with mock.patch.object(github, "GitHubClient", falso or RepoNuevo):
+            return self.cliente(usuario).post("/api/repositorios/registrar/",
+                                              datos, format="json")
+
+    def test_admin_registra_workflow_validado(self):
+        r = self.registrar(self.admin, {
+            "repositorio": "acme/nuevo",
+            "workflow_path": ".github/workflows/deploy.yml",
+            "evidencia": self.EVIDENCIA})
+        self.assertEqual(r.status_code, 201, r.content)
+        self.assertEqual(r.json()["ejecuciones_recientes"], len(RUNS))
+        workflow = Workflow.objects.get(repositorio__nombre_completo="acme/nuevo")
+        self.assertTrue(workflow.despliegue_validado)
+        self.assertEqual(workflow.evidencia_validacion, self.EVIDENCIA)
+        self.assertEqual(workflow.validado_por, self.admin)
+        self.assertEqual(workflow.repositorio.github_id, 99)
+        repos = self.cliente(self.admin).get("/api/repositorios/").json()
+        self.assertIn("acme/nuevo", [x["nombre_completo"] for x in repos])
+        # Registrarlo otra vez no duplica ni sobrescribe la evidencia.
+        r = self.registrar(self.admin, {
+            "repositorio": "acme/nuevo",
+            "workflow_path": ".github/workflows/deploy.yml",
+            "evidencia": self.EVIDENCIA + " Segunda vez."})
+        self.assertEqual(r.status_code, 409)
+
+    def test_registro_solo_admin_y_con_evidencia(self):
+        datos = {"repositorio": "acme/nuevo",
+                 "workflow_path": ".github/workflows/deploy.yml",
+                 "evidencia": self.EVIDENCIA}
+        self.assertEqual(self.registrar(self.lider, datos).status_code, 403)
+        r = self.registrar(self.admin, dict(datos, evidencia="despliega"))
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("evidencia", r.json())
+        self.assertFalse(Repositorio.objects.filter(
+            nombre_completo="acme/nuevo").exists())
+
+    def test_registro_rechaza_workflow_inexistente(self):
+        class SinWorkflow(ClienteFalso):
+            def repositorio(self, repo):
+                return {"id": 99, "full_name": "acme/nuevo"}
+
+            def workflow(self, repo, path):
+                raise github.NoEncontrado(path)
+
+        r = self.registrar(self.admin, {
+            "repositorio": "acme/nuevo",
+            "workflow_path": ".github/workflows/deploy.yml",
+            "evidencia": self.EVIDENCIA}, falso=SinWorkflow)
+        self.assertEqual(r.status_code, 404)
+        self.assertFalse(Repositorio.objects.filter(
+            nombre_completo="acme/nuevo").exists())
 
     def directorio_temporal(self):
         directorio = tempfile.mkdtemp()

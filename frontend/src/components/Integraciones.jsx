@@ -1,9 +1,104 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
-import { Alerta, Fecha } from "./comunes.jsx";
+import { Alerta } from "./comunes.jsx";
 
-// Vista del administrador: estado de la conexión con GitHub y recopilación
-// manual de ejecuciones de los workflows validados de cada repositorio.
+const REGISTRO_VACIO = { repositorio: "", workflow_path: ".github/workflows/", evidencia: "" };
+
+// Alta manual de un workflow de despliegue que no está en el dataset.
+// El backend comprueba en GitHub que el repositorio y el archivo existen.
+function RegistroWorkflow({ alRegistrar }) {
+  const [datos, setDatos] = useState(REGISTRO_VACIO);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState("");
+  const [hecho, setHecho] = useState(null);
+
+  const campo = (nombre) => (e) => setDatos({ ...datos, [nombre]: e.target.value });
+
+  async function enviar(e) {
+    e.preventDefault();
+    setError("");
+    setHecho(null);
+    setEnviando(true);
+    try {
+      const r = await api.registrarWorkflow(datos);
+      setHecho(r);
+      setDatos(REGISTRO_VACIO);
+      alRegistrar();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <form className="tarjeta formulario" onSubmit={enviar} aria-labelledby="titulo-registro">
+      <div>
+        <h2 id="titulo-registro">Registrar workflow de despliegue</h2>
+        <p id="ayuda-registro" className="secundario">
+          Agregue un repositorio fuera del dataset. Solo se aceptan workflows que despliegan a un entorno de
+          aplicación (servidor, nube o contenedores); no workflows de pruebas, documentación o GitHub Pages.
+        </p>
+      </div>
+      <div className="campos">
+        <div className="campo">
+          <label htmlFor="registro-repositorio">Repositorio</label>
+          <input
+            id="registro-repositorio"
+            value={datos.repositorio}
+            onChange={campo("repositorio")}
+            pattern="[A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+"
+            spellCheck="false"
+            placeholder="propietario/nombre"
+            required
+          />
+        </div>
+        <div className="campo">
+          <label htmlFor="registro-workflow">Ruta del workflow</label>
+          <input
+            id="registro-workflow"
+            value={datos.workflow_path}
+            onChange={campo("workflow_path")}
+            pattern="\.github/workflows/.+\.ya?ml"
+            spellCheck="false"
+            placeholder=".github/workflows/deploy.yml"
+            required
+          />
+        </div>
+      </div>
+      <div className="campo">
+        <label htmlFor="registro-evidencia">Evidencia de despliegue</label>
+        <textarea
+          id="registro-evidencia"
+          rows="3"
+          value={datos.evidencia}
+          onChange={campo("evidencia")}
+          minLength={30}
+          maxLength={2000}
+          aria-describedby="ayuda-registro"
+          placeholder="ej. Despliega la API a AWS ECS en el paso 'Deploy to production' del job deploy."
+          required
+        />
+      </div>
+      <Alerta>{error}</Alerta>
+      {hecho && (
+        <p className="nota" role="status">
+          {hecho.workflow_path} de {hecho.repositorio} quedó validado y disponible en Nuevo análisis.
+          {hecho.ejecuciones_recientes < 10 &&
+            ` Tiene ${hecho.ejecuciones_recientes} ejecuciones recientes: con poco historial la estimación es poco informativa.`}
+        </p>
+      )}
+      <div className="formulario__acciones">
+        <button className="boton" type="submit" disabled={enviando}>
+          {enviando ? "Comprobando en GitHub…" : "Registrar workflow"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// Vista del administrador: estado de la conexión con GitHub, alta manual de
+// workflows y recopilación de ejecuciones de los workflows validados.
 export default function Integraciones() {
   const [estado, setEstado] = useState(null);
   const [repositorios, setRepositorios] = useState([]);
@@ -46,45 +141,7 @@ export default function Integraciones() {
       <Alerta>{error}</Alerta>
       {!estado && !error && <p role="status" className="secundario">Cargando…</p>}
 
-      {estado && (
-        <article className="tarjeta" aria-labelledby="titulo-conexion">
-          <h2 id="titulo-conexion">Estado de la conexión</h2>
-          <Alerta>{estado.error}</Alerta>
-          <dl className="datos">
-            <dt>API</dt>
-            <dd><code>{estado.api_url}</code></dd>
-            <dt>Token</dt>
-            <dd>
-              {estado.token_configurado
-                ? "Configurado en el servidor (no se muestra)"
-                : "No configurado: se usa la cuota anónima de GitHub"}
-            </dd>
-            <dt>Cuota de la API</dt>
-            <dd>
-              {estado.limite != null ? (
-                <>
-                  {estado.restantes} de {estado.limite} solicitudes disponibles; se renueva el{" "}
-                  <Fecha valor={new Date(estado.reinicio * 1000).toISOString()} />
-                </>
-              ) : (
-                "No disponible"
-              )}
-            </dd>
-            <dt>Repositorios registrados</dt>
-            <dd>{estado.repositorios_registrados}</dd>
-            <dt>Workflows de despliegue validados</dt>
-            <dd>{estado.workflows_validados}</dd>
-            <dt>Ejecuciones almacenadas</dt>
-            <dd>{estado.ejecuciones_almacenadas}</dd>
-            <dt>Última extracción</dt>
-            <dd><Fecha valor={estado.ultima_extraccion} /></dd>
-          </dl>
-          <p className="nota">
-            El token se configura en <code>backend/.env</code> (variable <code>GITHUB_TOKEN</code>) y nunca se envía al
-            navegador. La recopilación periódica se programa con el comando <code>sincronizar_github</code>.
-          </p>
-        </article>
-      )}
+      {estado && <RegistroWorkflow alRegistrar={cargar} />}
 
       {estado && (
         <div className="tarjeta tarjeta--tabla">

@@ -18,6 +18,7 @@ from riesgo.permissions import (EsAdministrador, EsLiderOAdministrador,
 from riesgo.serializers import (PrediccionSerializer, RepositorioSerializer,
                                 SolicitudDecisionSerializer,
                                 SolicitudPrediccionSerializer,
+                                SolicitudRegistroSerializer,
                                 VersionModeloSerializer)
 from riesgo.services import github
 from riesgo.services.sincronizacion import sincronizar_repositorio
@@ -43,6 +44,10 @@ def _error(mensaje, codigo, estado):
 
 
 def _error_github(exc):
+    if isinstance(exc, github.RamaNoEncontrada):
+        return _error(f"La rama {exc.rama} no existe en el repositorio. Su "
+                      f"rama principal es {exc.principal}.",
+                      "rama_no_encontrada", status.HTTP_400_BAD_REQUEST)
     if isinstance(exc, github.NoEncontrado):
         if "/actions/workflows/" in str(exc):
             return _error("El archivo del workflow ya no existe en GitHub "
@@ -95,6 +100,72 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
                     repositorio, request.user.username,
                     resultado["ejecuciones_guardadas"])
         return Response(resultado)
+
+    @action(detail=False, methods=["post"],
+            permission_classes=[EsAdministrador])
+    def registrar(self, request):
+        """Registra y valida un workflow de despliegue fuera del dataset.
+
+        Comprueba en GitHub que el repositorio y el archivo del workflow
+        existen y guarda la evidencia documentada por el administrador.
+        """
+        solicitud = SolicitudRegistroSerializer(data=request.data)
+        solicitud.is_valid(raise_exception=True)
+        datos = solicitud.validated_data
+        cliente = github.GitHubClient()
+        try:
+            info_repo = cliente.repositorio(datos["repositorio"])
+        except github.NoEncontrado:
+            return _error("El repositorio no existe en GitHub o es privado "
+                          "y el token no tiene permiso de lectura.",
+                          "github_no_encontrado", status.HTTP_404_NOT_FOUND)
+        except github.GitHubError as exc:
+            return _error_github(exc)
+        nombre = info_repo["full_name"]
+        try:
+            info_wf = cliente.workflow(nombre, datos["workflow_path"])
+            recientes = cliente.ejecuciones_workflow(
+                nombre, datos["workflow_path"])
+        except github.NoEncontrado:
+            return _error(f"El workflow {datos['workflow_path']} no existe "
+                          f"en {nombre}.", "github_no_encontrado",
+                          status.HTTP_404_NOT_FOUND)
+        except github.GitHubError as exc:
+            return _error_github(exc)
+
+        with transaction.atomic():
+            repositorio = (
+                Repositorio.objects.filter(github_id=info_repo["id"]).first()
+                or Repositorio.objects.filter(
+                    nombre_completo__iexact=nombre).first()
+                or Repositorio(github_id=info_repo["id"]))
+            repositorio.github_id = info_repo["id"]
+            repositorio.nombre_completo = nombre
+            repositorio.propietario, _, repositorio.nombre = \
+                nombre.partition("/")
+            repositorio.save()
+            workflow, creado = Workflow.objects.get_or_create(
+                repositorio=repositorio, path=datos["workflow_path"])
+            if (not creado and workflow.despliegue_validado
+                    and workflow.disponible_github):
+                return _error("Este workflow ya está registrado y validado.",
+                              "ya_registrado", status.HTTP_409_CONFLICT)
+            workflow.nombre = info_wf.get("name", "")[:200]
+            workflow.despliegue_validado = True
+            workflow.evidencia_validacion = datos["evidencia"]
+            workflow.validado_por = request.user
+            workflow.validado_en = timezone.now()
+            workflow.disponible_github = True
+            workflow.verificado_github_en = timezone.now()
+            workflow.save()
+
+        logger.info("Workflow %s registrado por %s", workflow,
+                    request.user.username)
+        return Response({
+            "repositorio": nombre,
+            "workflow_path": workflow.path,
+            "ejecuciones_recientes": len(recientes),
+        }, status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET"])

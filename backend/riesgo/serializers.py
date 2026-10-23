@@ -27,6 +27,21 @@ class SolicitudPrediccionSerializer(serializers.Serializer):
         return datos
 
 
+class SolicitudRegistroSerializer(serializers.Serializer):
+    """Alta manual de un workflow de despliegue por el administrador."""
+
+    repositorio = serializers.RegexField(
+        REPO, error_messages={"invalid": "Use el formato propietario/nombre."})
+    workflow_path = serializers.RegexField(
+        WORKFLOW, error_messages={
+            "invalid": "Use una ruta .github/workflows/<archivo>.yml"})
+    evidencia = serializers.CharField(
+        min_length=30, max_length=2000, trim_whitespace=True,
+        error_messages={"min_length": (
+            "Describa la evidencia con al menos 30 caracteres: a qué entorno "
+            "despliega y en qué paso del workflow.")})
+
+
 class EjecucionSerializer(serializers.ModelSerializer):
     y = serializers.IntegerField(read_only=True, allow_null=True)
 

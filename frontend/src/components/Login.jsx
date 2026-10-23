@@ -28,12 +28,12 @@ export default function Login({ alEntrar }) {
       <div className="acceso__tarjeta">
         <section className="acceso__presentacion" aria-label="Presentación de la plataforma">
           <div>
-            <p className="acceso__sello">UNEMI · IA predictiva</p>
+            <span className="acceso__monograma" aria-hidden="true">RD</span><p className="acceso__sello">UNEMI · IA predictiva</p>
             <p className="acceso__titulo">
-              Riesgo de <span>despliegue</span>
+              Control de riesgo.<br /><span>Supervisión de despliegues.</span>
             </p>
             <p className="secundario">
-              Estime la probabilidad de que un intento de despliegue en GitHub Actions no se complete, con explicación
+              Evalúe el riesgo de sus despliegues en GitHub Actions con análisis predictivo, explicación
               de los factores (SHAP) y recomendaciones.
             </p>
           </div>
@@ -41,7 +41,7 @@ export default function Login({ alEntrar }) {
         </section>
 
         <section className="acceso__formulario" aria-labelledby="titulo-login">
-          <h1 id="titulo-login">Iniciar sesión</h1>
+          <h1 id="titulo-login">Acceso a la plataforma</h1>
           <p className="secundario">Ingrese sus credenciales para acceder a la plataforma.</p>
           <form className="formulario" onSubmit={enviar}>
             <div className="campo">
@@ -67,7 +67,7 @@ export default function Login({ alEntrar }) {
             </div>
             <Alerta>{error}</Alerta>
             <button className="boton" type="submit" disabled={enviando}>
-              {enviando ? "Iniciando sesión…" : "Entrar"}
+              {enviando ? "Iniciando sesión…" : "Iniciar sesión"}
             </button>
           </form>
         </section>
@@ -75,3 +75,5 @@ export default function Login({ alEntrar }) {
     </div>
   );
 }
+
+

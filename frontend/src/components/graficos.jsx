@@ -139,41 +139,57 @@ export function BarrasApiladas({ dias, titulo }) {
 }
 
 export function Linea({ dias, limites, titulo }) {
-  const valores = dias.filter((d) => d.valor !== null);
-  const maximo = Math.min(1, Math.max(0.1, ...valores.map((d) => d.valor), limites ? limites.alto * 1.25 : 0));
-  const anchoUtil = ANCHO - MARGEN.izq - MARGEN.der;
-  const altoUtil = ALTO - MARGEN.sup - MARGEN.inf;
-  const paso = anchoUtil / Math.max(dias.length - 1, 1);
-  const x = (i) => MARGEN.izq + paso * i;
-  const y = (v) => MARGEN.sup + altoUtil - (v / maximo) * altoUtil;
-  const puntos = dias.map((d, i) => (d.valor === null ? null : `${x(i)},${y(d.valor)}`)).filter(Boolean);
+  const valido = (d) => Number.isFinite(d.valor) && d.valor >= 0 && d.valor <= 1;
+  const valores = dias.filter(valido);
+  if (!valores.length) return <p className="nota">No hay datos de probabilidad en el período seleccionado.</p>;
+  const primero = dias.findIndex(valido);
+  const ultimo = dias.length - 1 - [...dias].reverse().findIndex(valido);
+  const visibles = dias.slice(primero, ultimo + 1);
+  const ancho = 900, alto = 280;
+  const margen = { izq: 52, der: 24, sup: 18, inf: 42 };
+  const anchoUtil = ancho - margen.izq - margen.der;
+  const altoUtil = alto - margen.sup - margen.inf;
+  const x = (i) => margen.izq + (visibles.length === 1 ? anchoUtil / 2 : i * anchoUtil / (visibles.length - 1));
+  const y = (v) => margen.sup + (1 - v) * altoUtil;
+  const segmentos = [];
+  let segmento = [];
+  visibles.forEach((d, i) => {
+    if (valido(d)) segmento.push(`${x(i)},${y(d.valor)}`);
+    else if (segmento.length) { segmentos.push(segmento); segmento = []; }
+  });
+  if (segmento.length) segmentos.push(segmento);
+  const indices = [...new Set([0, Math.floor((visibles.length - 1) / 2), visibles.length - 1])];
   return (
     <>
-      <svg viewBox={`0 0 ${ANCHO} ${ALTO}`} className="grafico" aria-hidden="true">
-        {ejeY(maximo, (v) => `${Math.round(v * 100)}%`)}
+      <div className="tendencia__leyenda">
+        <span><i className="tendencia__muestra" />Media diaria</span>
+        {limites && ["medio", "alto"].filter((n) => Number.isFinite(limites[n])).map((nivel) => <span key={nivel} className={`serie--${nivel}`}><i className="tendencia__umbral" />{NIVELES[nivel]} desde {porcentaje(limites[nivel], 0)}</span>)}
+      </div>
+      <div className="tendencia__marco">
+      <svg viewBox={`0 0 ${ancho} ${alto}`} className="grafico tendencia__grafico" aria-hidden="true">
+        {[0, .25, .5, .75, 1].map((v) => <g key={v}><line x1={margen.izq} x2={ancho - margen.der} y1={y(v)} y2={y(v)} className="eje__guia" /><text x={margen.izq - 10} y={y(v) + 4} textAnchor="end" className="eje__texto">{v * 100}%</text></g>)}
         {limites &&
-          ["medio", "alto"].map((nivel) => (
+          ["medio", "alto"].filter((n) => Number.isFinite(limites[n]) && limites[n] >= 0 && limites[n] <= 1).map((nivel) => (
             <g key={nivel}>
               <line
-                x1={MARGEN.izq}
-                x2={ANCHO - MARGEN.der}
+                x1={margen.izq}
+                x2={ancho - margen.der}
                 y1={y(limites[nivel])}
                 y2={y(limites[nivel])}
                 className={`umbral serie--${nivel}`}
               />
-              <text x={ANCHO - MARGEN.der} y={y(limites[nivel]) - 4} textAnchor="end" className="eje__texto">
-                {NIVELES[nivel]} desde {porcentaje(limites[nivel], 0)}
-              </text>
             </g>
           ))}
-        {puntos.length > 1 && <polyline points={puntos.join(" ")} className="linea" />}
-        {dias.map((d, i) => d.valor !== null && <circle key={i} cx={x(i)} cy={y(d.valor)} r="3" className="punto" />)}
-        {etiquetasX(dias, x)}
+        {segmentos.map((puntos, i) => puntos.length > 1 && <polyline key={i} points={puntos.join(" ")} className="linea" />)}
+        {visibles.map((d, i) => valido(d) && <circle key={i} cx={x(i)} cy={y(d.valor)} r="4" className="punto"><title>{`${d.etiqueta}: ${porcentaje(d.valor)} · ${d.n ?? "—"} análisis`}</title></circle>)}
+        {indices.map((i) => <text key={i} x={x(i)} y={alto - 14} textAnchor={visibles.length === 1 ? "middle" : i === 0 ? "start" : i === visibles.length - 1 ? "end" : "middle"} className="eje__texto">{visibles[i].etiqueta}</text>)}
       </svg>
+      </div>
+      <p className="secundario tendencia__nota">Escala fija de 0 a 100 %. Se muestra desde el primer hasta el último día con análisis del período. Los días sin datos interrumpen la línea. Los umbrales son referencias del modelo para cada análisis individual.</p>
       <TablaAccesible
         caption={titulo}
-        columnas={["Día", "Probabilidad media"]}
-        filas={valores.map((d) => [d.etiqueta, porcentaje(d.valor)])}
+        columnas={["Día", "Probabilidad media", "Análisis"]}
+        filas={valores.map((d) => [d.etiqueta, porcentaje(d.valor), d.n ?? "—"])}
       />
     </>
   );
@@ -202,3 +218,4 @@ export function Embudo({ pasos }) {
     </ol>
   );
 }
+

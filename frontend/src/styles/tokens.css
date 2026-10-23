@@ -1,75 +1,54 @@
-/*
- * Tokens de diseño (tema oscuro). Único archivo con valores de color del
- * proyecto: los componentes solo usan estas variables.
- *
- * Contraste WCAG calculado sobre --color-tarjeta (#1E293B), la superficie
- * más clara sobre la que se escribe texto:
- *   tinta 14,0:1 · secundaria 5,7:1 · acento-texto 5,8:1
- *   bajo 5,8:1 · medio 6,8:1 · alto-texto 5,3:1
- *   texto claro sobre --color-acento (botones) 4,9:1
- * --color-alto (#EF4444) solo se usa en indicadores no textuales (barras,
- * bordes y muestras; WCAG 1.4.11 exige 3:1). El texto rojo usa --alto-texto.
- */
+/* Sistema visual: paleta de alerta temprana (azul, verde, amarillo, naranja y rojo).
+   Colores compartidos por todas las vistas. */
+
 :root {
-  /* Superficies */
-  --color-fondo: #0F172A;
-  --color-lateral: #0B1120;
-  --color-tarjeta: #1E293B;
-  --color-tarjeta-elevada: #334155;
-
-  /* Acento (acciones principales, gráficos de tendencia) */
-  --color-acento: #2563EB;
-  --color-acento-hover: #1D4ED8;
-  --acento-texto: #60A5FA;
-  --acento-suave: color-mix(in srgb, var(--color-acento) 20%, transparent);
-  --acento-brillo: color-mix(in srgb, var(--color-acento) 35%, transparent);
-
-  /* Niveles de riesgo */
-  --color-bajo: #10B981;
-  --color-medio: #F59E0B;
-  --color-alto: #EF4444;
-  --alto-texto: #F87171;
-
-  /* Texto */
-  --tinta-principal: #F8FAFC;
-  --tinta-secundaria: #94A3B8;
-  --tinta-tenue: #64748B;
-
-  /* Bordes y rellenos */
-  --borde-suave: #334155;
-  --borde-fuerte: #475569;
-  --relleno-suave: rgba(255, 255, 255, 0.04);
-  --relleno-hover: rgba(255, 255, 255, 0.08);
-
-  /* Sombras */
-  --sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --sombra-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
-  --sombra-brillo: 0 0 20px var(--acento-brillo);
-
-  /* Tipografía */
-  --fuente: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --fuente-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
-  --texto-xs: 12px;
-  --texto-sm: 13px;
-  --texto-base: 14px;
-  --texto-lg: 18px;
-  --texto-xl: 24px;
-  --texto-xxl: 32px;
-
-  /* Espaciado */
-  --esp-1: 4px;
-  --esp-2: 8px;
-  --esp-3: 16px;
-  --esp-4: 24px;
-  --esp-5: 32px;
-  --esp-6: 48px;
-
-  /* Bordes redondeados */
-  --radio-sm: 6px;
-  --radio: 10px;
-  --radio-lg: 16px;
-  --radio-full: 9999px;
-
-  color-scheme: dark;
+ --color-fondo: #edf2f8;
+ --color-lateral: #ffffff;
+ --color-tarjeta: #ffffff;
+ --color-tarjeta-elevada: #f5f8fc;
+ /* Azul: color principal */
+ --color-acento: #1565c0;
+ --color-acento-hover: #0d47a1;
+ --acento-texto: #0d47a1;
+ --acento-suave: #e3eefb;
+ --acento-brillo: #d0e3f8;
+ /* Verde: acento (círculo RD, botón destacado y resaltes) */
+ --color-dorado: #2e7d32;
+ --dorado-hover: #1b5e20;
+ --dorado-suave: #e8f5e9;
+ --dorado-texto: #1b5e20;
+ /* Niveles de riesgo: verde, amarillo y naranja */
+ --color-bajo: #43a047;
+ --bajo-texto: #2e7d32;
+ --color-medio: #f9a825;
+ --medio-texto: #8a5a00;
+ --color-alto: #f57c00;
+ --alto-texto: #b54d00;
+ /* Rojo: errores */
+ --color-error: #e53935;
+ --error-texto: #c62828;
+ --tinta-principal: #172235;
+ --tinta-secundaria: #56657a;
+ --tinta-tenue: #7a879a;
+ --borde-suave: #e1e8f0;
+ --borde-fuerte: #c3cfdd;
+ --relleno-suave: #f5f8fc;
+ --relleno-hover: #ebf1f8;
+ --sombra-sm: 0 1px 2px rgba(23,34,53,.04);
+ --sombra-md: 0 4px 14px rgba(23,34,53,.06);
+ --sombra-lg: 0 20px 50px rgba(23,34,53,.10);
+ --sombra-brillo: 0 4px 12px rgba(21,101,192,.25);
+ --fuente: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+ --fuente-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+ --texto-xs: 12px; --texto-sm: 13px; --texto-base: 14px;
+ --texto-lg: 18px; --texto-xl: 26px; --texto-xxl: 38px;
+ --esp-1: 4px; --esp-2: 8px; --esp-3: 16px;
+ --esp-4: 24px; --esp-5: 32px; --esp-6: 48px;
+ --radio-sm: 8px; --radio: 12px; --radio-lg: 16px; --radio-full: 999px;
+ --lateral-tinta: #172235; --lateral-secundaria: #56657a;
+ --lateral-borde: #e1e8f0; --lateral-activo: #1565c0;
+ --sobre-acento: #ffffff; --detalle-institucional: #2e7d32;
+ --sobre-dorado: #ffffff; --acceso-fondo: #0d3c78; --acceso-resalte: #81c784;
+ --acceso-secundario: #d6e7fb;
+ color-scheme: light;
 }

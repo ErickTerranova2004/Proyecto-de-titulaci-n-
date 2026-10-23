@@ -203,10 +203,6 @@ export default function Resultado({ prediccion, modelos }) {
     <article className="tarjeta resultado" aria-labelledby={`resultado-${p.id}`}>
       <header>
         <h2 id={`resultado-${p.id}`}>Resultado del análisis</h2>
-        <p className="secundario">
-          <strong>{p.repositorio}</strong> · {p.workflow_path} · commit <code>{p.head_sha.slice(0, 7)}</code> · rama {p.rama || "—"} ·
-          evento {p.evento}
-        </p>
         {p.cambio?.archivos_modificados != null && (
           <p className="secundario">
             Cambio del commit: {p.cambio.archivos_modificados} archivos modificados · +{p.cambio.adiciones} / −
@@ -247,10 +243,6 @@ export default function Resultado({ prediccion, modelos }) {
           {NIVELES.medio} desde {porcentaje(limites.medio)}; {NIVELES.alto} desde {porcentaje(limites.alto)}.
         </p>
       )}
-      <p className="nota">
-        La probabilidad estima si el intento de despliegue <strong>no se completará con éxito</strong> en GitHub Actions.
-        No mide incidentes posteriores en producción.
-      </p>
       </div>
 
       <section aria-labelledby={`factores-${p.id}`}>
