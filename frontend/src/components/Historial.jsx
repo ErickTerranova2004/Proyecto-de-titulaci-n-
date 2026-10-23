@@ -1,9 +1,26 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
-import { Alerta, DECISIONES, Fecha, NivelRiesgo, porcentaje } from "./comunes.jsx";
+import { Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje } from "./comunes.jsx";
 import Resultado, { ETIQUETAS } from "./Resultado.jsx";
 
-export default function Historial({ modelos }) {
+// Seguimiento de la fecha límite de la última decisión (vista / cumplida).
+export function SeguimientoAsignacion({ decision }) {
+  if (!decision?.fecha_limite) return <span className="secundario">—</span>;
+  return (
+    <>
+      <EstadoAsignacion estado={decision.estado} />{" "}
+      <span className="secundario">
+        {decision.cumplida_en ? "Cumplida" : decision.vista_por_desarrollador_en ? "Vista" : "No vista"}
+      </span>
+    </>
+  );
+}
+
+// El backend ya filtra por rol: el desarrollador recibe sus análisis y el
+// líder los de todos los desarrolladores de sus repositorios asignados.
+export default function Historial({
+  modelos, titulo = "Historial de análisis", descripcion, mostrarDesarrollador = true, mostrarSeguimiento = false,
+}) {
   const [filas, setFilas] = useState(null);
   const [error, setError] = useState("");
   const [seleccion, setSeleccion] = useState(null);
@@ -16,7 +33,7 @@ export default function Historial({ modelos }) {
   if (seleccion) {
     return (
       <section className="vista" aria-labelledby="titulo-historial">
-        <h1 id="titulo-historial">Historial de análisis</h1>
+        <h1 id="titulo-historial">{titulo}</h1>
         <div>
           <button className="boton boton--secundario" type="button" onClick={() => { setSeleccion(null); cargar(); }}>
             ← Volver al historial
@@ -30,9 +47,9 @@ export default function Historial({ modelos }) {
   return (
     <section className="vista" aria-labelledby="titulo-historial">
       <header className="encabezado">
-        <h1 id="titulo-historial">Historial de análisis</h1>
+        <h1 id="titulo-historial">{titulo}</h1>
         <p className="secundario">
-          Análisis visibles según su rol y sus repositorios asignados, del más reciente al más antiguo.
+          {descripcion ?? "Análisis visibles según su rol y sus repositorios asignados"}, del más reciente al más antiguo.
         </p>
       </header>
       <Alerta>{error}</Alerta>
@@ -46,7 +63,7 @@ export default function Historial({ modelos }) {
         <div className="tarjeta tarjeta--tabla">
           <div className="tabla-contenedor">
             <table>
-              <caption className="solo-lector">Historial de análisis</caption>
+              <caption className="solo-lector">{titulo}</caption>
               <thead>
                 <tr>
                   <th scope="col">Fecha</th>
@@ -57,7 +74,9 @@ export default function Historial({ modelos }) {
                   <th scope="col" className="numero">Probabilidad</th>
                   <th scope="col">Resultado real</th>
                   <th scope="col">Decisión</th>
-                  <th scope="col">Usuario</th>
+                  {mostrarSeguimiento && <th scope="col">Fecha límite</th>}
+                  {mostrarSeguimiento && <th scope="col">Seguimiento</th>}
+                  {mostrarDesarrollador && <th scope="col">Desarrollador</th>}
                   <th scope="col"><span className="solo-lector">Acciones</span></th>
                 </tr>
               </thead>
@@ -74,7 +93,9 @@ export default function Historial({ modelos }) {
                     <td className="numero destacado">{porcentaje(p.probabilidad)}</td>
                     <td>{p.ejecucion_real ? ETIQUETAS[p.ejecucion_real.etiqueta] || p.ejecucion_real.etiqueta : "Pendiente"}</td>
                     <td>{p.decisiones?.length ? DECISIONES[p.decisiones[0].decision] : "Sin decisión"}</td>
-                    <td className="secundario">{p.usuario}</td>
+                    {mostrarSeguimiento && <td><FechaDia valor={p.decisiones?.[0]?.fecha_limite} /></td>}
+                    {mostrarSeguimiento && <td><SeguimientoAsignacion decision={p.decisiones?.[0]} /></td>}
+                    {mostrarDesarrollador && <td className="secundario">{p.usuario}</td>}
                     <td>
                       <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => setSeleccion(p)}>
                         Ver detalle<span className="solo-lector"> del análisis {p.id}</span>
