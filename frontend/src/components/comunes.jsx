@@ -34,6 +34,54 @@ export function Fecha({ valor }) {
   );
 }
 
+// Fechas límite: solo días (sin hora) en la zona del backend.
+const ZONA = "America/Guayaquil";
+
+// Fecha de hoy en America/Guayaquil con formato AAAA-MM-DD (input type="date").
+export function hoyLocal() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: ZONA }).format(new Date());
+}
+
+// Muestra una fecha AAAA-MM-DD sin convertirla de zona horaria.
+export function FechaDia({ valor }) {
+  if (!valor) return "—";
+  const [a, m, d] = valor.split("-").map(Number);
+  return (
+    <time dateTime={valor} className="font-mono">
+      {new Date(a, m - 1, d).toLocaleDateString("es-EC", { day: "2-digit", month: "short", year: "numeric" })}
+    </time>
+  );
+}
+
+// Estados de AsignacionSerializer.estado. Reutiliza los colores de nivel.
+const ESTADOS_ASIGNACION = {
+  pendiente: ["Pendiente", "medio"],
+  por_vencer: ["Por vencer", "alto"],
+  vencida: ["Vencida", "alto"],
+  cumplida: ["Cumplida", "bajo"],
+};
+
+// Texto del recordatorio: vence mañana, vence hoy, vencida o los días que faltan.
+export function textoPlazo(asignacion) {
+  const { estado, dias_restantes: dias } = asignacion;
+  if (estado === "cumplida") return "Cumplida";
+  if (dias < 0) return `Vencida hace ${-dias} día${dias === -1 ? "" : "s"}`;
+  if (dias === 0) return "Vence hoy";
+  if (dias === 1) return "Vence mañana";
+  return `Faltan ${dias} días`;
+}
+
+export function EstadoAsignacion({ estado }) {
+  if (!estado) return null;
+  const [texto, nivel] = ESTADOS_ASIGNACION[estado] ?? [estado, "medio"];
+  return (
+    <span className={`nivel nivel--${nivel}`}>
+      <span className="nivel__muestra" aria-hidden="true" />
+      {texto}
+    </span>
+  );
+}
+
 export function NivelRiesgo({ nivel, grande = false }) {
   return (
     <span className={`nivel nivel--${nivel}${grande ? " nivel--grande" : ""}`}>
