@@ -5,6 +5,13 @@ from riesgo.models import (AccesoRepositorio, Commit, DecisionDespliegue,
                            EjecucionWorkflow,
                            Prediccion, Repositorio, VersionModelo, Workflow)
 
+# Textos del admin de Django con la marca de la aplicación. "Ver el sitio"
+# vuelve a la aplicación (servida en "/" por el frontend).
+admin.site.site_header = "Riesgo de despliegue"
+admin.site.site_title = "Riesgo de despliegue"
+admin.site.index_title = "Administración"
+admin.site.site_url = "/"
+
 
 class AccesoInline(admin.TabularInline):
     model = AccesoRepositorio
