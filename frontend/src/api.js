@@ -14,14 +14,26 @@ export const sesion = {
   cerrar: () => sessionStorage.removeItem(CLAVE),
 };
 
+// Error de la API con el código HTTP (`estado`; 0 si el servidor no responde).
+function errorApi(mensaje, estado) {
+  const error = new Error(mensaje);
+  error.estado = estado;
+  return error;
+}
+
 async function solicitar(ruta, opciones = {}) {
   const cabeceras = { "Content-Type": "application/json" };
   const token = sesion.token();
   if (token) cabeceras.Authorization = `Token ${token}`;
-  const respuesta = await fetch(`${BASE_API}${ruta}`, { ...opciones, headers: cabeceras });
+  let respuesta;
+  try {
+    respuesta = await fetch(`${BASE_API}${ruta}`, { ...opciones, headers: cabeceras });
+  } catch {
+    throw errorApi("El servidor no responde.", 0);
+  }
   const datos = await respuesta.json().catch(() => ({}));
   if (respuesta.status === 401) sesion.cerrar();
-  if (respuesta.status === 429) throw new Error("Límite de peticiones alcanzado. Espere unos segundos.");
+  if (respuesta.status === 429) throw errorApi("Límite de peticiones alcanzado. Espere unos segundos.", 429);
   if (!respuesta.ok) {
     const mensaje =
       datos.detail ||
@@ -30,7 +42,7 @@ async function solicitar(ruta, opciones = {}) {
         .map(([campo, errores]) => `${campo}: ${[].concat(errores).join(" ")}`)
         .join(" · ") ||
       `Error ${respuesta.status}`;
-    throw new Error(mensaje);
+    throw errorApi(mensaje, respuesta.status);
   }
   return datos;
 }

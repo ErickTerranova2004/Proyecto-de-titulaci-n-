@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
+import { cargarTarjetas } from "../cargaAdmin.js";
 import { MisAsignaciones } from "./Alarma.jsx";
 import { Alerta, Fecha, NIVELES, NivelRiesgo, porcentaje } from "./comunes.jsx";
 import { BarrasApiladas, Dona, Embudo, Linea } from "./graficos.jsx";
@@ -115,26 +116,33 @@ function Kpi({ icono, titulo, valor, detalle, nivel }) {
   );
 }
 
-// Datos del administrador. undefined = cargando; null = el endpoint no
-// respondió (el bloque muestra un estado vacío).
+// Tarjetas del administrador. Cada una carga por separado (cargaAdmin.js):
+// undefined = cargando; { estado: "ok" | "vacio" | "error", datos, motivo }.
 function useDatosAdmin(activo, habilitado) {
-  const [datos, setDatos] = useState({ resumen: undefined, github: undefined, supervision: undefined });
+  const [tarjetas, setTarjetas] = useState({});
   const cargar = () => {
     if (!habilitado) return;
-    const seguro = (promesa) => promesa.catch(() => null);
-    Promise.all([seguro(api.resumenAdmin()), seguro(api.integraciones().then((r) => r.github))]).then(
-      ([resumen, github]) => setDatos((d) => ({ ...d, resumen, github })),
-    );
+    setTarjetas({});
+    const peticiones = {
+      resumen: () => api.resumenAdmin(),
+      github: () => api.integraciones().then((r) => r.github),
+    };
+    if (activo) peticiones.supervision = () => api.supervision(activo.id);
+    cargarTarjetas(peticiones, {
+      resumen: (r) => (r.usuarios.total === 0 ? "Todavía no hay usuarios registrados." : null),
+      supervision: (s) => (s.predicciones === 0 ? "El modelo activo aún no tiene predicciones." : null),
+    }).then(setTarjetas);
   };
-  useEffect(cargar, [habilitado]);
-  useEffect(() => {
-    if (!habilitado || !activo) return;
-    api
-      .supervision(activo.id)
-      .then((s) => setDatos((d) => ({ ...d, supervision: s })))
-      .catch(() => setDatos((d) => ({ ...d, supervision: null })));
-  }, [habilitado, activo?.id]);
-  return { ...datos, cargar };
+  useEffect(cargar, [habilitado, activo?.id]);
+  return { tarjetas, cargar };
+}
+
+// Estado de una tarjeta que no tiene datos: cargando, vacío o error concreto.
+function EstadoTarjeta({ tarjeta }) {
+  if (tarjeta === undefined) return <p role="status" className="secundario">Cargando…</p>;
+  if (tarjeta.estado === "error") return <Alerta>{tarjeta.motivo}</Alerta>;
+  if (tarjeta.estado === "vacio") return <p className="secundario">{tarjeta.motivo}</p>;
+  return null;
 }
 
 // Sin un perfil válido no se dibuja nada: nunca se cae al panel de administración.
@@ -589,9 +597,11 @@ function TablaRepositorios({ perfil, filas, limites }) {
 // supervisión, y estado de GitHub. Si un endpoint no responde, el bloque lo
 // indica en lugar de mostrar cifras.
 function PanelAdministrador({ admin, activo, antesDeBloques }) {
-  const { resumen, github, supervision } = admin;
-  const cargandoTexto = (valor) => (valor === undefined ? <p role="status" className="secundario">Cargando…</p> : null);
-  const sinDatos = <p className="secundario">No se pudieron obtener estos datos de la API.</p>;
+  const { tarjetas } = admin;
+  const datosDe = (clave) => (tarjetas[clave]?.estado === "ok" ? tarjetas[clave].datos : null);
+  const resumen = datosDe("resumen");
+  const github = datosDe("github");
+  const supervision = datosDe("supervision");
   const tasa = (n) => (n.tasa == null ? "—" : `${porcentaje(n.tasa)} (${n.no_completados}/${n.evaluables})`);
   return (
     <>
@@ -625,8 +635,7 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
         <section className="tarjeta" aria-labelledby="titulo-usuarios-rol">
           <h2 id="titulo-usuarios-rol">Usuarios por rol</h2>
           <p className="secundario">Cada usuario cuenta una vez, en su rol de mayor jerarquía</p>
-          {cargandoTexto(resumen)}
-          {resumen === null && sinDatos}
+          <EstadoTarjeta tarjeta={tarjetas.resumen} />
           {resumen && (
             <ul className="leyenda">
               <li><span>Administradores</span><span className="leyenda__valor">{resumen.usuarios.administrador}</span></li>
@@ -641,8 +650,7 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
         <section className="tarjeta" aria-labelledby="titulo-workflows-admin">
           <h2 id="titulo-workflows-admin">Workflows</h2>
           <p className="secundario">Validados como despliegue o pendientes de validar</p>
-          {cargandoTexto(resumen)}
-          {resumen === null && sinDatos}
+          <EstadoTarjeta tarjeta={tarjetas.resumen} />
           {resumen && (
             <ul className="leyenda">
               <li><span>Validados</span><span className="leyenda__valor">{resumen.workflows.validados}</span></li>
@@ -656,8 +664,7 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
         <section className="tarjeta" aria-labelledby="titulo-github-admin">
           <h2 id="titulo-github-admin">Estado de GitHub</h2>
           <p className="secundario">Conexión de la integración</p>
-          {cargandoTexto(github)}
-          {github === null && sinDatos}
+          <EstadoTarjeta tarjeta={tarjetas.github} />
           {github && (
             <ul className="leyenda">
               <li><span>Token</span><span className="leyenda__valor">{github.token_configurado ? "Configurado" : "No configurado"}</span></li>
@@ -678,8 +685,7 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
           Tasa observada de despliegues no completados por nivel, en las predicciones verificadas
         </p>
         {!activo && <p className="secundario">No hay un modelo activo registrado.</p>}
-        {activo && cargandoTexto(supervision)}
-        {activo && supervision === null && sinDatos}
+        {activo && <EstadoTarjeta tarjeta={tarjetas.supervision} />}
         {supervision && (
           <div className="tabla-contenedor">
             <table>
