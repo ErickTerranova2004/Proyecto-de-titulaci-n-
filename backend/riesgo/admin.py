@@ -16,7 +16,9 @@ class AccesoInline(admin.TabularInline):
 
 @admin.register(Repositorio)
 class RepositorioAdmin(admin.ModelAdmin):
-    list_display = ["nombre_completo", "github_id"]
+    list_display = ["nombre_completo", "github_id", "es_demostracion"]
+    list_filter = ["es_demostracion"]
+    list_editable = ["es_demostracion"]
     search_fields = ["nombre_completo"]
     inlines = [AccesoInline]
 

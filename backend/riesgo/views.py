@@ -423,6 +423,9 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
         return Response({
             "version": version.version,
             "predicciones": predicciones.count(),
+            # Las de repositorios de demostración no son validación del modelo.
+            "predicciones_demostracion": predicciones.filter(
+                workflow__repositorio__es_demostracion=True).count(),
             "verificadas": predicciones.filter(
                 ejecucion_real__isnull=False).count(),
             "evaluables": len(evaluables),

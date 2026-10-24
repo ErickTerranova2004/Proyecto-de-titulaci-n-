@@ -150,6 +150,14 @@ function Supervision({ modelos }) {
           </tbody>
         </table>
       </div>
+      {modelos.map((m) => {
+        const n = datos[m.id]?.predicciones_demostracion;
+        return n ? (
+          <p key={m.id} className="secundario nota-pie">
+            {datos[m.id].version}: incluye {n} predicciones de repositorios de demostración (no son validación del modelo).
+          </p>
+        ) : null;
+      })}
     </section>
   );
 }

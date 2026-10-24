@@ -306,6 +306,68 @@ class ApiTest(TestCase):
         id_ = self.predecir(self.dev).json()["id"]
         r = self.verificar(self.lider_ajeno, id_, [], [])
         self.assertEqual(r.status_code, 404)
+        # Otro desarrollador del mismo repositorio tampoco ve la predicción.
+        self.assertEqual(self.verificar(self.dev2, id_, [], []).status_code, 404)
+        self.assertIsNone(Prediccion.objects.get(id=id_).ejecucion_real)
+
+    JOBS_EXITO = [{"id": 1, "name": "deploy", "conclusion": "success", "started_at": "x",
+                   "steps": [{"number": 1, "name": "Deploy to ECS", "conclusion": "success"}]}]
+    JOBS_FALLO = [{"id": 1, "name": "deploy", "conclusion": "failure", "started_at": "x",
+                   "steps": [{"number": 1, "name": "Deploy to ECS", "conclusion": "failure"}]}]
+
+    def test_verifica_ejecucion_exitosa(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        r = self.verificar(self.dev, id_, [self.run_real(id_, 5, conclusion="success")], self.JOBS_EXITO)
+        real = r.json()["ejecucion_real"]
+        self.assertEqual((real["etiqueta"], real["y"]), ("despliegue_completado", 0))
+
+    def test_ejecucion_en_curso_no_se_enlaza(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        run = dict(self.run_real(id_, 5), status="in_progress", conclusion=None)
+        r = self.verificar(self.dev, id_, [run], self.JOBS_FALLO)
+        self.assertEqual(r.json()["estado"], "pendiente")
+        self.assertIsNone(Prediccion.objects.get(id=id_).ejecucion_real)
+
+    def test_verifica_el_reintento_de_la_ejecucion(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        intentos = []
+
+        class Reintento(ClienteFalso):
+            RUNS_REALES = [dict(self.run_real(id_, 9, conclusion="success"), run_attempt=2)]
+
+            def jobs_intento(self, repo, run_id, intento):
+                intentos.append(intento)
+                return ApiTest.JOBS_EXITO
+
+        with mock.patch.object(github, "GitHubClient", Reintento):
+            r = self.cliente(self.dev).post(f"/api/predicciones/{id_}/verificar/")
+        real = r.json()["ejecucion_real"]
+        self.assertEqual((real["run_attempt"], real["etiqueta"]), (2, "despliegue_completado"))
+        # Se etiqueta con los jobs del intento enlazado, no del primero.
+        self.assertEqual(intentos, [2])
+
+    def test_supervision_cuenta_verificadas_evaluables_y_brier(self):
+        exito, fallo, ambigua, pendiente = (self.predecir(self.dev).json()["id"] for _ in range(4))
+        self.verificar(self.dev, exito, [self.run_real(exito, 5, conclusion="success", run_id=11)], self.JOBS_EXITO)
+        self.verificar(self.dev, fallo, [self.run_real(fallo, 5, run_id=12)], self.JOBS_FALLO)
+        jobs_ambigua = self.JOBS_EXITO + [{"id": 2, "name": "e2e", "conclusion": "failure", "started_at": "y",
+                                           "steps": [{"number": 1, "name": "Tests", "conclusion": "failure"}]}]
+        self.verificar(self.dev, ambigua, [self.run_real(ambigua, 5, conclusion="failure", run_id=13)], jobs_ambigua)
+        modelo = Prediccion.objects.get(id=exito).version_modelo_id
+        datos = self.cliente(self.admin).get(f"/api/modelos/{modelo}/supervision/").json()
+        self.assertEqual((datos["predicciones"], datos["verificadas"], datos["evaluables"]), (4, 3, 2))
+        p_exito = Prediccion.objects.get(id=exito)
+        p_fallo = Prediccion.objects.get(id=fallo)
+        esperado = ((p_exito.probabilidad - 0) ** 2 + (p_fallo.probabilidad - 1) ** 2) / 2
+        self.assertAlmostEqual(datos["brier"], esperado)
+        por_nivel = datos["por_nivel"]
+        self.assertEqual(sum(n["evaluables"] for n in por_nivel.values()), 2)
+        self.assertEqual(sum(n["no_completados"] for n in por_nivel.values()), 1)
+        self.assertEqual(datos["predicciones_demostracion"], 0)
+        # Al marcar el repositorio como demostración se informa por separado.
+        Repositorio.objects.filter(id=self.repo.id).update(es_demostracion=True)
+        datos = self.cliente(self.admin).get(f"/api/modelos/{modelo}/supervision/").json()
+        self.assertEqual(datos["predicciones_demostracion"], 4)
 
     # --- Modelos ------------------------------------------------------------
 

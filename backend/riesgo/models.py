@@ -23,6 +23,9 @@ class Repositorio(models.Model):
     propietario = models.CharField(max_length=100)
     nombre = models.CharField(max_length=100)
     creado_en = models.DateTimeField(auto_now_add=True)
+    # Repositorio creado para demostrar la plataforma (ejecuciones provocadas a
+    # propósito). Sus resultados no son validación del modelo.
+    es_demostracion = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["nombre_completo"]

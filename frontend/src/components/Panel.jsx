@@ -713,6 +713,11 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
             </table>
           </div>
         )}
+        {supervision?.predicciones_demostracion > 0 && (
+          <p className="secundario nota-pie">
+            Incluye {supervision.predicciones_demostracion} predicciones de repositorios de demostración (no son validación del modelo).
+          </p>
+        )}
         {supervision && supervision.evaluables === 0 && (
           <p className="secundario nota-pie">Aún no hay resultados evaluables: la tasa observada no es concluyente.</p>
         )}
