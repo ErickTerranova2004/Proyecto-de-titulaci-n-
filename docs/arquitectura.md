@@ -206,7 +206,7 @@ Las FK hacia `REPOSITORIO`, `WORKFLOW`, `COMMIT`, `VERSION_MODELO` y `EJECUCION_
 
 La interfaz separa los perfiles por menú y por los datos o bloques del panel; el diseño (layout, tarjetas, gráficos y colores) es el mismo para todos (`Panel.jsx` con `perfil`). Si un usuario tiene varios roles se usa el de mayor jerarquía (administrador > líder técnico > desarrollador; el superusuario es administrador), igual que `permissions.rol_principal`. La vista inicial es el panel del rol y una vista que no existe para el rol vuelve a él. Definición: `frontend/src/roles.js`. El pie de página no muestra el modelo activo.
 
-| Rol | Menú | El panel muestra |
+| Rol | Menú | El panel muestra (solo estos bloques) |
 |---|---|---|
 | Desarrollador | Mi panel · Nuevo análisis · Mi historial | Sus análisis, sus repositorios asignados (`?todos=1`), sus resultados verificados y la tarjeta "Mis asignaciones"; campana con contador y aviso al entrar |
 | Líder técnico | Panel del equipo · Pendientes de decisión · Historial del equipo · Nuevo análisis | Riesgo alto por repositorio asignado, análisis por desarrollador, predicciones sin decisión; Pendientes y el historial muestran la fecha límite y si el desarrollador la vio o la cumplió |
@@ -297,19 +297,15 @@ Cada dato visible viene de la API y, por ella, de la base de datos. Prefijo de t
 | Resultado | `<form>` Añadir o cambiar la fecha límite | `POST /api/predicciones/{id}/fecha-limite/` | `decisiondespliegue.fecha_limite` de la última decisión |
 | Resultado | `<footer>` trazabilidad | respuesta de la predicción | `versionmodelo.version`; número de filas de `prediccion_ejecuciones_previas`; `prediccion.datos_github_extraidos_en`; `auth_user.username`; `prediccion.creada_en` |
 | Historial | `<table>` | `GET /api/predicciones/` | `prediccion.creada_en`, `repositorio.nombre_completo`, `workflow.path`, `commit.sha`, `prediccion.nivel`, `prediccion.probabilidad`, `ejecucionworkflow.etiqueta`, la `decisiondespliegue.decision` más reciente, `auth_user.username` |
-| Panel | Filtro de período y "datos cargados" | — | Filtro aplicado en el navegador sobre `prediccion.creada_en`; la hora es la de la última carga de la API |
-| Panel | KPI "Análisis realizados" (y período anterior) | `GET /api/predicciones/` | `COUNT(prediccion.id)` en el período y en el período anterior de igual duración |
-| Panel | KPI "Riesgo Alto" | ídem | `COUNT` con `prediccion.nivel = 'alto'` y su porcentaje |
-| Panel | KPI "Probabilidad media" | ídem | `AVG(prediccion.probabilidad)` |
-| Panel | KPI "Resultados verificados" | ídem | predicciones con `prediccion.ejecucion_real_id`; evaluables = `ejecucionworkflow.etiqueta` con y definido; no completados = y = 1 |
+| Mi panel / Panel del equipo | Filtro de período y "datos cargados" | — | Filtro aplicado en el navegador sobre `prediccion.creada_en`; la hora es la de la última carga de la API |
+| Mi panel / Panel del equipo | KPI "Análisis realizados" (y período anterior) | `GET /api/predicciones/` | `COUNT(prediccion.id)` en el período y en el período anterior de igual duración |
+| Mi panel / Panel del equipo | KPI "Riesgo Alto" | ídem | `COUNT` con `prediccion.nivel = 'alto'` y su porcentaje |
+| Mi panel / Panel del equipo | KPI "Probabilidad media" | ídem | `AVG(prediccion.probabilidad)` |
+| Mi panel / Panel del equipo | KPI "Resultados verificados" | ídem | predicciones con `prediccion.ejecucion_real_id`; evaluables = `ejecucionworkflow.etiqueta` con y definido; no completados = y = 1 |
 | Panel de administración | KPI "Modelo activo" | `GET /api/modelos/` | `versionmodelo.version`, `nombre_modelo`, `metadatos.metricas_prueba["PR-AUC"]` |
-| Panel | "Flujo de la plataforma" | `GET /api/repositorios/`, `/api/predicciones/`, `/api/modelos/` | Repositorios accesibles (`repositorio`); workflows validados (`workflow.despliegue_validado`); análisis registrados (`prediccion`); n.º de variables (`metadatos.variables_categoricas` + `variables_numericas`); versión del modelo. El texto "Factores SHAP en cada análisis" es *presentación* |
-| Panel | `<figure>` Dona por nivel | `GET /api/predicciones/` | `COUNT` agrupado por `prediccion.nivel` |
-| Panel | `<figure>` Barras por día | ídem | `COUNT` por día de `prediccion.creada_en` y por `prediccion.nivel` |
-| Panel | Embudo de seguimiento | ídem | Total → con `ejecucion_real` → con y definido → y = 1 |
-| Panel | `<table>` Repositorios con mayor riesgo | ídem | Por `repositorio.nombre_completo`: `COUNT`, `COUNT(nivel='alto')`, `AVG(probabilidad)`, `MAX(creada_en)`; el nivel de la media usa `versionmodelo.metadatos.limites_riesgo` |
-| Panel | Análisis recientes | ídem | Las 6 `prediccion` más recientes: `repositorio`, `workflow.path`, `creada_en`, `nivel` |
-| Panel | `<figure>` Tendencia | ídem + `GET /api/modelos/` | `AVG(prediccion.probabilidad)` por día; líneas de umbral = `metadatos.limites_riesgo` |
+| Mi panel | Embudo "Mis resultados verificados" | ídem | Total → con `ejecucion_real` → con y definido → y = 1 |
+| Mi panel / Panel del equipo | `<table>` Mis repositorios / Riesgo alto por repositorio (`?todos=1`) | ídem | Por `repositorio.nombre_completo`: `COUNT`, `COUNT(nivel='alto')`, `AVG(probabilidad)`, `MAX(creada_en)`; el nivel de la media usa `versionmodelo.metadatos.limites_riesgo` |
+| Mi panel / Panel del equipo | Mis análisis recientes / Predicciones sin decisión | ídem | Las 6 `prediccion` más recientes: `repositorio`, `workflow.path`, `creada_en`, `nivel` |
 | Modelos | `<table>` | `GET /api/modelos/` | `versionmodelo.version`, `nombre_modelo`, `activo`, `registrado_en`; `metadatos.filas_entrenamiento`, `metadatos.filas_prueba`, `metadatos.metricas_prueba` (PR-AUC, ROC-AUC, Precision, Recall, F1, Brier), `metadatos.limites_riesgo` |
 | Modelos | `<button>` Activar (solo administrador) | `POST /api/modelos/{id}/activar/` | `versionmodelo.activo` |
 | Modelos | `<table>` Supervisión (solo administrador) | `GET /api/modelos/{id}/supervision/` | Por `prediccion.version_modelo_id`: `COUNT`; con `ejecucion_real_id`; evaluables; por `prediccion.nivel`, `SUM(y)/COUNT`; Brier = media de (`probabilidad` − y)² |
