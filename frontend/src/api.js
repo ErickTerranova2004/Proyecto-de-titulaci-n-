@@ -1,5 +1,6 @@
 // Cliente de la API. El token se guarda solo durante la sesión del navegador.
-const CLAVE = "token_riesgo";
+export const CLAVE_SESION = "token_riesgo";
+const CLAVE = CLAVE_SESION;
 // Ruta de la API en el backend. En desarrollo Vite la redirige a Django
 // (vite.config.js), igual que /admin.
 const BASE_API = "/api";
@@ -40,6 +41,7 @@ export const api = {
   yo: () => solicitar("/yo/"),
   predecir: (datos) => solicitar("/predicciones/", { method: "POST", body: JSON.stringify(datos) }),
   historial: () => solicitar("/predicciones/"),
+  prediccion: (id) => solicitar(`/predicciones/${id}/`),
   verificar: (id) => solicitar(`/predicciones/${id}/verificar/`, { method: "POST" }),
   repositorios: () => solicitar("/repositorios/"),
   // Todos los repositorios asignados, aunque no tengan workflows utilizables.
@@ -54,6 +56,7 @@ export const api = {
   asignaciones: () => solicitar("/asignaciones/"),
   marcarVista: (id) => solicitar(`/asignaciones/${id}/vista/`, { method: "POST" }),
   marcarCumplida: (id) => solicitar(`/asignaciones/${id}/cumplida/`, { method: "POST" }),
+  marcarEntendida: (id) => solicitar(`/asignaciones/${id}/entendida/`, { method: "POST" }),
   resumenAdmin: () => solicitar("/resumen-admin/"),
   integraciones: () => solicitar("/integraciones/"),
   sincronizar: (id) => solicitar(`/repositorios/${id}/sincronizar/`, { method: "POST" }),

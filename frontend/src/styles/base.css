@@ -1130,3 +1130,7 @@ td.destacado { color: var(--color-acento); }
 
 /* Entradas del menú que abren el administrador de Django: mismo aspecto que los botones */
 a.menu__boton { text-decoration: none; }
+
+/* Ventana emergente de asignaciones (mismas tarjetas y variables) */
+.dialogo { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--esp-3); background: color-mix(in srgb, var(--tinta-principal) 45%, transparent); }
+.dialogo > .tarjeta { width: 100%; max-width: 680px; max-height: 85vh; overflow: auto; box-shadow: var(--sombra-lg); }

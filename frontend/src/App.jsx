@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
-import { api, sesion, urlAdmin } from "./api.js";
-import { AvisoAsignaciones, Campana, useAsignaciones } from "./components/Alarma.jsx";
+import { useEffect, useRef, useState } from "react";
+import { api, CLAVE_SESION, sesion, urlAdmin } from "./api.js";
+import { Campana, useAsignaciones, VentanaAsignaciones } from "./components/Alarma.jsx";
+import AtenderAsignacion from "./components/AtenderAsignacion.jsx";
 import { Alerta, UsuarioContexto } from "./components/comunes.jsx";
 import Historial from "./components/Historial.jsx";
 import Integraciones from "./components/Integraciones.jsx";
@@ -10,6 +11,7 @@ import NuevoAnalisis from "./components/NuevoAnalisis.jsx";
 import Panel from "./components/Panel.jsx";
 import Pendientes from "./components/Pendientes.jsx";
 import { NOMBRES_ROL, rolPrincipal, seccionesDe } from "./roles.js";
+import { debeReiniciar, escucharSesion } from "./sesion.js";
 
 const NOMBRE = "Riesgo de despliegue";
 const SUBTITULO = "Inteligencia para decisiones de despliegue";
@@ -21,16 +23,31 @@ export default function App() {
   const [cargando, setCargando] = useState(Boolean(sesion.token()));
   const [vista, setVista] = useState(null);
   const [modelos, setModelos] = useState([]);
-  const [avisoCerrado, setAvisoCerrado] = useState(false);
+  // La ventana de asignaciones sale en cada ingreso hasta pulsar "Más tarde".
+  const [ventanaCerrada, setVentanaCerrada] = useState(false);
+  const [atendiendo, setAtendiendo] = useState(null);
+  const [respuesta, setRespuesta] = useState(null);
+  const usuarioRef = useRef(null);
+  usuarioRef.current = usuario;
 
   const rol = usuario ? rolPrincipal(usuario.roles) : null;
   // La alarma de asignaciones solo se activa para el desarrollador.
   const alarma = useAsignaciones(rol === "desarrollador");
 
+  function reiniciarVista() {
+    setVista(null);
+    setVentanaCerrada(false);
+    setAtendiendo(null);
+    setRespuesta(null);
+  }
+
   const cargarUsuario = () =>
     api
       .yo()
-      .then(setUsuario)
+      .then((yo) => {
+        setUsuario(yo);
+        reiniciarVista();
+      })
       .catch(() => setUsuario(null))
       .finally(() => setCargando(false));
   const cargarModelos = () => api.modelos().then(setModelos).catch(() => setModelos([]));
@@ -40,7 +57,28 @@ export default function App() {
   }, []);
   useEffect(() => {
     if (usuario) cargarModelos();
-  }, [usuario]);
+  }, [usuario?.usuario]);
+
+  // Si el token de la pestaña cambia (otra pestaña, pestaña duplicada o sesión
+  // caducada), la interfaz no puede seguir siendo la del usuario anterior.
+  useEffect(() => {
+    if (!usuario) return undefined;
+    return escucharSesion(window, CLAVE_SESION, () => {
+      if (!sesion.token()) {
+        setUsuario(null);
+        return;
+      }
+      api
+        .yo()
+        .then((yo) => {
+          if (debeReiniciar(usuarioRef.current, yo)) {
+            setUsuario(yo);
+            reiniciarVista();
+          }
+        })
+        .catch(() => setUsuario(null));
+    });
+  }, [Boolean(usuario)]);
 
   if (cargando) return <p className="cargando" role="status">Cargando plataforma…</p>;
   if (!usuario) return <Login alEntrar={cargarUsuario} />;
@@ -53,14 +91,35 @@ export default function App() {
     sesion.cerrar();
     setUsuario(null);
     setModelos([]);
-    setVista(null);
-    setAvisoCerrado(false);
+    reiniciarVista();
+  }
+
+  function irA(id) {
+    setAtendiendo(null);
+    if (id !== "nuevo") setRespuesta(null);
+    setVista(id);
   }
 
   function verAsignaciones() {
-    setAvisoCerrado(true);
-    setVista("panel");
+    setVentanaCerrada(true);
+    irA("panel");
     setTimeout(() => document.getElementById("mis-asignaciones")?.scrollIntoView({ behavior: "smooth" }), 0);
+  }
+
+  function atender(asignacion) {
+    setVentanaCerrada(true);
+    setAtendiendo(asignacion);
+  }
+
+  function nuevoAnalisisDeRespuesta(asignacion, prediccion) {
+    setRespuesta({
+      asignacion,
+      repositorio: asignacion.repositorio,
+      workflow_path: asignacion.workflow_path,
+      rama: prediccion?.rama,
+    });
+    setAtendiendo(null);
+    setVista("nuevo");
   }
 
   return (
@@ -85,8 +144,8 @@ export default function App() {
                 key={id}
                 type="button"
                 className="menu__boton"
-                aria-current={actual?.id === id ? "page" : undefined}
-                onClick={() => setVista(id)}
+                aria-current={!atendiendo && actual?.id === id ? "page" : undefined}
+                onClick={() => irA(id)}
               >
                 <svg viewBox="0 0 24 24" className="menu__icono" aria-hidden="true"><path d={icono} /></svg>
                 {texto}
@@ -105,32 +164,52 @@ export default function App() {
       </aside>
 
       <div className="principal">
-        <header className="barra-superior"><div><span className="barra-superior__seccion">{rol ? NOMBRES_ROL[rol] : "Gestión de riesgo"}</span><span className="barra-superior__separador" aria-hidden="true">/</span><strong>{actual?.texto}</strong></div><div className="panel__acciones">{rol === "desarrollador" && <Campana pendientes={alarma.pendientes} alAbrir={verAsignaciones} />}<span className="barra-superior__perfil">{usuario.usuario}</span></div></header><main className="contenido">
+        <header className="barra-superior"><div><span className="barra-superior__seccion">{rol ? NOMBRES_ROL[rol] : "Gestión de riesgo"}</span><span className="barra-superior__separador" aria-hidden="true">/</span><strong>{atendiendo ? "Atender asignación" : actual?.texto}</strong></div><div className="panel__acciones">{rol === "desarrollador" && <Campana pendientes={alarma.pendientes} alAbrir={verAsignaciones} />}<span className="barra-superior__perfil">{usuario.usuario}</span></div></header><main className="contenido">
           {!rol && (
             <Alerta>Su cuenta no tiene un rol asignado. Contacte al administrador.</Alerta>
           )}
-          {rol === "desarrollador" && !avisoCerrado && (
-            <AvisoAsignaciones pendientes={alarma.pendientes} alVer={verAsignaciones} alCerrar={() => setAvisoCerrado(true)} />
+          {rol === "desarrollador" && !ventanaCerrada && alarma.pendientes.length > 0 && (
+            <VentanaAsignaciones alarma={alarma} alAtender={atender} alCerrar={() => setVentanaCerrada(true)} />
           )}
-          {actual?.id === "panel" && (
-            <Panel
-              key={rol}
-              perfil={PERFIL_PANEL[rol]}
+          {atendiendo ? (
+            <AtenderAsignacion
+              key={atendiendo.id}
+              asignacion={atendiendo}
               modelos={modelos}
-              alNuevoAnalisis={rol === "administrador" ? undefined : () => setVista("nuevo")}
-              alActualizar={cargarModelos}
-              alarma={rol === "desarrollador" ? alarma : undefined}
+              alNuevoAnalisis={nuevoAnalisisDeRespuesta}
+              alVolver={() => setAtendiendo(null)}
             />
+          ) : (
+            <>
+              {actual?.id === "panel" && (
+                <Panel
+                  key={rol}
+                  perfil={PERFIL_PANEL[rol]}
+                  modelos={modelos}
+                  alNuevoAnalisis={rol === "administrador" ? undefined : () => irA("nuevo")}
+                  alActualizar={cargarModelos}
+                  alarma={rol === "desarrollador" ? alarma : undefined}
+                  alAtender={atender}
+                />
+              )}
+              {actual?.id === "nuevo" && (
+                <NuevoAnalisis
+                  key={respuesta?.asignacion.id ?? "nuevo"}
+                  modelos={modelos}
+                  respuesta={respuesta}
+                  alResponder={() => alarma.recargar()}
+                />
+              )}
+              {actual?.id === "pendientes" && <Pendientes modelos={modelos} />}
+              {actual?.id === "historial" && (
+                rol === "desarrollador"
+                  ? <Historial modelos={modelos} titulo="Mi historial" descripcion="Desarrollador · sus análisis en sus repositorios asignados" mostrarDesarrollador={false} />
+                  : <Historial modelos={modelos} titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento />
+              )}
+              {actual?.id === "modelos" && <Modelos modelos={modelos} esAdmin alCambiar={cargarModelos} />}
+              {actual?.id === "integraciones" && <Integraciones />}
+            </>
           )}
-          {actual?.id === "nuevo" && <NuevoAnalisis modelos={modelos} />}
-          {actual?.id === "pendientes" && <Pendientes modelos={modelos} />}
-          {actual?.id === "historial" && (
-            rol === "desarrollador"
-              ? <Historial modelos={modelos} titulo="Mi historial" descripcion="Desarrollador · sus análisis en sus repositorios asignados" mostrarDesarrollador={false} />
-              : <Historial modelos={modelos} titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento />
-          )}
-          {actual?.id === "modelos" && <Modelos modelos={modelos} esAdmin alCambiar={cargarModelos} />}
-          {actual?.id === "integraciones" && <Integraciones />}
         </main>
 
       </div>

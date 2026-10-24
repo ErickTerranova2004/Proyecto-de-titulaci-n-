@@ -65,6 +65,7 @@ const ESTADOS_ASIGNACION = {
 export function textoPlazo(asignacion) {
   const { estado, dias_restantes: dias } = asignacion;
   if (estado === "cumplida") return "Cumplida";
+  if (dias === null || dias === undefined) return "Sin fecha límite";
   if (dias < 0) return `Vencida hace ${-dias} día${dias === -1 ? "" : "s"}`;
   if (dias === 0) return "Vence hoy";
   if (dias === 1) return "Vence mañana";
@@ -78,6 +79,18 @@ export function EstadoAsignacion({ estado }) {
     <span className={`nivel nivel--${nivel}`}>
       <span className="nivel__muestra" aria-hidden="true" />
       {texto}
+    </span>
+  );
+}
+
+// Respuesta del desarrollador: nuevo análisis, nivel anterior frente al nuevo
+// y su comentario. Lo usan Pendientes y el Historial del equipo.
+export function RespuestaDesarrollador({ nivelOriginal, respuesta, comentario }) {
+  if (!respuesta) return null;
+  return (
+    <span className="secundario">
+      Cumplida con el análisis #{respuesta.id}: <NivelRiesgo nivel={nivelOriginal} /> → <NivelRiesgo nivel={respuesta.nivel} />
+      {comentario && <> · «{comentario}»</>}
     </span>
   );
 }

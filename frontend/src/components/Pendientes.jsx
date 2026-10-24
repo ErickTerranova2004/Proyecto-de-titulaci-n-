@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
-import { Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, textoPlazo } from "./comunes.jsx";
+import {
+  Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador, textoPlazo,
+} from "./comunes.jsx";
 import Resultado from "./Resultado.jsx";
 
 const FILTROS = [
@@ -123,10 +125,10 @@ export default function Pendientes({ modelos }) {
 
       {asignaciones && (
         <section aria-labelledby="titulo-asignaciones-equipo">
-          <h2 id="titulo-asignaciones-equipo">Asignaciones con fecha límite</h2>
+          <h2 id="titulo-asignaciones-equipo">Asignaciones y respuestas del equipo</h2>
           {!asignaciones.length ? (
             <div className="tarjeta vacio">
-              <p className="secundario">Todavía no ha fijado fechas límite a su equipo.</p>
+              <p className="secundario">Todavía no hay asignaciones para su equipo.</p>
             </div>
           ) : (
             <div className="tarjeta tarjeta--tabla">
@@ -143,13 +145,17 @@ export default function Pendientes({ modelos }) {
                       <th scope="col">Estado</th>
                       <th scope="col">Vista</th>
                       <th scope="col">Cumplida</th>
+                      <th scope="col">Respuesta del desarrollador</th>
                       <th scope="col"><span className="solo-lector">Acciones</span></th>
                     </tr>
                   </thead>
                   <tbody>
                     {asignaciones.map((a) => (
                       <tr key={a.id}>
-                        <td><FechaDia valor={a.fecha_limite} /> <span className="secundario">{textoPlazo(a)}</span></td>
+                        <td>
+                          {a.fecha_limite ? <FechaDia valor={a.fecha_limite} /> : "—"}{" "}
+                          <span className="secundario">{textoPlazo(a)}</span>
+                        </td>
                         <td><strong>{a.repositorio}</strong></td>
                         <td>{a.desarrollador}</td>
                         <td>{DECISIONES[a.decision]}</td>
@@ -157,6 +163,11 @@ export default function Pendientes({ modelos }) {
                         <td><EstadoAsignacion estado={a.estado} /></td>
                         <td>{a.vista_por_desarrollador_en ? <Fecha valor={a.vista_por_desarrollador_en} /> : "No"}</td>
                         <td>{a.cumplida_en ? <Fecha valor={a.cumplida_en} /> : "No"}</td>
+                        <td>
+                          {a.prediccion_respuesta
+                            ? <RespuestaDesarrollador nivelOriginal={a.nivel_original} respuesta={a.prediccion_respuesta} comentario={a.respuesta_desarrollador} />
+                            : <span className="secundario">{a.cumplida_en ? "Marcada sin nuevo análisis" : "—"}</span>}
+                        </td>
                         <td>
                           <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => abrir(a.prediccion)}>
                             Ver<span className="solo-lector"> el análisis de {a.repositorio}</span>

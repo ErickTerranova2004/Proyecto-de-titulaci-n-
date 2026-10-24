@@ -1,17 +1,24 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
-import { Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje } from "./comunes.jsx";
+import {
+  Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador,
+} from "./comunes.jsx";
 import Resultado, { ETIQUETAS } from "./Resultado.jsx";
 
 // Seguimiento de la fecha límite de la última decisión (vista / cumplida).
-export function SeguimientoAsignacion({ decision }) {
-  if (!decision?.fecha_limite) return <span className="secundario">—</span>;
+export function SeguimientoAsignacion({ decision, nivelOriginal }) {
+  if (!decision?.estado) return <span className="secundario">—</span>;
   return (
     <>
       <EstadoAsignacion estado={decision.estado} />{" "}
       <span className="secundario">
         {decision.cumplida_en ? "Cumplida" : decision.vista_por_desarrollador_en ? "Vista" : "No vista"}
-      </span>
+      </span>{" "}
+      <RespuestaDesarrollador
+        nivelOriginal={nivelOriginal}
+        respuesta={decision.prediccion_respuesta}
+        comentario={decision.respuesta_desarrollador}
+      />
     </>
   );
 }
@@ -94,7 +101,7 @@ export default function Historial({
                     <td>{p.ejecucion_real ? ETIQUETAS[p.ejecucion_real.etiqueta] || p.ejecucion_real.etiqueta : "Pendiente"}</td>
                     <td>{p.decisiones?.length ? DECISIONES[p.decisiones[0].decision] : "Sin decisión"}</td>
                     {mostrarSeguimiento && <td><FechaDia valor={p.decisiones?.[0]?.fecha_limite} /></td>}
-                    {mostrarSeguimiento && <td><SeguimientoAsignacion decision={p.decisiones?.[0]} /></td>}
+                    {mostrarSeguimiento && <td><SeguimientoAsignacion decision={p.decisiones?.[0]} nivelOriginal={p.nivel} /></td>}
                     {mostrarDesarrollador && <td className="secundario">{p.usuario}</td>}
                     <td>
                       <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => setSeleccion(p)}>

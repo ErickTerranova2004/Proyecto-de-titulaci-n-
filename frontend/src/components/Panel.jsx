@@ -137,7 +137,13 @@ function useDatosAdmin(activo, habilitado) {
   return { ...datos, cargar };
 }
 
-export default function Panel({ perfil = "administrador", modelos, alNuevoAnalisis, alActualizar, alarma }) {
+// Sin un perfil válido no se dibuja nada: nunca se cae al panel de administración.
+export default function Panel(props) {
+  if (!PERFILES[props.perfil]) return null;
+  return <PanelDePerfil {...props} />;
+}
+
+function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma, alAtender }) {
   const textos = PERFILES[perfil];
   const esAdmin = perfil === "administrador";
   const [historial, setHistorial] = useState(null);
@@ -399,7 +405,7 @@ export default function Panel({ perfil = "administrador", modelos, alNuevoAnalis
             </div>
           </section>
 
-          {alarma && <MisAsignaciones alarma={alarma} alVerAnalisis={verAnalisis} />}
+          {alarma && <MisAsignaciones alarma={alarma} alAtender={alAtender} alVerAnalisis={verAnalisis} />}
           {flujo}
           {graficos}
 
