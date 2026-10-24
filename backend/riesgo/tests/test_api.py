@@ -574,9 +574,16 @@ class ApiTest(TestCase):
     def test_asignacion_usa_la_ultima_decision(self):
         id_ = self.predecir(self.dev).json()["id"]
         self.decidir(self.lider, id_, fecha_limite=timezone.localdate().isoformat())
-        self.decidir(self.lider, id_, decision="autorizar")
+        self.decidir(self.lider, id_, decision="solicitar_revision")
         # La última decisión no tiene fecha límite: ya no hay asignación.
         self.assertEqual(self.cliente(self.dev).get("/api/asignaciones/").json(), [])
+        # Una autorización sí llega, sin fecha, y se cierra con "Entendido".
+        self.decidir(self.lider, id_, decision="autorizar")
+        lista = self.cliente(self.dev).get("/api/asignaciones/").json()
+        self.assertEqual([(a["decision"], a["estado"], a["fecha_limite"]) for a in lista],
+                         [("autorizar", "pendiente", None)])
+        r = self.cliente(self.dev).post(f"/api/asignaciones/{lista[0]['id']}/entendida/")
+        self.assertEqual(r.json()["estado"], "cumplida")
 
     def test_estado_de_la_asignacion(self):
         from riesgo.services.asignaciones import estado
@@ -647,3 +654,73 @@ class ApiTest(TestCase):
             call_command("crear_usuario", "otro", rol="desarrollador", password="x",
                          repos=["acme/no-existe"], stdout=StringIO())
         self.assertFalse(User.objects.filter(username="otro").exists())
+
+    # --- Respuesta del desarrollador con un nuevo análisis --------------------
+
+    def asignar(self, id_, decision="posponer"):
+        manana = (timezone.localdate() + timedelta(days=1)).isoformat()
+        self.decidir(self.lider, id_, decision=decision, fecha_limite=manana)
+        return DecisionDespliegue.objects.filter(prediccion_id=id_).latest("creada_en")
+
+    def test_nuevo_analisis_atiende_la_asignacion(self):
+        original = self.predecir(self.dev).json()
+        decision = self.asignar(original["id"])
+        r = self.predecir(self.dev, dict(DATOS, atiende_decision=decision.id,
+                                         respuesta_desarrollador="Actualicé las dependencias"))
+        self.assertEqual(r.status_code, 201, r.content)
+        decision.refresh_from_db()
+        self.assertEqual(decision.prediccion_respuesta_id, r.json()["id"])
+        self.assertEqual(decision.respuesta_desarrollador, "Actualicé las dependencias")
+        self.assertIsNotNone(decision.cumplida_en)
+        self.assertIsNotNone(decision.vista_por_desarrollador_en)
+        # decision y comentario no cambian.
+        self.assertEqual((decision.decision, decision.comentario), ("posponer", "Revise el cambio"))
+        # El líder ve la respuesta: nuevo análisis, su nivel y el comentario.
+        vista = self.cliente(self.lider).get(f"/api/predicciones/{original['id']}/").json()["decisiones"][0]
+        self.assertEqual(vista["prediccion_respuesta"]["id"], r.json()["id"])
+        self.assertEqual(vista["prediccion_respuesta"]["nivel"], r.json()["nivel"])
+        self.assertEqual(vista["respuesta_desarrollador"], "Actualicé las dependencias")
+        asignacion = self.cliente(self.lider).get("/api/asignaciones/").json()[0]
+        self.assertEqual(asignacion["estado"], "cumplida")
+        self.assertEqual(asignacion["nivel_original"], original["nivel"])
+
+    def test_respuesta_no_se_atiende_dos_veces(self):
+        decision = self.asignar(self.predecir(self.dev).json()["id"])
+        self.assertEqual(self.predecir(self.dev, dict(DATOS, atiende_decision=decision.id)).status_code, 201)
+        r = self.predecir(self.dev, dict(DATOS, atiende_decision=decision.id))
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()["codigo"], "asignacion_ya_atendida")
+
+    def test_respuesta_permisos_y_validaciones(self):
+        decision = self.asignar(self.predecir(self.dev).json()["id"])
+        # Otro desarrollador del mismo repositorio no puede atenderla.
+        r = self.predecir(self.dev2, dict(DATOS, atiende_decision=decision.id))
+        self.assertEqual((r.status_code, r.json()["codigo"]), (400, "asignacion_no_encontrada"))
+        # Una decisión inexistente.
+        r = self.predecir(self.dev, dict(DATOS, atiende_decision=999999))
+        self.assertEqual(r.json()["codigo"], "asignacion_no_encontrada")
+        # Otro workflow del mismo repositorio.
+        Workflow.objects.create(repositorio=self.repo, path=".github/workflows/deploy2.yml",
+                                despliegue_validado=True, evidencia_validacion="prueba")
+        r = self.predecir(self.dev, dict(DATOS, workflow_path=".github/workflows/deploy2.yml",
+                                         atiende_decision=decision.id))
+        self.assertEqual(r.json()["codigo"], "asignacion_otro_workflow")
+        # Sin crear predicciones con una respuesta rechazada.
+        decision.refresh_from_db()
+        self.assertIsNone(decision.prediccion_respuesta_id)
+
+    def test_autorizacion_no_se_atiende_con_analisis(self):
+        decision = self.asignar(self.predecir(self.dev).json()["id"], decision="autorizar")
+        r = self.predecir(self.dev, dict(DATOS, atiende_decision=decision.id))
+        self.assertEqual(r.json()["codigo"], "asignacion_no_atendible")
+        # "Entendido" solo para autorizaciones.
+        otra = self.asignar(self.predecir(self.dev).json()["id"], decision="posponer")
+        r = self.cliente(self.dev).post(f"/api/asignaciones/{otra.id}/entendida/")
+        self.assertEqual(r.json()["codigo"], "no_es_autorizacion")
+
+    def test_decision_no_vigente_no_se_atiende(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        anterior = self.asignar(id_)
+        self.asignar(id_, decision="solicitar_revision")
+        r = self.predecir(self.dev, dict(DATOS, atiende_decision=anterior.id))
+        self.assertEqual(r.json()["codigo"], "asignacion_no_vigente")

@@ -263,6 +263,12 @@ class DecisionDespliegue(models.Model):
     fecha_limite = models.DateField(null=True, blank=True)
     vista_por_desarrollador_en = models.DateTimeField(null=True, blank=True)
     cumplida_en = models.DateTimeField(null=True, blank=True)
+    # Respuesta del desarrollador: el nuevo análisis con el que atendió la
+    # decisión (posponer o solicitar revisión) y qué cambió.
+    prediccion_respuesta = models.ForeignKey(
+        Prediccion, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="responde_a")
+    respuesta_desarrollador = models.TextField(blank=True, max_length=1000)
 
     class Meta:
         ordering = ["-creada_en"]

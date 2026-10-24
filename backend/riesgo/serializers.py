@@ -21,6 +21,11 @@ class SolicitudPrediccionSerializer(serializers.Serializer):
     head_sha = serializers.RegexField(SHA, required=False, allow_blank=True,
                                       default="")
     evento = serializers.ChoiceField(choices=EVENTOS, default="push")
+    # Opcional: decisión del líder que este nuevo análisis atiende.
+    atiende_decision = serializers.IntegerField(required=False,
+                                                allow_null=True, default=None)
+    respuesta_desarrollador = serializers.CharField(
+        max_length=1000, required=False, allow_blank=True, default="")
 
     def validate(self, datos):
         if not datos["head_sha"] and not datos["rama"]:
@@ -75,18 +80,31 @@ class SolicitudFechaLimiteSerializer(serializers.Serializer):
     fecha_limite = serializers.DateField(validators=[validar_fecha_limite])
 
 
+def respuesta(decision):
+    """Nuevo análisis con el que el desarrollador atendió la decisión."""
+    nueva = decision.prediccion_respuesta
+    if nueva is None:
+        return None
+    return {"id": nueva.id, "nivel": nueva.nivel,
+            "probabilidad": nueva.probabilidad, "creada_en": nueva.creada_en}
+
+
 class DecisionSerializer(serializers.ModelSerializer):
     usuario = serializers.CharField(source="usuario.username")
     estado = serializers.SerializerMethodField()
+    prediccion_respuesta = serializers.SerializerMethodField()
 
     class Meta:
         model = DecisionDespliegue
         fields = ["id", "decision", "comentario", "usuario", "creada_en",
                   "fecha_limite", "vista_por_desarrollador_en", "cumplida_en",
-                  "estado"]
+                  "estado", "prediccion_respuesta", "respuesta_desarrollador"]
 
     def get_estado(self, decision):
         return asignaciones.estado(decision)
+
+    def get_prediccion_respuesta(self, decision):
+        return respuesta(decision)
 
 
 class AsignacionSerializer(serializers.ModelSerializer):
@@ -101,6 +119,8 @@ class AsignacionSerializer(serializers.ModelSerializer):
         source="prediccion.usuario.username")
     lider = serializers.CharField(source="usuario.username")
     mensaje = serializers.CharField(source="comentario")
+    nivel_original = serializers.CharField(source="prediccion.nivel")
+    prediccion_respuesta = serializers.SerializerMethodField()
     dias_restantes = serializers.SerializerMethodField()
     estado = serializers.SerializerMethodField()
     vista = serializers.SerializerMethodField()
@@ -110,7 +130,12 @@ class AsignacionSerializer(serializers.ModelSerializer):
         fields = ["id", "prediccion", "repositorio", "workflow_path", "nivel",
                   "desarrollador", "lider", "decision", "mensaje",
                   "fecha_limite", "dias_restantes", "estado", "vista",
-                  "vista_por_desarrollador_en", "cumplida_en", "creada_en"]
+                  "vista_por_desarrollador_en", "cumplida_en", "creada_en",
+                  "nivel_original", "prediccion_respuesta",
+                  "respuesta_desarrollador"]
+
+    def get_prediccion_respuesta(self, decision):
+        return respuesta(decision)
 
     def get_dias_restantes(self, decision):
         return asignaciones.dias_restantes(decision)

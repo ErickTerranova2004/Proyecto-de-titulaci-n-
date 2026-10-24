@@ -4,7 +4,7 @@ import math
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import F, Max
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
@@ -248,6 +248,15 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 "workflow de despliegue a una aplicación. Un administrador "
                 "debe validarlo y documentar la evidencia antes de usarlo.",
                 "workflow_no_validado", status.HTTP_400_BAD_REQUEST)
+        atendida = None
+        if datos["atiende_decision"] is not None:
+            try:
+                atendida = asignaciones.validar_respuesta(
+                    datos["atiende_decision"], request.user,
+                    repositorio.nombre_completo, workflow.path)
+            except asignaciones.RespuestaNoValida as exc:
+                return _error(str(exc), exc.codigo,
+                              status.HTTP_400_BAD_REQUEST)
 
         nombre = repositorio.nombre_completo
         try:
@@ -290,6 +299,9 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 datos_github_extraidos_en=extraido,
             )
             prediccion.ejecuciones_previas.set(previas)
+            if atendida is not None:
+                asignaciones.registrar_respuesta(
+                    atendida, prediccion, datos["respuesta_desarrollador"])
         logger.info("Predicción %s creada por %s para %s", prediccion.id,
                     request.user.username, nombre)
         return Response(PrediccionSerializer(prediccion).data,
@@ -439,10 +451,11 @@ class AsignacionViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_queryset(self):
         return (asignaciones.ultimas_decisiones(
                     predicciones_visibles(self.request.user))
-                .filter(fecha_limite__isnull=False)
+                .filter(asignaciones.ES_ASIGNACION)
                 .select_related("usuario", "prediccion__usuario",
-                                "prediccion__workflow__repositorio")
-                .order_by("fecha_limite", "id"))
+                                "prediccion__workflow__repositorio",
+                                "prediccion_respuesta")
+                .order_by(F("fecha_limite").asc(nulls_last=True), "id"))
 
     def _marcar(self, request, campo):
         decision = self.get_object()
@@ -466,6 +479,15 @@ class AsignacionViewSet(mixins.ListModelMixin, GenericViewSet):
 
     @action(detail=True, methods=["post"])
     def cumplida(self, request, pk=None):
+        return self._marcar(request, "cumplida_en")
+
+    @action(detail=True, methods=["post"])
+    def entendida(self, request, pk=None):
+        """"Entendido" de una autorización: no requiere nuevo análisis."""
+        if self.get_object().decision != "autorizar":
+            return _error("Solo una autorización se marca como entendida; "
+                          "las demás se atienden con un nuevo análisis.",
+                          "no_es_autorizacion", status.HTTP_400_BAD_REQUEST)
         return self._marcar(request, "cumplida_en")
 
 

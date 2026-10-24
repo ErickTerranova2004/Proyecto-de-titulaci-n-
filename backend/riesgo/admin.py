@@ -79,7 +79,8 @@ class DecisionDespliegueAdmin(admin.ModelAdmin):
     list_filter = ["decision"]
     readonly_fields = ["prediccion", "usuario", "decision", "comentario",
                        "creada_en", "fecha_limite",
-                       "vista_por_desarrollador_en", "cumplida_en"]
+                       "vista_por_desarrollador_en", "cumplida_en",
+                       "prediccion_respuesta", "respuesta_desarrollador"]
 
 
 @admin.register(VersionModelo)
