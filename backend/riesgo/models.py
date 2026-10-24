@@ -23,6 +23,9 @@ class Repositorio(models.Model):
     propietario = models.CharField(max_length=100)
     nombre = models.CharField(max_length=100)
     creado_en = models.DateTimeField(auto_now_add=True)
+    # Repositorio creado para demostrar la plataforma (ejecuciones provocadas a
+    # propósito). Sus resultados no son validación del modelo.
+    es_demostracion = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["nombre_completo"]
@@ -257,6 +260,18 @@ class DecisionDespliegue(models.Model):
     decision = models.CharField(max_length=20, choices=DECISIONES)
     comentario = models.TextField(blank=True, max_length=1000)
     creada_en = models.DateTimeField(auto_now_add=True)
+    # Asignación al desarrollador dueño de la predicción. Solo cuentan en la
+    # última decisión de cada predicción. `decision` y `comentario` no cambian
+    # después de creados; estos campos sí.
+    fecha_limite = models.DateField(null=True, blank=True)
+    vista_por_desarrollador_en = models.DateTimeField(null=True, blank=True)
+    cumplida_en = models.DateTimeField(null=True, blank=True)
+    # Respuesta del desarrollador: el nuevo análisis con el que atendió la
+    # decisión (posponer o solicitar revisión) y qué cambió.
+    prediccion_respuesta = models.ForeignKey(
+        Prediccion, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="responde_a")
+    respuesta_desarrollador = models.TextField(blank=True, max_length=1000)
 
     class Meta:
         ordering = ["-creada_en"]

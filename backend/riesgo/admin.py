@@ -5,6 +5,13 @@ from riesgo.models import (AccesoRepositorio, Commit, DecisionDespliegue,
                            EjecucionWorkflow,
                            Prediccion, Repositorio, VersionModelo, Workflow)
 
+# Textos del admin de Django con la marca de la aplicación. "Ver el sitio"
+# vuelve a la aplicación (servida en "/" por el frontend).
+admin.site.site_header = "Riesgo de despliegue"
+admin.site.site_title = "Riesgo de despliegue"
+admin.site.index_title = "Administración"
+admin.site.site_url = "/"
+
 
 class AccesoInline(admin.TabularInline):
     model = AccesoRepositorio
@@ -16,7 +23,9 @@ class AccesoInline(admin.TabularInline):
 
 @admin.register(Repositorio)
 class RepositorioAdmin(admin.ModelAdmin):
-    list_display = ["nombre_completo", "github_id"]
+    list_display = ["nombre_completo", "github_id", "es_demostracion"]
+    list_filter = ["es_demostracion"]
+    list_editable = ["es_demostracion"]
     search_fields = ["nombre_completo"]
     inlines = [AccesoInline]
 
@@ -78,7 +87,9 @@ class DecisionDespliegueAdmin(admin.ModelAdmin):
     list_display = ["prediccion", "decision", "usuario", "creada_en"]
     list_filter = ["decision"]
     readonly_fields = ["prediccion", "usuario", "decision", "comentario",
-                       "creada_en"]
+                       "creada_en", "fecha_limite",
+                       "vista_por_desarrollador_en", "cumplida_en",
+                       "prediccion_respuesta", "respuesta_desarrollador"]
 
 
 @admin.register(VersionModelo)

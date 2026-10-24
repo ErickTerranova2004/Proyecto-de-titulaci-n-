@@ -2,8 +2,9 @@ import logging
 import math
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import F, Max
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
@@ -14,12 +15,16 @@ from riesgo.models import (EjecucionWorkflow, Prediccion, Repositorio,
                            VersionModelo, Workflow)
 from riesgo.permissions import (EsAdministrador, EsLiderOAdministrador,
                                 PuedePredecir, predicciones_visibles,
-                                repositorios_visibles, roles, tiene_acceso)
-from riesgo.serializers import (PrediccionSerializer, RepositorioSerializer,
+                                repositorios_visibles, rol_principal, roles,
+                                tiene_acceso)
+from riesgo.serializers import (AsignacionSerializer, PrediccionSerializer,
+                                RepositorioSerializer,
                                 SolicitudDecisionSerializer,
+                                SolicitudFechaLimiteSerializer,
                                 SolicitudPrediccionSerializer,
+                                SolicitudRegistroSerializer,
                                 VersionModeloSerializer)
-from riesgo.services import github
+from riesgo.services import asignaciones, github
 from riesgo.services.sincronizacion import sincronizar_repositorio
 from riesgo.services.etiquetado import etiquetar_ejecucion
 from riesgo.services.features import calcular_variables, fecha
@@ -43,6 +48,10 @@ def _error(mensaje, codigo, estado):
 
 
 def _error_github(exc):
+    if isinstance(exc, github.RamaNoEncontrada):
+        return _error(f"La rama {exc.rama} no existe en el repositorio. Su "
+                      f"rama principal es {exc.principal}.",
+                      "rama_no_encontrada", status.HTTP_400_BAD_REQUEST)
     if isinstance(exc, github.NoEncontrado):
         if "/actions/workflows/" in str(exc):
             return _error("El archivo del workflow ya no existe en GitHub "
@@ -62,6 +71,36 @@ def _error_github(exc):
                   status.HTTP_502_BAD_GATEWAY)
 
 
+MOTIVOS_PENDIENTE = {
+    "sin_ejecuciones": "No hay ejecuciones de este workflow para este commit.",
+    "en_curso": "Hay una ejecución de este commit en curso; todavía no ha "
+                "terminado.",
+    "solo_anteriores": "Solo hay ejecuciones de este commit anteriores a la "
+                       "predicción.",
+}
+
+
+def _verificacion_pendiente(runs, workflow, repo, sha, creada_en):
+    """Motivo exacto por el que aún no hay ejecución real que enlazar."""
+    del_commit = [r for r in runs
+                  if r.get("head_sha") == sha
+                  and (r.get("path") or workflow.path).split("@")[0]
+                  == workflow.path]
+    if not del_commit:
+        motivo = "sin_ejecuciones"
+    elif any(r.get("status") != "completed" for r in del_commit):
+        motivo = "en_curso"
+    else:
+        motivo = "solo_anteriores"
+    archivo = workflow.path.rsplit("/", 1)[-1]
+    return {"estado": "pendiente", "motivo": motivo,
+            "detail": MOTIVOS_PENDIENTE[motivo],
+            "repositorio": repo, "workflow_path": workflow.path,
+            "sha_corto": sha[:7],
+            "url_actions": f"https://github.com/{repo}/actions/workflows/"
+                           f"{archivo}"}
+
+
 @api_view(["GET"])
 def yo(request):
     return Response({"usuario": request.user.username,
@@ -75,8 +114,14 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [PuedePredecir]
 
     def get_queryset(self):
-        # Solo los que tienen algún workflow utilizable.
-        return repositorios_visibles(self.request.user).filter(
+        visibles = repositorios_visibles(self.request.user)
+        # ?todos=1: todos los repositorios visibles (asignados), aunque no
+        # tengan workflows utilizables. Lo usan los paneles por rol.
+        if self.request.query_params.get("todos") == "1":
+            return visibles.prefetch_related("workflows")
+        # Por defecto, solo los que tienen algún workflow utilizable (selector
+        # de Nuevo análisis e Integraciones).
+        return visibles.filter(
             workflows__despliegue_validado=True,
             workflows__disponible_github=True).distinct().prefetch_related(
             "workflows")
@@ -95,6 +140,72 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
                     repositorio, request.user.username,
                     resultado["ejecuciones_guardadas"])
         return Response(resultado)
+
+    @action(detail=False, methods=["post"],
+            permission_classes=[EsAdministrador])
+    def registrar(self, request):
+        """Registra y valida un workflow de despliegue fuera del dataset.
+
+        Comprueba en GitHub que el repositorio y el archivo del workflow
+        existen y guarda la evidencia documentada por el administrador.
+        """
+        solicitud = SolicitudRegistroSerializer(data=request.data)
+        solicitud.is_valid(raise_exception=True)
+        datos = solicitud.validated_data
+        cliente = github.GitHubClient()
+        try:
+            info_repo = cliente.repositorio(datos["repositorio"])
+        except github.NoEncontrado:
+            return _error("El repositorio no existe en GitHub o es privado "
+                          "y el token no tiene permiso de lectura.",
+                          "github_no_encontrado", status.HTTP_404_NOT_FOUND)
+        except github.GitHubError as exc:
+            return _error_github(exc)
+        nombre = info_repo["full_name"]
+        try:
+            info_wf = cliente.workflow(nombre, datos["workflow_path"])
+            recientes = cliente.ejecuciones_workflow(
+                nombre, datos["workflow_path"])
+        except github.NoEncontrado:
+            return _error(f"El workflow {datos['workflow_path']} no existe "
+                          f"en {nombre}.", "github_no_encontrado",
+                          status.HTTP_404_NOT_FOUND)
+        except github.GitHubError as exc:
+            return _error_github(exc)
+
+        with transaction.atomic():
+            repositorio = (
+                Repositorio.objects.filter(github_id=info_repo["id"]).first()
+                or Repositorio.objects.filter(
+                    nombre_completo__iexact=nombre).first()
+                or Repositorio(github_id=info_repo["id"]))
+            repositorio.github_id = info_repo["id"]
+            repositorio.nombre_completo = nombre
+            repositorio.propietario, _, repositorio.nombre = \
+                nombre.partition("/")
+            repositorio.save()
+            workflow, creado = Workflow.objects.get_or_create(
+                repositorio=repositorio, path=datos["workflow_path"])
+            if (not creado and workflow.despliegue_validado
+                    and workflow.disponible_github):
+                return _error("Este workflow ya está registrado y validado.",
+                              "ya_registrado", status.HTTP_409_CONFLICT)
+            workflow.nombre = info_wf.get("name", "")[:200]
+            workflow.despliegue_validado = True
+            workflow.evidencia_validacion = datos["evidencia"]
+            workflow.validado_por = request.user
+            workflow.validado_en = timezone.now()
+            workflow.disponible_github = True
+            workflow.verificado_github_en = timezone.now()
+            workflow.save()
+
+        logger.info("Workflow %s registrado por %s", workflow,
+                    request.user.username)
+        return Response({
+            "repositorio": nombre,
+            "workflow_path": workflow.path,
+            "ejecuciones_recientes": len(recientes),
+        }, status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET"])
@@ -167,6 +278,15 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 "workflow de despliegue a una aplicación. Un administrador "
                 "debe validarlo y documentar la evidencia antes de usarlo.",
                 "workflow_no_validado", status.HTTP_400_BAD_REQUEST)
+        atendida = None
+        if datos["atiende_decision"] is not None:
+            try:
+                atendida = asignaciones.validar_respuesta(
+                    datos["atiende_decision"], request.user,
+                    repositorio.nombre_completo, workflow.path)
+            except asignaciones.RespuestaNoValida as exc:
+                return _error(str(exc), exc.codigo,
+                              status.HTTP_400_BAD_REQUEST)
 
         nombre = repositorio.nombre_completo
         try:
@@ -209,6 +329,9 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 datos_github_extraidos_en=extraido,
             )
             prediccion.ejecuciones_previas.set(previas)
+            if atendida is not None:
+                asignaciones.registrar_respuesta(
+                    atendida, prediccion, datos["respuesta_desarrollador"])
         logger.info("Predicción %s creada por %s para %s", prediccion.id,
                     request.user.username, nombre)
         return Response(PrediccionSerializer(prediccion).data,
@@ -237,11 +360,8 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                  and fecha(r["run_started_at"]) > prediccion.creada_en),
                 key=lambda r: r["run_started_at"])
             if not candidatas:
-                return Response({"estado": "pendiente",
-                                 "detail": "Todavía no hay una ejecución "
-                                           "completada del mismo workflow "
-                                           "y commit posterior a la "
-                                           "predicción."})
+                return Response(_verificacion_pendiente(
+                    runs, workflow, repo, sha, prediccion.creada_en))
             run = candidatas[0]
             jobs = cliente.jobs_intento(repo, run["id"],
                                         run.get("run_attempt") or 1)
@@ -270,13 +390,35 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         prediccion = self.get_object()
         solicitud = SolicitudDecisionSerializer(data=request.data)
         solicitud.is_valid(raise_exception=True)
-        prediccion.decisiones.create(usuario=request.user,
-                                     **solicitud.validated_data)
+        decision = prediccion.decisiones.create(usuario=request.user,
+                                                **solicitud.validated_data)
         logger.info("Decisión %s sobre la predicción %s por %s",
-                    solicitud.validated_data["decision"], prediccion.id,
-                    request.user.username)
+                    decision.decision, prediccion.id, request.user.username)
+        if decision.fecha_limite:
+            asignaciones.notificar_por_correo(decision)
         return Response(PrediccionSerializer(prediccion).data,
                         status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="fecha-limite",
+            permission_classes=[EsLiderOAdministrador])
+    def fecha_limite(self, request, pk=None):
+        """Añade o cambia la fecha límite de la última decisión."""
+        prediccion = self.get_object()
+        decision = prediccion.decisiones.order_by("-creada_en", "-id").first()
+        if decision is None:
+            return _error("Registre primero una decisión sobre este análisis.",
+                          "sin_decision", status.HTTP_400_BAD_REQUEST)
+        solicitud = SolicitudFechaLimiteSerializer(data=request.data)
+        solicitud.is_valid(raise_exception=True)
+        decision.fecha_limite = solicitud.validated_data["fecha_limite"]
+        # El desarrollador debe volver a ver la asignación con la nueva fecha.
+        decision.vista_por_desarrollador_en = None
+        decision.save(update_fields=["fecha_limite",
+                                     "vista_por_desarrollador_en"])
+        logger.info("Fecha límite de la predicción %s fijada por %s",
+                    prediccion.id, request.user.username)
+        asignaciones.notificar_por_correo(decision)
+        return Response(PrediccionSerializer(prediccion).data)
 
 
 class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -308,6 +450,9 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
         return Response({
             "version": version.version,
             "predicciones": predicciones.count(),
+            # Las de repositorios de demostración no son validación del modelo.
+            "predicciones_demostracion": predicciones.filter(
+                workflow__repositorio__es_demostracion=True).count(),
             "verificadas": predicciones.filter(
                 ejecucion_real__isnull=False).count(),
             "evaluables": len(evaluables),
@@ -324,3 +469,80 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
             version.activo = True
             version.save(update_fields=["activo"])
         return Response(VersionModeloSerializer(version).data)
+
+
+class AsignacionViewSet(mixins.ListModelMixin, GenericViewSet):
+    """Asignaciones (última decisión con fecha límite) de las predicciones
+    visibles: el desarrollador recibe solo las de sus análisis."""
+
+    serializer_class = AsignacionSerializer
+    permission_classes = [PuedePredecir]
+
+    def get_queryset(self):
+        return (asignaciones.ultimas_decisiones(
+                    predicciones_visibles(self.request.user))
+                .filter(asignaciones.ES_ASIGNACION)
+                .select_related("usuario", "prediccion__usuario",
+                                "prediccion__workflow__repositorio",
+                                "prediccion_respuesta")
+                .order_by(F("fecha_limite").asc(nulls_last=True), "id"))
+
+    def _marcar(self, request, campo):
+        decision = self.get_object()
+        if decision.prediccion.usuario_id != request.user.id:
+            return _error("Solo el desarrollador que hizo el análisis puede "
+                          "marcar esta asignación.", "no_es_dueno",
+                          status.HTTP_403_FORBIDDEN)
+        ahora = timezone.now()
+        cambios = set()
+        for nombre in ("vista_por_desarrollador_en", campo):
+            if getattr(decision, nombre) is None:
+                setattr(decision, nombre, ahora)
+                cambios.add(nombre)
+        if cambios:
+            decision.save(update_fields=sorted(cambios))
+        return Response(AsignacionSerializer(decision).data)
+
+    @action(detail=True, methods=["post"])
+    def vista(self, request, pk=None):
+        return self._marcar(request, "vista_por_desarrollador_en")
+
+    @action(detail=True, methods=["post"])
+    def cumplida(self, request, pk=None):
+        return self._marcar(request, "cumplida_en")
+
+    @action(detail=True, methods=["post"])
+    def entendida(self, request, pk=None):
+        """"Entendido" de una autorización: no requiere nuevo análisis."""
+        if self.get_object().decision != "autorizar":
+            return _error("Solo una autorización se marca como entendida; "
+                          "las demás se atienden con un nuevo análisis.",
+                          "no_es_autorizacion", status.HTTP_400_BAD_REQUEST)
+        return self._marcar(request, "cumplida_en")
+
+
+@api_view(["GET"])
+@permission_classes([EsAdministrador])
+def resumen_admin(request):
+    """Conteos para el panel del administrador (sin datos personales).
+
+    Cada usuario cuenta una vez, en su rol de mayor jerarquía (como el menú);
+    el superusuario cuenta como administrador.
+    """
+    usuarios = {"administrador": 0, "lider_tecnico": 0, "desarrollador": 0,
+                "sin_rol": 0}
+    for usuario in get_user_model().objects.prefetch_related("groups"):
+        usuarios[rol_principal(usuario) or "sin_rol"] += 1
+    usuarios["total"] = sum(usuarios.values())
+    workflows = Workflow.objects.all()
+    validados = workflows.filter(despliegue_validado=True)
+    return Response({
+        "usuarios": usuarios,
+        "workflows": {
+            "total": workflows.count(),
+            "validados": validados.count(),
+            "sin_validar": workflows.filter(despliegue_validado=False).count(),
+            "validados_disponibles_github": validados.filter(
+                disponible_github=True).count(),
+        },
+    })

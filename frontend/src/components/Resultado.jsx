@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
-import { Alerta, DECISIONES, Fecha, NIVELES, NivelRiesgo, porcentaje, useRoles } from "./comunes.jsx";
+import {
+  Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, hoyLocal, NIVELES, NivelRiesgo, porcentaje, useRoles,
+} from "./comunes.jsx";
 
 // Textos de presentación para los códigos de EjecucionWorkflow.etiqueta y
 // EjecucionWorkflow.subtipo_etiqueta (los códigos vienen de la API).
@@ -53,19 +55,42 @@ function Factores({ factores }) {
   );
 }
 
+// Pasos para conseguir la ejecución real cuando la verificación queda pendiente.
+// La regla está en PrediccionViewSet.verificar: mismo workflow y mismo commit,
+// ejecución terminada e iniciada después del análisis.
+function PasosPendiente({ pendiente }) {
+  return (
+    <div className="nota" role="status">
+      <p><strong>{pendiente.detail}</strong></p>
+      <p className="secundario">Para obtener el resultado real:</p>
+      <ol>
+        <li>
+          Ejecute el workflow <code className="codigo">{pendiente.workflow_path}</code> en GitHub sobre el commit{" "}
+          <code className="codigo">{pendiente.sha_corto}</code> de {pendiente.repositorio}.
+        </li>
+        <li>Espere a que la ejecución termine.</li>
+        <li>Vuelva a pulsar «Verificar resultado real».</li>
+      </ol>
+      <p>
+        <a href={pendiente.url_actions}>Abrir el workflow en GitHub Actions</a>
+      </p>
+    </div>
+  );
+}
+
 function ResultadoReal({ prediccion, alActualizar }) {
-  const [mensaje, setMensaje] = useState("");
+  const [pendiente, setPendiente] = useState(null);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const real = prediccion.ejecucion_real;
 
   async function verificar() {
     setCargando(true);
-    setMensaje("");
+    setPendiente(null);
     setError("");
     try {
       const respuesta = await api.verificar(prediccion.id);
-      if (respuesta.estado === "pendiente") setMensaje(respuesta.detail);
+      if (respuesta.estado === "pendiente") setPendiente(respuesta);
       else alActualizar(respuesta);
     } catch (e) {
       setError(e.message);
@@ -77,11 +102,14 @@ function ResultadoReal({ prediccion, alActualizar }) {
   if (!real) {
     return (
       <div className="recuadro">
-        <p className="secundario">Aún no se ha enlazado la ejecución real de este workflow y commit.</p>
+        <p className="secundario">
+          Aún no se ha enlazado la ejecución real. Se enlaza la primera ejecución terminada del mismo workflow y del
+          mismo commit que haya empezado después de este análisis.
+        </p>
         <button className="boton" type="button" disabled={cargando} onClick={verificar}>
           {cargando ? "Consultando GitHub…" : "Verificar resultado real"}
         </button>
-        {mensaje && <p className="secundario" role="status">{mensaje}</p>}
+        {pendiente && <PasosPendiente pendiente={pendiente} />}
         <Alerta>{error}</Alerta>
       </div>
     );
@@ -112,10 +140,63 @@ function ResultadoReal({ prediccion, alActualizar }) {
   );
 }
 
+// Seguimiento de la asignación por el desarrollador (solo la última decisión).
+function Seguimiento({ decision }) {
+  if (!decision.fecha_limite) return null;
+  return (
+    <p>
+      Fecha límite para el desarrollador: <FechaDia valor={decision.fecha_limite} />{" "}
+      <EstadoAsignacion estado={decision.estado} /> ·{" "}
+      {decision.vista_por_desarrollador_en ? <>vista el <Fecha valor={decision.vista_por_desarrollador_en} /></> : "aún no vista"}
+      {decision.cumplida_en && <> · cumplida el <Fecha valor={decision.cumplida_en} /></>}
+    </p>
+  );
+}
+
+// Añade o cambia la fecha límite de la última decisión.
+function CambiarFechaLimite({ prediccion, actual, alActualizar }) {
+  const [fecha, setFecha] = useState(actual ?? "");
+  const [error, setError] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const id = `fecha-cambio-${prediccion.id}`;
+
+  async function enviar(evento) {
+    evento.preventDefault();
+    setError("");
+    setEnviando(true);
+    try {
+      alActualizar(await api.fijarFechaLimite(prediccion.id, fecha));
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <form className="formulario" onSubmit={enviar}>
+      <fieldset>
+        <legend>{actual ? "Cambiar la fecha límite" : "Añadir fecha límite"}</legend>
+        <div className="campo">
+          <label htmlFor={id}>Fecha límite para el desarrollador</label>
+          <input id={id} type="date" min={hoyLocal()} value={fecha} onChange={(e) => setFecha(e.target.value)} required />
+        </div>
+      </fieldset>
+      <div>
+        <button className="boton boton--secundario" type="submit" disabled={enviando}>
+          {enviando ? "Guardando…" : "Guardar fecha límite"}
+        </button>
+      </div>
+      <Alerta>{error}</Alerta>
+    </form>
+  );
+}
+
 function Decision({ prediccion, alActualizar }) {
   const { puedeDecidir } = useRoles();
   const [decision, setDecision] = useState("");
   const [comentario, setComentario] = useState("");
+  const [fechaLimite, setFechaLimite] = useState("");
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
   const decisiones = prediccion.decisiones ?? [];
@@ -125,9 +206,10 @@ function Decision({ prediccion, alActualizar }) {
     setError("");
     setEnviando(true);
     try {
-      alActualizar(await api.decidir(prediccion.id, { decision, comentario }));
+      alActualizar(await api.decidir(prediccion.id, { decision, comentario, fecha_limite: fechaLimite || null }));
       setDecision("");
       setComentario("");
+      setFechaLimite("");
     } catch (e) {
       setError(e.message);
     } finally {
@@ -139,10 +221,11 @@ function Decision({ prediccion, alActualizar }) {
     <>
       {decisiones.length ? (
         <ol className="decisiones">
-          {decisiones.map((d) => (
-            <li key={d.creada_en}>
+          {decisiones.map((d, i) => (
+            <li key={d.id ?? d.creada_en}>
               <strong>{DECISIONES[d.decision] || d.decision}</strong> · {d.usuario} · <Fecha valor={d.creada_en} />
               {d.comentario && <p>{d.comentario}</p>}
+              {i === 0 && <Seguimiento decision={d} />}
             </li>
           ))}
         </ol>
@@ -176,6 +259,20 @@ function Decision({ prediccion, alActualizar }) {
                 onChange={(e) => setComentario(e.target.value)}
               />
             </div>
+            <div className="campo">
+              <label htmlFor={`fecha-limite-${prediccion.id}`}>Fecha límite para el desarrollador (opcional)</label>
+              <input
+                id={`fecha-limite-${prediccion.id}`}
+                type="date"
+                min={hoyLocal()}
+                value={fechaLimite}
+                onChange={(e) => setFechaLimite(e.target.value)}
+                aria-describedby={`ayuda-fecha-${prediccion.id}`}
+              />
+              <span id={`ayuda-fecha-${prediccion.id}`} className="secundario">
+                El comentario es el mensaje que recibe el desarrollador. No se admiten fechas pasadas.
+              </span>
+            </div>
           </fieldset>
           <div>
             <button className="boton" type="submit" disabled={enviando}>
@@ -184,6 +281,14 @@ function Decision({ prediccion, alActualizar }) {
           </div>
           <Alerta>{error}</Alerta>
         </form>
+      )}
+      {puedeDecidir && decisiones.length > 0 && (
+        <CambiarFechaLimite
+          key={decisiones[0].id}
+          prediccion={prediccion}
+          actual={decisiones[0].fecha_limite}
+          alActualizar={alActualizar}
+        />
       )}
     </>
   );
@@ -203,10 +308,6 @@ export default function Resultado({ prediccion, modelos }) {
     <article className="tarjeta resultado" aria-labelledby={`resultado-${p.id}`}>
       <header>
         <h2 id={`resultado-${p.id}`}>Resultado del análisis</h2>
-        <p className="secundario">
-          <strong>{p.repositorio}</strong> · {p.workflow_path} · commit <code>{p.head_sha.slice(0, 7)}</code> · rama {p.rama || "—"} ·
-          evento {p.evento}
-        </p>
         {p.cambio?.archivos_modificados != null && (
           <p className="secundario">
             Cambio del commit: {p.cambio.archivos_modificados} archivos modificados · +{p.cambio.adiciones} / −
@@ -247,10 +348,6 @@ export default function Resultado({ prediccion, modelos }) {
           {NIVELES.medio} desde {porcentaje(limites.medio)}; {NIVELES.alto} desde {porcentaje(limites.alto)}.
         </p>
       )}
-      <p className="nota">
-        La probabilidad estima si el intento de despliegue <strong>no se completará con éxito</strong> en GitHub Actions.
-        No mide incidentes posteriores en producción.
-      </p>
       </div>
 
       <section aria-labelledby={`factores-${p.id}`}>
@@ -279,12 +376,6 @@ export default function Resultado({ prediccion, modelos }) {
         <h3 id={`decision-${p.id}`}>Decisión del líder técnico</h3>
         <Decision prediccion={p} alActualizar={setP} />
       </section>
-
-      <footer className="secundario">
-        Modelo {p.version_modelo} · historial usado: {p.ejecuciones_previas.length} ejecuciones previas · datos de
-        GitHub extraídos el <Fecha valor={p.datos_github_extraidos_en} /> · análisis de {p.usuario} el{" "}
-        <Fecha valor={p.creada_en} />
-      </footer>
     </article>
   );
 }

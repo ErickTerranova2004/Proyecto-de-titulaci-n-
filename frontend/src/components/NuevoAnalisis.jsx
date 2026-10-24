@@ -1,20 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
-import { Alerta } from "./comunes.jsx";
+import { Alerta, DECISIONES, Fecha } from "./comunes.jsx";
 import Resultado from "./Resultado.jsx";
 
 // Mismas opciones que acepta el backend (SolicitudPrediccionSerializer.EVENTOS).
 const EVENTOS = ["push", "workflow_dispatch", "release", "pull_request", "schedule", "workflow_run"];
 
-export default function NuevoAnalisis({ modelos }) {
+// `respuesta`: asignación del líder que este análisis atiende (opcional). Llega
+// con el repositorio, el workflow y la rama del análisis original.
+export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
   const [repos, setRepos] = useState(null);
   const [datos, setDatos] = useState({
-    repositorio: "",
-    workflow_path: "",
-    rama: "main",
+    repositorio: respuesta?.repositorio ?? "",
+    workflow_path: respuesta?.workflow_path ?? "",
+    rama: respuesta?.rama || "main",
     head_sha: "",
     evento: "push",
   });
+  const [cambios, setCambios] = useState("");
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState(null);
@@ -41,7 +44,11 @@ export default function NuevoAnalisis({ modelos }) {
     setError("");
     setResultado(null);
     try {
-      setResultado(await api.predecir(datos));
+      const enviados = respuesta
+        ? { ...datos, atiende_decision: respuesta.asignacion.id, respuesta_desarrollador: cambios }
+        : datos;
+      setResultado(await api.predecir(enviados));
+      if (respuesta) alResponder?.();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -57,6 +64,15 @@ export default function NuevoAnalisis({ modelos }) {
           Elija el repositorio, el workflow y el commit para estimar la probabilidad de que el despliegue no se complete.
         </p>
       </header>
+
+      {respuesta && (
+        <p className="nota" role="status">
+          Respondiendo a la asignación de <strong>{respuesta.asignacion.lider}</strong> del{" "}
+          <Fecha valor={respuesta.asignacion.creada_en} />: {DECISIONES[respuesta.asignacion.decision]}
+          {respuesta.asignacion.mensaje && <> · «{respuesta.asignacion.mensaje}»</>}. Al terminar este análisis la
+          asignación quedará cumplida.
+        </p>
+      )}
 
       <form className="tarjeta formulario" onSubmit={enviar} aria-describedby="ayuda-nuevo">
         <p id="ayuda-nuevo" className="secundario">
@@ -139,6 +155,23 @@ export default function NuevoAnalisis({ modelos }) {
             </div>
           </div>
         </fieldset>
+
+        {respuesta && (
+          <fieldset>
+            <legend>3. Respuesta al líder técnico</legend>
+            <div className="campo">
+              <label htmlFor="campo-cambios">Qué cambié (opcional)</label>
+              <textarea
+                id="campo-cambios"
+                rows={3}
+                maxLength={1000}
+                value={cambios}
+                onChange={(e) => setCambios(e.target.value)}
+                placeholder="ej. Corregí la versión de la imagen base y el paso de despliegue."
+              />
+            </div>
+          </fieldset>
+        )}
 
         <Alerta>{error}</Alerta>
         <div className="formulario__acciones">

@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
-import { api, sesion } from "./api.js";
+import { useEffect, useRef, useState } from "react";
+import { api, CLAVE_SESION, sesion, urlAdmin } from "./api.js";
+import { Campana, useAsignaciones, VentanaAsignaciones } from "./components/Alarma.jsx";
+import AtenderAsignacion from "./components/AtenderAsignacion.jsx";
 import { Alerta, UsuarioContexto } from "./components/comunes.jsx";
 import Historial from "./components/Historial.jsx";
 import Integraciones from "./components/Integraciones.jsx";
@@ -7,32 +9,45 @@ import Login from "./components/Login.jsx";
 import Modelos from "./components/Modelos.jsx";
 import NuevoAnalisis from "./components/NuevoAnalisis.jsx";
 import Panel from "./components/Panel.jsx";
+import Pendientes from "./components/Pendientes.jsx";
+import { NOMBRES_ROL, rolPrincipal, seccionesDe } from "./roles.js";
+import { debeReiniciar, escucharSesion } from "./sesion.js";
 
 const NOMBRE = "Riesgo de despliegue";
-const SUBTITULO = "Plataforma predictiva con IA";
-const PESTANAS = [
-  ["panel", "Panel", "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"],
-  ["nuevo", "Nuevo análisis", "M12 5v14M5 12h14"],
-  ["historial", "Historial", "M12 7v5l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"],
-  [
-    "modelos",
-    "Modelos",
-    "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z",
-  ],
-];
-// Solo para el administrador.
-const PESTANA_INTEGRACIONES = ["integraciones", "Integraciones", "M9 7H6a5 5 0 0 0 0 10h3M15 7h3a5 5 0 0 1 0 10h-3M8 12h8"];
+const SUBTITULO = "Inteligencia para decisiones de despliegue";
+// Perfil del panel según el rol (Panel.jsx usa el mismo diseño para todos).
+const PERFIL_PANEL = { desarrollador: "desarrollador", lider_tecnico: "lider", administrador: "administrador" };
 
 export default function App() {
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(Boolean(sesion.token()));
-  const [vista, setVista] = useState("panel");
+  const [vista, setVista] = useState(null);
   const [modelos, setModelos] = useState([]);
+  // La ventana de asignaciones sale en cada ingreso hasta pulsar "Más tarde".
+  const [ventanaCerrada, setVentanaCerrada] = useState(false);
+  const [atendiendo, setAtendiendo] = useState(null);
+  const [respuesta, setRespuesta] = useState(null);
+  const usuarioRef = useRef(null);
+  usuarioRef.current = usuario;
+
+  const rol = usuario ? rolPrincipal(usuario.roles) : null;
+  // La alarma de asignaciones solo se activa para el desarrollador.
+  const alarma = useAsignaciones(rol === "desarrollador");
+
+  function reiniciarVista() {
+    setVista(null);
+    setVentanaCerrada(false);
+    setAtendiendo(null);
+    setRespuesta(null);
+  }
 
   const cargarUsuario = () =>
     api
       .yo()
-      .then(setUsuario)
+      .then((yo) => {
+        setUsuario(yo);
+        reiniciarVista();
+      })
       .catch(() => setUsuario(null))
       .finally(() => setCargando(false));
   const cargarModelos = () => api.modelos().then(setModelos).catch(() => setModelos([]));
@@ -42,19 +57,69 @@ export default function App() {
   }, []);
   useEffect(() => {
     if (usuario) cargarModelos();
-  }, [usuario]);
+  }, [usuario?.usuario]);
+
+  // Si el token de la pestaña cambia (otra pestaña, pestaña duplicada o sesión
+  // caducada), la interfaz no puede seguir siendo la del usuario anterior.
+  useEffect(() => {
+    if (!usuario) return undefined;
+    return escucharSesion(window, CLAVE_SESION, () => {
+      if (!sesion.token()) {
+        setUsuario(null);
+        return;
+      }
+      api
+        .yo()
+        .then((yo) => {
+          if (debeReiniciar(usuarioRef.current, yo)) {
+            setUsuario(yo);
+            reiniciarVista();
+          }
+        })
+        .catch(() => setUsuario(null));
+    });
+  }, [Boolean(usuario)]);
 
   if (cargando) return <p className="cargando" role="status">Cargando plataforma…</p>;
   if (!usuario) return <Login alEntrar={cargarUsuario} />;
 
-  const activo = modelos.find((m) => m.activo);
-  const esAdmin = usuario.roles.includes("administrador");
+  const secciones = seccionesDe(rol);
+  // Si la vista elegida no existe para el rol, se vuelve al panel del rol.
+  const actual = secciones.find((s) => s.id === vista && !s.enlace) ?? secciones[0] ?? null;
 
   function salir() {
     sesion.cerrar();
     setUsuario(null);
     setModelos([]);
-    setVista("panel");
+    reiniciarVista();
+  }
+
+  function irA(id) {
+    setAtendiendo(null);
+    if (id !== "nuevo") setRespuesta(null);
+    setVista(id);
+  }
+
+  function verAsignaciones() {
+    setVentanaCerrada(true);
+    irA("panel");
+    setTimeout(() => document.getElementById("mis-asignaciones")?.scrollIntoView({ behavior: "smooth" }), 0);
+  }
+
+  function atender(asignacion) {
+    setVentanaCerrada(true);
+    setAtendiendo(asignacion);
+  }
+
+  function nuevoAnalisisDeRespuesta(asignacion, prediccion) {
+    setRespuesta({
+      asignacion,
+      repositorio: asignacion.repositorio,
+      workflow_path: asignacion.workflow_path,
+      rama: prediccion?.rama,
+    });
+    setAtendiendo(null);
+    setVista("nuevo");
   }
 
   return (
@@ -62,57 +127,91 @@ export default function App() {
     <div className="app">
       <aside className="lateral">
         <header className="lateral__cabecera">
-          <p className="marca">{NOMBRE}</p>
+          <span className="marca__simbolo" aria-hidden="true">RD</span><p className="marca">{NOMBRE}</p>
           <p className="secundario">{SUBTITULO}</p>
         </header>
 
-        <nav className="menu" aria-label="Secciones de la plataforma">
-          {(esAdmin ? [...PESTANAS, PESTANA_INTEGRACIONES] : PESTANAS).map(([id, texto, icono]) => (
-            <button
-              key={id}
-              type="button"
-              className="menu__boton"
-              aria-current={vista === id ? "page" : undefined}
-              onClick={() => setVista(id)}
-            >
-              <svg viewBox="0 0 24 24" className="menu__icono" aria-hidden="true"><path d={icono} /></svg>
-              {texto}
-            </button>
-          ))}
+        <p className="menu__etiqueta">ESPACIO DE TRABAJO</p><nav className="menu" aria-label={rol ? `Secciones del perfil ${NOMBRES_ROL[rol]}` : "Secciones de la plataforma"}>
+          {secciones.map(({ id, texto, icono, enlace }) =>
+            enlace ? (
+              <a key={id} className="menu__boton" href={urlAdmin(enlace)}>
+                <svg viewBox="0 0 24 24" className="menu__icono" aria-hidden="true"><path d={icono} /></svg>
+                {texto}
+                <span className="solo-lector"> (abre el administrador de Django)</span>
+              </a>
+            ) : (
+              <button
+                key={id}
+                type="button"
+                className="menu__boton"
+                aria-current={!atendiendo && actual?.id === id ? "page" : undefined}
+                onClick={() => irA(id)}
+              >
+                <svg viewBox="0 0 24 24" className="menu__icono" aria-hidden="true"><path d={icono} /></svg>
+                {texto}
+              </button>
+            ),
+          )}
         </nav>
 
         <div className="lateral__usuario">
           <p>
             <strong>{usuario.usuario}</strong>
-            <span className="secundario">{usuario.roles.join(", ") || "sin rol"}</span>
+            <span className="secundario">{rol ? NOMBRES_ROL[rol] : "sin rol"}</span>
           </p>
-          <button className="boton boton--secundario boton--pequeno" type="button" onClick={salir}>Salir</button>
+          <button className="boton boton--secundario boton--pequeno" type="button" onClick={salir}>Cerrar sesión</button>
         </div>
       </aside>
 
       <div className="principal">
-        <main className="contenido">
-          {!usuario.roles.length && (
+        <header className="barra-superior"><div><span className="barra-superior__seccion">{rol ? NOMBRES_ROL[rol] : "Gestión de riesgo"}</span><span className="barra-superior__separador" aria-hidden="true">/</span><strong>{atendiendo ? "Atender asignación" : actual?.texto}</strong></div><div className="panel__acciones">{rol === "desarrollador" && <Campana pendientes={alarma.pendientes} alAbrir={verAsignaciones} />}<span className="barra-superior__perfil">{usuario.usuario}</span></div></header><main className="contenido">
+          {!rol && (
             <Alerta>Su cuenta no tiene un rol asignado. Contacte al administrador.</Alerta>
           )}
-          {vista === "panel" && (
-            <Panel modelos={modelos} alNuevoAnalisis={() => setVista("nuevo")} alActualizar={cargarModelos} />
+          {rol === "desarrollador" && !ventanaCerrada && alarma.pendientes.length > 0 && (
+            <VentanaAsignaciones alarma={alarma} alAtender={atender} alCerrar={() => setVentanaCerrada(true)} />
           )}
-          {vista === "nuevo" && <NuevoAnalisis modelos={modelos} />}
-          {vista === "historial" && <Historial modelos={modelos} />}
-          {vista === "modelos" && <Modelos modelos={modelos} esAdmin={esAdmin} alCambiar={cargarModelos} />}
-          {vista === "integraciones" && esAdmin && <Integraciones />}
+          {atendiendo ? (
+            <AtenderAsignacion
+              key={atendiendo.id}
+              asignacion={atendiendo}
+              modelos={modelos}
+              alNuevoAnalisis={nuevoAnalisisDeRespuesta}
+              alVolver={() => setAtendiendo(null)}
+            />
+          ) : (
+            <>
+              {actual?.id === "panel" && (
+                <Panel
+                  key={rol}
+                  perfil={PERFIL_PANEL[rol]}
+                  modelos={modelos}
+                  alNuevoAnalisis={rol === "administrador" ? undefined : () => irA("nuevo")}
+                  alActualizar={cargarModelos}
+                  alarma={rol === "desarrollador" ? alarma : undefined}
+                  alAtender={atender}
+                />
+              )}
+              {actual?.id === "nuevo" && (
+                <NuevoAnalisis
+                  key={respuesta?.asignacion.id ?? "nuevo"}
+                  modelos={modelos}
+                  respuesta={respuesta}
+                  alResponder={() => alarma.recargar()}
+                />
+              )}
+              {actual?.id === "pendientes" && <Pendientes modelos={modelos} />}
+              {actual?.id === "historial" && (
+                rol === "desarrollador"
+                  ? <Historial modelos={modelos} titulo="Mi historial" descripcion="Desarrollador · sus análisis en sus repositorios asignados" mostrarDesarrollador={false} />
+                  : <Historial modelos={modelos} titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento />
+              )}
+              {actual?.id === "modelos" && <Modelos modelos={modelos} esAdmin alCambiar={cargarModelos} />}
+              {actual?.id === "integraciones" && <Integraciones />}
+            </>
+          )}
         </main>
 
-        <footer className="pie">
-          {activo ? (
-            <p>
-              Modelo activo: <strong>{activo.version}</strong> ({activo.nombre_modelo})
-            </p>
-          ) : (
-            <p>No hay un modelo activo registrado.</p>
-          )}
-        </footer>
       </div>
     </div>
     </UsuarioContexto.Provider>

@@ -329,10 +329,10 @@ code,
 .alerta {
   margin: var(--esp-2) 0;
   padding: 10px 14px;
-  border: 1px solid color-mix(in srgb, var(--color-alto) 30%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
   border-radius: var(--radio-sm);
-  background: color-mix(in srgb, var(--color-alto) 12%, transparent);
-  color: var(--alto-texto);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  color: var(--error-texto);
   font-size: var(--texto-sm);
   font-weight: 500;
 }
@@ -871,3 +871,266 @@ td.destacado { color: var(--acento-texto); font-weight: 700; }
   .tarjeta { padding: var(--esp-3); }
   .riesgo { padding: var(--esp-3); }
 }
+
+/* Composición ejecutiva */
+.app { grid-template-columns: 256px minmax(0, 1fr); }
+.lateral { padding: 32px 20px 20px; color: var(--lateral-tinta); border-color: var(--lateral-borde); gap: 24px; }
+.lateral__cabecera { border-color: var(--lateral-borde); padding-bottom: 28px; }
+.marca__simbolo, .acceso__monograma { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--detalle-institucional); color: var(--detalle-institucional); border-radius: 5px; font-size: 17px; letter-spacing: .04em; font-weight: 600; margin-bottom: 18px; }
+.marca { font-size: 19px; font-weight: 600; line-height: 1.35; }
+.lateral .secundario { color: var(--lateral-secundaria); }
+.lateral__cabecera .secundario { margin-top: 8px; line-height: 1.6; }
+.menu__etiqueta { margin: 0 12px -12px; color: var(--lateral-secundaria); font-size: 10px; font-weight: 600; letter-spacing: .12em; }
+.menu__boton { color: var(--lateral-secundaria); padding: 12px; min-height: 44px; }
+.menu__boton:hover { background: var(--lateral-activo); color: var(--lateral-tinta); }
+.menu__boton[aria-current="page"] { background: var(--lateral-activo); color: var(--lateral-tinta); box-shadow: inset 3px 0 var(--detalle-institucional); font-weight: 600; }
+.menu__icono { stroke-width: 1.6; }
+.lateral__usuario { flex-wrap: wrap; background: transparent; border-color: var(--lateral-borde); padding: 16px 12px; }
+.lateral__usuario .boton { color: var(--lateral-tinta); background: transparent; border-color: var(--lateral-borde); }
+.lateral__usuario .boton:hover { background: var(--lateral-activo); }
+.barra-superior { min-height: 76px; background: var(--color-tarjeta); border-bottom: 1px solid var(--borde-suave); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 36px; font-size: 12px; }
+.barra-superior__seccion { color: var(--tinta-secundaria); }
+.barra-superior__separador { margin: 0 14px; color: var(--borde-fuerte); }
+.barra-superior__perfil { padding: 7px 12px; border: 1px solid var(--borde-suave); border-radius: var(--radio-sm); overflow-wrap: anywhere; }
+.contenido { padding: 36px; max-width: 1500px; }
+h1, h2, h3 { font-weight: 600; }
+h1 { letter-spacing: -.035em; }
+.encabezado { padding-bottom: 8px; }
+.encabezado h1 { margin-bottom: 8px; }
+.tarjeta { background: var(--color-tarjeta); backdrop-filter: none; box-shadow: var(--sombra-sm); }
+.tarjeta:hover { border-color: var(--borde-suave); }
+.tarjeta h2 { font-size: 16px; }
+.boton { color: var(--sobre-acento); box-shadow: none; min-height: 40px; }
+.boton--secundario { color: var(--tinta-principal); background: var(--color-tarjeta); }
+.boton--pequeno { min-height: 32px; }
+input, select { min-height: 42px; }
+.kpi { padding: 20px; min-height: 144px; border-top: 3px solid var(--color-acento); }
+.kpi--alto { border-top-color: var(--color-alto); }
+.kpi:hover { transform: none; }
+.kpi__titulo { text-transform: none; font-size: 12px; font-weight: 600; letter-spacing: 0; }
+.kpi__valor { font-family: var(--fuente); font-size: 30px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.kpi__icono { width: 20px; height: 20px; }
+th, td { padding: 14px 18px; }
+thead th { font-size: 11px; letter-spacing: .035em; text-transform: uppercase; }
+.nivel { border-radius: 4px; padding: 4px 9px; }
+.nivel--grande { box-shadow: none; }
+.factor__relleno--aumenta, .factor__relleno--reduce { box-shadow: none; }
+.vacio { border: 1px solid var(--borde-suave); border-radius: var(--radio); }
+.pie { background: var(--color-tarjeta); padding: 16px 36px; font-size: 12px; }
+.acceso { background: var(--color-fondo); }
+.acceso__tarjeta { max-width: 1040px; min-height: 620px; grid-template-columns: 1.05fr 1fr; }
+.acceso__presentacion { background: var(--color-lateral); padding: 48px; border-right: 0; border-top: 4px solid var(--detalle-institucional); }
+.acceso__presentacion::before { display: none; }
+.acceso__monograma { width: 50px; height: 50px; margin-bottom: 40px; }
+.acceso__sello { color: var(--lateral-secundaria); font-size: 10px; letter-spacing: .16em; margin-bottom: 24px; }
+.acceso__sello::before { display: none; }
+.acceso__titulo { color: var(--lateral-tinta); font-weight: 500; font-size: 36px; letter-spacing: -.035em; line-height: 1.25; }
+.acceso__titulo span { color: var(--detalle-institucional); }
+.acceso__presentacion .secundario { color: var(--lateral-secundaria); font-size: 13px; line-height: 1.8; }
+.acceso__presentacion > p { font-size: 11px; border-top: 1px solid var(--lateral-borde); padding-top: 20px; }
+.acceso__formulario { padding: 48px; }
+.acceso__formulario h1 { font-size: 25px; }
+.acceso__formulario .campo label { text-transform: none; letter-spacing: 0; color: var(--tinta-principal); }
+.acceso__formulario input { background: var(--relleno-suave); min-height: 48px; }
+.acceso__formulario .boton { margin-top: 8px; min-height: 48px; }
+@media (max-width: 1100px) and (min-width: 901px) {
+ .app { grid-template-columns: 224px minmax(0,1fr); }
+ .contenido { padding: 24px; }
+}
+@media (max-width: 900px) {
+ .app { grid-template-columns: 1fr; }
+ .lateral { padding: 20px; gap: 16px; }
+ .lateral__cabecera { padding: 0; }
+ .marca__simbolo { display: none; }
+ .menu__etiqueta { display: none; }
+ .lateral__usuario { margin-left: auto; padding: 8px 12px; }
+ .menu { gap: 4px; }
+ .menu__boton { padding: 10px 12px; }
+ .barra-superior { padding: 16px 24px; min-height: 64px; }
+ .contenido { padding: 24px; }
+}
+@media (max-width: 700px) {
+ .acceso__tarjeta { grid-template-columns: minmax(0,1fr); min-height: auto; }
+ .acceso__presentacion, .acceso__formulario { padding: 28px; }
+ .acceso__monograma { margin-bottom: 24px; }
+ .acceso__titulo { font-size: 30px; }
+ .acceso__presentacion > p { margin-top: 0; }
+ .barra-superior__seccion, .barra-superior__separador { display: none; }
+ .barra-superior { padding: 16px; }
+ .contenido { padding: 24px 16px; }
+ .pie { padding: 16px; }
+ .kpi { min-height: 120px; }
+ .lateral__usuario { width: 100%; margin: 0; }
+ .lateral__cabecera { width: 100%; }
+ .menu { flex-wrap: nowrap; overflow-x: auto; }
+ .menu__boton { flex-shrink: 0; }
+ .panel__acciones { align-items: stretch; }
+ .campo--en-linea { flex-wrap: wrap; }
+ .campos { grid-template-columns: minmax(0,1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+ *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* Consola corporativa de seguridad: geometría recta y jerarquía operativa. */
+.tarjeta, .kpi, .acceso__tarjeta { box-shadow: none; }
+.marca__simbolo, .acceso__monograma, .nivel, .factor__barra,
+.factor__relleno, .embudo__barra, .embudo__relleno { border-radius: 0; }
+.boton:hover { box-shadow: none; }
+.menu__boton[aria-current="page"] { box-shadow: inset 2px 0 var(--detalle-institucional); }
+.kpi { border-top-width: 2px; }
+.kpi__valor { font-family: var(--fuente-mono); font-size: 28px; }
+.tarjeta h2 { font-size: 15px; font-weight: 650; }
+.acceso__titulo { font-size: 32px; font-weight: 600; }
+.acceso__presentacion { border-top-width: 2px; }
+.acceso__sello { letter-spacing: .1em; }
+.flujo li::before { border-radius: 0; }
+.tendencia__leyenda { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: 12px 0 16px; border-bottom: 1px solid var(--borde-suave); font-size: 12px; color: var(--tinta-secundaria); }
+.tendencia__leyenda span { display: inline-flex; align-items: center; gap: 8px; }
+.tendencia__muestra { display: inline-block; width: 22px; border-top: 2px solid var(--color-acento); }
+.tendencia__umbral { display: inline-block; width: 22px; border-top: 2px dashed var(--serie); }
+.tendencia__marco { overflow-x: auto; padding-top: 14px; }
+.tendencia__grafico { width: 100%; min-width: 540px; max-height: 320px; overflow: hidden; }
+.tendencia__grafico .eje__texto { font-family: var(--fuente); font-size: 12px; }
+.tendencia__grafico .eje__guia { stroke-dasharray: none; }
+.tendencia__grafico .linea { stroke-width: 2; }
+.tendencia__grafico .umbral { stroke-width: 1.2; }
+.tendencia__nota { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--borde-suave); font-size: 12px; max-width: 100%; }
+
+/* ---------- Panel claro azul marino y ámbar ----------
+   Solo apariencia: se apoya en las mismas clases del marcado y en tokens.css. */
+
+/* Menú lateral */
+.lateral { background: var(--color-lateral); color: var(--tinta-principal); border-right: 1px solid var(--borde-suave); padding: 24px 16px 16px; gap: 20px; }
+.lateral__cabecera { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; align-items: center; padding: 4px 8px 20px; border-bottom: 1px solid var(--borde-suave); }
+.marca__simbolo { grid-row: span 2; width: 40px; height: 40px; margin: 0; border: 0; border-radius: 50%; background: var(--color-dorado); color: var(--sobre-dorado); font-size: 13px; font-weight: 800; }
+.marca { font-size: 15px; font-weight: 700; line-height: 1.25; color: var(--color-acento); }
+.lateral__cabecera .secundario { margin-top: 2px; font-size: 11px; line-height: 1.4; color: var(--tinta-secundaria); }
+.menu__etiqueta { margin: 0 12px -10px; color: var(--tinta-tenue); font-size: 10px; font-weight: 700; letter-spacing: .1em; }
+.menu { gap: 4px; }
+.menu__boton { min-height: 42px; padding: 10px 12px; border-radius: var(--radio-sm); color: var(--tinta-secundaria); font-weight: 500; }
+.menu__boton:hover { background: var(--relleno-hover); color: var(--color-acento); }
+.menu__boton[aria-current="page"] { background: var(--color-acento); color: var(--sobre-acento); font-weight: 600; box-shadow: var(--sombra-brillo); }
+.menu__icono { stroke-width: 1.8; }
+.lateral__usuario { background: var(--relleno-suave); border: 1px solid var(--borde-suave); border-radius: var(--radio); padding: 12px; }
+.lateral__usuario strong { color: var(--color-acento); }
+.lateral__usuario .boton { color: var(--color-acento); background: var(--color-tarjeta); border-color: var(--borde-suave); }
+.lateral__usuario .boton:hover { background: var(--acento-suave); }
+
+/* Barra superior, contenido y pie */
+.barra-superior { min-height: 64px; padding: 14px 32px; font-size: 13px; background: var(--color-tarjeta); border-bottom: 1px solid var(--borde-suave); }
+.barra-superior strong { color: var(--color-acento); }
+.barra-superior__perfil { padding: 6px 14px; border: 0; border-radius: var(--radio-full); background: var(--acento-suave); color: var(--color-acento); font-weight: 600; }
+.contenido { padding: 28px 32px; }
+h1 { font-size: var(--texto-xl); font-weight: 800; color: var(--color-acento); letter-spacing: -.02em; }
+h2, h3 { font-weight: 700; }
+.pie { background: var(--color-tarjeta); color: var(--tinta-secundaria); }
+.pie strong { color: var(--color-acento); }
+
+/* Tarjetas */
+.tarjeta { border-radius: var(--radio); border: 1px solid var(--borde-suave); box-shadow: var(--sombra-sm); padding: 20px 22px; }
+.tarjeta--tabla { padding: 0; }
+.tarjeta h2 { font-size: 14px; font-weight: 700; color: var(--color-acento); }
+.tarjeta h2 + .secundario { font-size: 12px; }
+
+/* Indicadores (KPI): icono en círculo, etiqueta en mayúsculas y cifra destacada */
+.kpi { min-height: 0; gap: 14px; padding: 18px; border: 1px solid var(--borde-suave); border-radius: var(--radio); box-shadow: var(--sombra-sm); }
+.kpi--alto { border-top: 1px solid var(--borde-suave); }
+.kpi__cabecera { flex-direction: row-reverse; justify-content: flex-end; gap: 12px; }
+.kpi__icono { width: 36px; height: 36px; padding: 8px; border-radius: 50%; background: var(--acento-suave); stroke: var(--color-acento); stroke-width: 1.8; }
+.kpi--alto .kpi__icono { background: color-mix(in srgb, var(--color-alto) 12%, var(--color-tarjeta)); stroke: var(--alto-texto); }
+.kpi__titulo { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--tinta-tenue); }
+.kpi__valor { font-family: var(--fuente); font-size: 28px; font-weight: 800; color: var(--color-acento); }
+.kpi--alto .kpi__valor { color: var(--alto-texto); }
+.kpi__detalle { font-size: 11px; font-weight: 600; color: var(--dorado-texto); }
+
+/* Botones */
+.boton { min-height: 38px; border-radius: var(--radio-sm); border-color: var(--color-acento); background: var(--color-acento); color: var(--sobre-acento); font-weight: 600; }
+.boton:hover { background: var(--color-acento-hover); border-color: var(--color-acento-hover); }
+.boton--secundario { background: var(--color-tarjeta); color: var(--color-acento); border-color: var(--borde-suave); }
+.boton--secundario:hover { background: var(--acento-suave); border-color: var(--borde-fuerte); }
+.boton--pequeno { min-height: 30px; padding: 5px 12px; font-size: 12px; border-radius: 6px; }
+/* Acción principal del panel en ámbar, como el botón de exportar de la referencia */
+.panel__acciones .boton:not(.boton--secundario) { background: var(--color-dorado); border-color: var(--color-dorado); color: var(--sobre-dorado); }
+.panel__acciones .boton:not(.boton--secundario):hover { background: var(--dorado-hover); border-color: var(--dorado-hover); }
+.panel__acciones select { border-radius: var(--radio-full); }
+/* Acciones dentro de tablas y listas: botón compacto azul marino */
+td .boton--secundario, .feed__item .boton--secundario { background: var(--color-acento); border-color: var(--color-acento); color: var(--sobre-acento); }
+td .boton--secundario:hover, .feed__item .boton--secundario:hover { background: var(--color-acento-hover); }
+
+/* Formularios */
+fieldset { padding: 18px; border-radius: var(--radio); background: var(--relleno-suave); }
+legend { padding: 3px 12px; border: 1px solid var(--borde-suave); border-radius: var(--radio-full); background: var(--color-tarjeta); color: var(--color-acento); font-size: 12px; font-weight: 700; }
+.campo label { color: var(--tinta-principal); }
+input, select, textarea { border-radius: var(--radio-sm); background: var(--color-tarjeta); }
+input:focus, select:focus, textarea:focus { border-color: var(--color-acento); box-shadow: 0 0 0 3px var(--acento-suave); }
+.opcion input { accent-color: var(--color-acento); }
+
+/* Etiquetas de nivel y estado en forma de píldora */
+.nivel { padding: 3px 10px; border: 0; border-radius: var(--radio-full); font-size: 11px; font-weight: 700; }
+.nivel--bajo { --nivel-texto: var(--bajo-texto); }
+.nivel--medio { --nivel-texto: var(--medio-texto); }
+.nivel--grande { padding: 6px 16px; }
+.estado { border-radius: var(--radio-full); }
+code, .codigo { border-radius: 6px; }
+
+/* Resultado */
+.riesgo { border-radius: var(--radio); border-left-width: 5px; background: var(--color-tarjeta); }
+.riesgo output { font-family: var(--fuente); color: var(--color-acento); }
+.recuadro, .factor, .recomendaciones li { border-radius: var(--radio-sm); background: var(--color-tarjeta); }
+.recomendaciones .codigo { background: var(--acento-suave); color: var(--color-acento); }
+.nota { border-radius: 0 var(--radio-sm) var(--radio-sm) 0; border-left-color: var(--color-dorado); background: var(--dorado-suave); color: var(--tinta-principal); }
+.alerta { border-radius: var(--radio-sm); }
+
+/* Tablas */
+.tabla-contenedor { border-radius: var(--radio); }
+caption { font-size: 12px; }
+th, td { padding: 12px 16px; border-top: 1px solid var(--relleno-hover); }
+thead th { background: var(--color-tarjeta); color: var(--tinta-tenue); font-size: 10px; font-weight: 700; letter-spacing: .08em; border-bottom: 1px solid var(--borde-suave); }
+tbody tr:hover { background: var(--relleno-suave); }
+td.destacado { color: var(--color-acento); }
+
+/* Gráficos */
+.eje__guia { stroke: var(--relleno-hover); }
+.eje__texto { fill: var(--tinta-tenue); }
+.linea { stroke: var(--color-acento); }
+.punto { fill: var(--color-acento); }
+.tendencia__muestra { border-top-color: var(--color-acento); }
+.dona__fondo { stroke: var(--relleno-hover); }
+.dona__total { font-family: var(--fuente); fill: var(--color-acento); }
+.embudo__barra, .embudo__relleno, .factor__barra, .factor__relleno { border-radius: var(--radio-full); }
+.embudo__relleno { background: var(--color-acento); }
+.embudo__indice { color: var(--dorado-texto); }
+.flujo li { border-radius: var(--radio-sm); background: var(--color-tarjeta); }
+.flujo li::before { border-radius: 50%; background: var(--dorado-suave); color: var(--dorado-texto); }
+.feed__item { border-radius: var(--radio-sm); background: var(--color-tarjeta); }
+.vacio { border: 1px dashed var(--borde-fuerte); border-radius: var(--radio); }
+
+/* Pantalla de acceso */
+.acceso__tarjeta { border-radius: var(--radio-lg); box-shadow: var(--sombra-lg); }
+.acceso__presentacion { background: var(--acceso-fondo); border-top: 0; }
+.acceso__monograma { border: 0; border-radius: 50%; background: var(--color-dorado); color: var(--sobre-dorado); font-weight: 800; }
+.acceso__titulo { color: var(--sobre-acento); }
+.acceso__titulo span { color: var(--acceso-resalte); }
+.acceso__sello, .acceso__presentacion .secundario { color: var(--acceso-secundario); }
+.acceso__presentacion > p { border-top-color: rgba(255,255,255,.18); }
+.acceso__formulario h1 { color: var(--color-acento); }
+.acceso__formulario input { border-radius: var(--radio-sm); }
+
+@media (max-width: 900px) {
+  .lateral { border-right: 0; border-bottom: 1px solid var(--borde-suave); }
+  .lateral__cabecera { grid-template-columns: minmax(0, 1fr); border-bottom: 0; padding: 0; }
+  .barra-superior { padding: 14px 24px; }
+  .contenido { padding: 24px; }
+}
+@media (max-width: 700px) {
+  .barra-superior { padding: 14px 16px; }
+  .contenido { padding: 20px 16px; }
+}
+
+/* Entradas del menú que abren el administrador de Django: mismo aspecto que los botones */
+a.menu__boton { text-decoration: none; }
+
+/* Ventana emergente de asignaciones (mismas tarjetas y variables) */
+.dialogo { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--esp-3); background: color-mix(in srgb, var(--tinta-principal) 45%, transparent); }
+.dialogo > .tarjeta { width: 100%; max-width: 680px; max-height: 85vh; overflow: auto; box-shadow: var(--sombra-lg); }

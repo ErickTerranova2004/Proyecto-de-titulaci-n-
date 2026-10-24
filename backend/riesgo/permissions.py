@@ -16,6 +16,16 @@ def roles(usuario):
     return set(usuario.groups.values_list("name", flat=True))
 
 
+# De mayor a menor jerarquía (igual que el menú de la interfaz).
+JERARQUIA = ("administrador", "lider_tecnico", "desarrollador")
+
+
+def rol_principal(usuario):
+    """Rol de mayor jerarquía del usuario, o None si no tiene ninguno."""
+    suyos = roles(usuario)
+    return next((rol for rol in JERARQUIA if rol in suyos), None)
+
+
 def es_admin(usuario):
     return "administrador" in roles(usuario)
 

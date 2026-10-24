@@ -1,0 +1,418 @@
+/* Admin de Django con el diseño de la aplicación (tema claro).
+   Referencia: frontend/src/styles/tokens.css y la última capa de base.css
+   ("Panel claro azul marino y ámbar"). Se carga después de los estilos de
+   Django desde templates/admin/base_site.html. */
+
+/* ---------- a) Tokens de la aplicación ----------
+   COPIA de frontend/src/styles/tokens.css: deben mantenerse sincronizados. */
+:root {
+ --color-fondo: #edf2f8;
+ --color-lateral: #ffffff;
+ --color-tarjeta: #ffffff;
+ --color-tarjeta-elevada: #f5f8fc;
+ --color-acento: #1565c0;
+ --color-acento-hover: #0d47a1;
+ --acento-texto: #0d47a1;
+ --acento-suave: #e3eefb;
+ --acento-brillo: #d0e3f8;
+ --color-dorado: #2e7d32;
+ --dorado-hover: #1b5e20;
+ --dorado-suave: #e8f5e9;
+ --dorado-texto: #1b5e20;
+ --color-bajo: #43a047;
+ --bajo-texto: #2e7d32;
+ --color-medio: #f9a825;
+ --medio-texto: #8a5a00;
+ --color-alto: #f57c00;
+ --alto-texto: #b54d00;
+ --color-error: #e53935;
+ --error-texto: #c62828;
+ --tinta-principal: #172235;
+ --tinta-secundaria: #56657a;
+ --tinta-tenue: #7a879a;
+ --borde-suave: #e1e8f0;
+ --borde-fuerte: #c3cfdd;
+ --relleno-suave: #f5f8fc;
+ --relleno-hover: #ebf1f8;
+ --sombra-sm: 0 1px 2px rgba(23,34,53,.04);
+ --sombra-md: 0 4px 14px rgba(23,34,53,.06);
+ --sombra-lg: 0 20px 50px rgba(23,34,53,.10);
+ --sombra-brillo: 0 4px 12px rgba(21,101,192,.25);
+ --fuente: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+ --fuente-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+ --texto-xs: 12px; --texto-sm: 13px; --texto-base: 14px;
+ --texto-lg: 18px; --texto-xl: 26px; --texto-xxl: 38px;
+ --esp-1: 4px; --esp-2: 8px; --esp-3: 16px;
+ --esp-4: 24px; --esp-5: 32px; --esp-6: 48px;
+ --radio-sm: 8px; --radio: 12px; --radio-lg: 16px; --radio-full: 999px;
+ --lateral-tinta: #172235; --lateral-secundaria: #56657a;
+ --lateral-borde: #e1e8f0; --lateral-activo: #1565c0;
+ --sobre-acento: #ffffff; --detalle-institucional: #2e7d32;
+ --sobre-dorado: #ffffff; --acceso-fondo: #0d3c78; --acceso-resalte: #81c784;
+ --acceso-secundario: #d6e7fb;
+ color-scheme: light;
+}
+
+/* ---------- b) Variables de Django con los tokens ----------
+   Se repiten para el tema oscuro de Django y dentro de prefers-color-scheme:
+   la aplicación solo tiene tema claro. */
+html:root, html[data-theme="dark"], html[data-theme="light"] {
+  --primary: var(--color-acento); --secondary: var(--color-acento-hover); --accent: var(--color-dorado); --primary-fg: var(--sobre-acento);
+  --body-fg: var(--tinta-principal); --body-bg: var(--color-fondo); --body-quiet-color: var(--tinta-secundaria); --body-medium-color: var(--tinta-secundaria); --body-loud-color: var(--tinta-principal);
+  --header-bg: var(--color-tarjeta); --header-color: var(--tinta-secundaria); --header-branding-color: var(--color-acento); --header-link-color: var(--color-acento);
+  --breadcrumbs-bg: var(--color-fondo); --breadcrumbs-fg: var(--tinta-secundaria); --breadcrumbs-link-fg: var(--color-acento);
+  --link-fg: var(--color-acento); --link-hover-color: var(--color-acento-hover); --link-selected-fg: var(--color-acento);
+  --hairline-color: var(--relleno-hover); --border-color: var(--borde-suave); --darkened-bg: var(--relleno-suave); --selected-bg: var(--acento-suave); --selected-row: var(--acento-suave);
+  --button-fg: var(--sobre-acento); --button-bg: var(--color-acento); --button-hover-bg: var(--color-acento-hover);
+  --default-button-bg: var(--color-dorado); --default-button-hover-bg: var(--dorado-hover);
+  --delete-button-bg: var(--color-error); --delete-button-hover-bg: var(--error-texto); --close-button-bg: var(--tinta-tenue); --close-button-hover-bg: var(--tinta-secundaria);
+  --object-tools-fg: var(--sobre-acento); --object-tools-bg: var(--color-acento); --object-tools-hover-bg: var(--color-acento-hover);
+  --error-fg: var(--error-texto); --message-success-bg: var(--dorado-suave); --message-warning-bg: color-mix(in srgb, var(--color-medio) 15%, white); --message-error-bg: color-mix(in srgb, var(--color-error) 12%, white);
+  --font-family-primary: var(--fuente); --font-family-monospace: var(--fuente-mono);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  html:root, html[data-theme="dark"], html[data-theme="light"] {
+    --primary: var(--color-acento); --secondary: var(--color-acento-hover); --accent: var(--color-dorado); --primary-fg: var(--sobre-acento);
+    --body-fg: var(--tinta-principal); --body-bg: var(--color-fondo); --body-quiet-color: var(--tinta-secundaria); --body-medium-color: var(--tinta-secundaria); --body-loud-color: var(--tinta-principal);
+    --header-bg: var(--color-tarjeta); --header-color: var(--tinta-secundaria); --header-branding-color: var(--color-acento); --header-link-color: var(--color-acento);
+    --breadcrumbs-bg: var(--color-fondo); --breadcrumbs-fg: var(--tinta-secundaria); --breadcrumbs-link-fg: var(--color-acento);
+    --link-fg: var(--color-acento); --link-hover-color: var(--color-acento-hover); --link-selected-fg: var(--color-acento);
+    --hairline-color: var(--relleno-hover); --border-color: var(--borde-suave); --darkened-bg: var(--relleno-suave); --selected-bg: var(--acento-suave); --selected-row: var(--acento-suave);
+    --button-fg: var(--sobre-acento); --button-bg: var(--color-acento); --button-hover-bg: var(--color-acento-hover);
+    --default-button-bg: var(--color-dorado); --default-button-hover-bg: var(--dorado-hover);
+    --delete-button-bg: var(--color-error); --delete-button-hover-bg: var(--error-texto); --close-button-bg: var(--tinta-tenue); --close-button-hover-bg: var(--tinta-secundaria);
+    --object-tools-fg: var(--sobre-acento); --object-tools-bg: var(--color-acento); --object-tools-hover-bg: var(--color-acento-hover);
+    --error-fg: var(--error-texto); --message-success-bg: var(--dorado-suave); --message-warning-bg: color-mix(in srgb, var(--color-medio) 15%, white); --message-error-bg: color-mix(in srgb, var(--color-error) 12%, white);
+    --font-family-primary: var(--fuente); --font-family-monospace: var(--fuente-mono);
+    color-scheme: light;
+  }
+}
+
+/* ---------- c) Componentes de la aplicación ---------- */
+
+body { background: var(--color-fondo); color: var(--tinta-principal); font-family: var(--fuente); }
+.theme-toggle { display: none !important; }
+
+/* Cabecera = .barra-superior */
+#header {
+  background: var(--color-tarjeta);
+  background-image: none;
+  min-height: 64px;
+  padding: 14px 32px;
+  border-bottom: 1px solid var(--borde-suave);
+  color: var(--tinta-secundaria);
+  box-shadow: none;
+  align-items: center;
+}
+#branding #site-name { margin: 0; }
+#header a.marca-admin, #header a.marca-admin:link, #header a.marca-admin:visited {
+  display: inline-flex; align-items: center; gap: 12px; text-decoration: none;
+}
+/* Marca = .lateral__cabecera con .marca__simbolo */
+.marca-admin__simbolo {
+  display: grid; place-items: center; flex: none;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--color-dorado); color: var(--sobre-dorado);
+  font-size: 13px; font-weight: 800;
+}
+.marca-admin__textos { display: grid; line-height: 1.25; }
+.marca-admin__nombre { font-size: 15px; font-weight: 700; color: var(--color-acento); }
+.marca-admin__subtitulo { font-size: 11px; font-weight: 400; color: var(--tinta-secundaria); margin-top: 2px; }
+
+#user-tools {
+  text-transform: none; letter-spacing: 0; font-size: var(--texto-sm);
+  color: var(--tinta-secundaria); font-weight: 400;
+}
+#user-tools a, #user-tools a:link, #user-tools a:visited, #logout-form button {
+  color: var(--color-acento); border-bottom: 0; text-decoration: none;
+  text-transform: none; font-size: var(--texto-sm);
+}
+#user-tools a:hover, #logout-form button:hover { color: var(--color-acento-hover); text-decoration: none; }
+/* Nombre del usuario = .barra-superior__perfil */
+#user-tools strong {
+  display: inline-block; padding: 6px 14px; border-radius: var(--radio-full);
+  background: var(--acento-suave); color: var(--color-acento); font-weight: 600;
+}
+
+/* Migas de pan */
+div.breadcrumbs {
+  background: var(--color-fondo); color: var(--tinta-secundaria);
+  font-size: var(--texto-sm); padding: 12px 32px; border: 0;
+}
+div.breadcrumbs a, div.breadcrumbs a:link, div.breadcrumbs a:visited { color: var(--color-acento); text-decoration: none; }
+div.breadcrumbs a:hover { color: var(--color-acento-hover); }
+
+/* Barra lateral = .lateral / .menu */
+#nav-sidebar {
+  background: var(--color-lateral);
+  border-right: 1px solid var(--borde-suave);
+  padding: 24px 16px;
+}
+#nav-sidebar .module { background: transparent; border: 0; margin-bottom: 20px; }
+#nav-sidebar table { width: 100%; border: 0; }
+/* Títulos de sección = .menu__etiqueta */
+#nav-sidebar .module caption, #nav-sidebar .module caption a,
+#nav-sidebar .module caption a:link, #nav-sidebar .module caption a:visited,
+#nav-sidebar .current-app .section:link, #nav-sidebar .current-app .section:visited {
+  background: none; color: var(--tinta-tenue);
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+  padding: 0 12px 6px; border: 0; text-align: left; text-decoration: none;
+}
+#nav-sidebar .module tr { background: none; border: 0; }
+#nav-sidebar .module th, #nav-sidebar .module td {
+  border: 0; background: none; padding: 0; vertical-align: middle;
+}
+/* Cada modelo = .menu__boton */
+#nav-sidebar .module th a {
+  display: flex; align-items: center; min-height: 42px; padding: 10px 12px;
+  border-radius: var(--radio-sm); color: var(--tinta-secundaria);
+  font-size: var(--texto-sm); font-weight: 500; text-decoration: none;
+}
+#nav-sidebar .module tr:hover th a { background: var(--relleno-hover); color: var(--color-acento); }
+#nav-sidebar .module td a.addlink {
+  color: var(--color-dorado); font-weight: 600; font-size: var(--texto-xs);
+  padding: 10px 8px; text-decoration: none; white-space: nowrap;
+}
+/* Modelo activo = .menu__boton[aria-current="page"] */
+#nav-sidebar .current-model { background: none; }
+#nav-sidebar .current-model th a {
+  background: var(--color-acento); color: var(--sobre-acento);
+  font-weight: 600; box-shadow: var(--sombra-brillo);
+}
+#nav-sidebar .module tr.current-model:hover th a { background: var(--color-acento-hover); color: var(--sobre-acento); }
+#nav-sidebar .current-model td a.addlink { color: var(--sobre-acento); }
+#nav-sidebar .current-model td { background: var(--color-acento); border-radius: 0 var(--radio-sm) var(--radio-sm) 0; }
+#nav-sidebar .current-model th a { border-radius: var(--radio-sm) 0 0 var(--radio-sm); }
+#nav-filter {
+  width: 100%; min-height: 42px; padding: 8px 12px; margin: 0 0 20px;
+  border: 1px solid var(--borde-suave); border-radius: var(--radio-sm);
+  background: var(--color-tarjeta); color: var(--tinta-principal); font-family: var(--fuente);
+}
+#nav-filter:focus { outline: none; border-color: var(--color-acento); box-shadow: 0 0 0 3px var(--acento-suave); }
+.toggle-nav-sidebar {
+  background: var(--color-lateral); border: 0; border-right: 1px solid var(--borde-suave);
+  color: var(--tinta-tenue); box-shadow: none;
+}
+.toggle-nav-sidebar:hover, .toggle-nav-sidebar:focus { background: var(--relleno-suave); color: var(--tinta-secundaria); }
+
+/* Títulos = h1 de la app */
+#content h1 {
+  font-size: var(--texto-xl); font-weight: 800; color: var(--color-acento);
+  letter-spacing: -.02em; margin-bottom: 20px;
+}
+#content h2 { color: var(--color-acento); }
+#content { padding: 28px 32px; }
+
+/* Tarjetas = .tarjeta (índice, listados y formularios) */
+#content-main > .module, #content-related .module, .dashboard .module,
+#changelist #toolbar, #changelist .actions, #changelist .results,
+fieldset.module, .inline-group, .delete-confirmation #content-main > ul,
+#changelist-filter {
+  background: var(--color-tarjeta);
+  border: 1px solid var(--borde-suave);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-sm);
+}
+#changelist #toolbar { padding: 12px 16px; margin-bottom: 12px; }
+#changelist .actions { padding: 10px 16px; margin-bottom: 12px; color: var(--tinta-secundaria); }
+#changelist .results { overflow: auto; }
+#content-main > .module, #content-related .module { padding: 0 0 8px; margin-bottom: 20px; overflow: hidden; }
+
+/* Encabezados de módulo: sin franja azul. */
+.module h2, .module caption, .inline-group h2 {
+  background: none; color: var(--color-acento);
+  font-size: 14px; font-weight: 700; letter-spacing: 0; text-transform: none;
+  padding: 16px 16px 8px; text-align: left;
+}
+.module caption a, .module caption a:link, .module caption a:visited { color: var(--color-acento); text-decoration: none; }
+/* En formularios, el h2 del fieldset = legend de la app (píldora). */
+fieldset.module > h2 {
+  display: inline-block; margin: 16px 16px 4px; padding: 3px 12px;
+  border: 1px solid var(--borde-suave); border-radius: var(--radio-full);
+  background: var(--color-tarjeta); font-size: 12px; font-weight: 700; color: var(--color-acento);
+}
+fieldset.module { padding: 0 0 8px; margin-bottom: 20px; }
+fieldset.collapse summary { color: var(--color-acento); }
+
+/* Tablas = tablas de la app */
+table { border: 0; }
+thead th, tfoot td, #result_list thead th {
+  background: var(--color-tarjeta);
+  color: var(--tinta-tenue);
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+  border-top: 0; border-bottom: 1px solid var(--borde-suave);
+}
+thead th a, thead th a:link, thead th a:visited { color: var(--tinta-tenue); }
+thead th.sorted { background: var(--relleno-suave); }
+td, th { padding: 12px 16px; border-bottom: 0; border-top: 1px solid var(--relleno-hover); font-size: var(--texto-sm); }
+#result_list td, #result_list th { padding: 12px 16px; }
+tbody tr:hover, #result_list tbody tr:hover { background: var(--relleno-suave); }
+#result_list tr.selected, tr.selected { background: var(--acento-suave); }
+#result_list th a, #result_list th a:link, #result_list th a:visited,
+#result_list td a, #result_list td a:link, #result_list td a:visited { color: var(--color-acento); font-weight: 600; text-decoration: none; }
+.module td a, .module th a { text-decoration: none; }
+
+/* Iconos sí/no como píldoras .nivel (verde / rojo) */
+img[src*="icon-yes"], img[src*="icon-no"] {
+  box-sizing: content-box; width: 13px; height: 13px; padding: 3px 9px;
+  border-radius: var(--radio-full); vertical-align: middle;
+}
+img[src*="icon-yes"] { background: var(--dorado-suave); }
+img[src*="icon-no"] { background: color-mix(in srgb, var(--color-error) 12%, white); }
+
+/* Filtros = .tarjeta */
+#changelist-filter { padding: 0 0 12px; overflow: hidden; }
+#changelist-filter h2 {
+  background: none; color: var(--color-acento); font-size: 14px; font-weight: 700;
+  text-transform: none; letter-spacing: 0; padding: 16px 16px 8px; border: 0;
+}
+#changelist-filter h3, #changelist-filter summary {
+  font-size: 12px; font-weight: 700; color: var(--tinta-principal);
+  padding: 8px 16px 4px; margin: 0; border: 0;
+}
+#changelist-filter details summary { border: 0; }
+#changelist-filter ul { padding: 0 12px 8px; margin: 0; border: 0; }
+#changelist-filter li { list-style: none; padding: 2px 0; }
+#changelist-filter a, #changelist-filter a:link, #changelist-filter a:visited {
+  display: inline-block; padding: 4px 10px; border-radius: var(--radio-full);
+  color: var(--tinta-secundaria); text-decoration: none; font-size: var(--texto-sm);
+}
+#changelist-filter a:hover { color: var(--color-acento); background: var(--relleno-hover); }
+#changelist-filter li.selected a, #changelist-filter li.selected a:link, #changelist-filter li.selected a:visited {
+  color: var(--color-acento); font-weight: 600; background: var(--acento-suave);
+}
+#changelist-filter li.selected { border-left: 0; padding-left: 0; margin-left: 0; }
+#changelist-filter-extra-actions { padding: 0 16px; }
+
+/* Botones = .boton */
+.button, input[type=submit], input[type=button], .submit-row input, a.button,
+button[type=submit], #changelist #toolbar form input[type=submit], #changelist .actions .button,
+.object-tools a, .object-tools a:link, .object-tools a:visited {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 38px; padding: 8px 16px;
+  border: 1px solid var(--color-acento); border-radius: var(--radio-sm);
+  background: var(--color-acento); color: var(--sobre-acento);
+  font-family: var(--fuente); font-size: var(--texto-sm); font-weight: 600;
+  text-transform: none; letter-spacing: 0; text-decoration: none; box-shadow: none; cursor: pointer;
+}
+.button:hover, input[type=submit]:hover, input[type=button]:hover, a.button:hover,
+button[type=submit]:hover, .object-tools a:hover, .object-tools a:focus {
+  background: var(--color-acento-hover); border-color: var(--color-acento-hover); color: var(--sobre-acento);
+}
+/* "Añadir …" = botón verde (.panel__acciones .boton) */
+.object-tools a.addlink, .object-tools a.addlink:link, .object-tools a.addlink:visited {
+  background-color: var(--color-dorado); border-color: var(--color-dorado);
+  background-image: none; padding-left: 16px; border-radius: var(--radio-sm);
+}
+.object-tools a.addlink:hover { background-color: var(--dorado-hover); border-color: var(--dorado-hover); }
+.object-tools a.addlink::before { content: "+ "; margin-right: 4px; }
+.object-tools { margin-top: -4px; }
+.object-tools li { background: none; }
+
+/* Fila de guardado: Guardar verde, el resto secundario, Eliminar rojo */
+.submit-row {
+  background: var(--relleno-suave); border: 1px solid var(--borde-suave);
+  border-radius: var(--radio); padding: 12px 16px; gap: 10px;
+}
+.submit-row input, .submit-row a.button, .submit-row button {
+  background: var(--color-tarjeta); color: var(--color-acento); border: 1px solid var(--borde-suave);
+}
+.submit-row input:hover, .submit-row a.button:hover, .submit-row button:hover {
+  background: var(--acento-suave); border-color: var(--borde-fuerte); color: var(--color-acento);
+}
+.submit-row input.default, input.default {
+  background: var(--color-dorado); border-color: var(--color-dorado); color: var(--sobre-dorado);
+}
+.submit-row input.default:hover, input.default:hover { background: var(--dorado-hover); border-color: var(--dorado-hover); color: var(--sobre-dorado); }
+.submit-row a.deletelink, a.deletelink, a.deletelink:link, a.deletelink:visited,
+.delete-confirmation input[type=submit] {
+  display: inline-flex; align-items: center; min-height: 38px; padding: 8px 16px; height: auto;
+  background: var(--color-error); border: 1px solid var(--color-error); border-radius: var(--radio-sm);
+  color: var(--sobre-acento); font-weight: 600; text-decoration: none;
+}
+a.deletelink:hover, .delete-confirmation input[type=submit]:hover { background: var(--error-texto); border-color: var(--error-texto); color: var(--sobre-acento); }
+.delete-confirmation a.cancel-link, .delete-confirmation .button.cancel-link {
+  display: inline-flex; align-items: center; min-height: 38px; padding: 8px 16px; height: auto;
+  background: var(--color-tarjeta); color: var(--color-acento);
+  border: 1px solid var(--borde-suave); border-radius: var(--radio-sm); font-weight: 600; text-decoration: none;
+}
+.delete-confirmation #content-main > ul { padding: 16px 16px 16px 36px; }
+
+/* Campos = inputs de la app */
+input[type=text], input[type=password], input[type=email], input[type=url], input[type=number],
+input[type=tel], input[type=search], input[type=date], input[type=time], input[type=datetime-local],
+textarea, select, .vTextField, .vLargeTextField, .vIntegerField, .vDateField, .vTimeField {
+  min-height: 42px; padding: 8px 12px;
+  border: 1px solid var(--borde-suave); border-radius: var(--radio-sm);
+  background: var(--color-tarjeta); color: var(--tinta-principal);
+  font-family: var(--fuente); font-size: var(--texto-sm);
+}
+select[multiple] { min-height: 120px; }
+input:focus, textarea:focus, select:focus {
+  outline: none; border-color: var(--color-acento); box-shadow: 0 0 0 3px var(--acento-suave);
+}
+input[type=checkbox], input[type=radio] { accent-color: var(--color-acento); }
+.form-row { border-bottom: 1px solid var(--relleno-hover); padding: 12px 16px; }
+label, .aligned label { color: var(--tinta-principal); }
+.help, div.help, p.help, .form-row div.help { color: var(--tinta-tenue); }
+.errornote, ul.errorlist li { color: var(--error-texto); }
+.errornote { border-radius: var(--radio-sm); border-color: var(--color-error); background: color-mix(in srgb, var(--color-error) 12%, white); }
+
+/* Mensajes */
+ul.messagelist li {
+  border-radius: var(--radio-sm); margin: 0 0 8px; color: var(--tinta-principal);
+  background-color: var(--dorado-suave); color: var(--dorado-texto);
+}
+ul.messagelist li.success { background-color: var(--dorado-suave); color: var(--dorado-texto); }
+ul.messagelist li.warning { background-color: color-mix(in srgb, var(--color-medio) 15%, white); color: var(--medio-texto); }
+ul.messagelist li.error { background-color: color-mix(in srgb, var(--color-error) 12%, white); color: var(--error-texto); }
+
+/* Paginación y recuento ("4 usuarios") */
+#changelist .paginator, .paginator, p.paginator, .actions .action-counter, .actions span.all, .actions span.question {
+  font-size: var(--texto-sm); color: var(--tinta-secundaria); background: none; border: 0;
+}
+.paginator a:link, .paginator a:visited { background: var(--color-acento); color: var(--sobre-acento); border-radius: var(--radio-sm); }
+.paginator .this-page { color: var(--color-acento); font-weight: 700; }
+
+/* Acciones recientes (portada) */
+#recent-actions-module h3 { color: var(--tinta-tenue); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 0 16px; }
+#recent-actions-module ul { padding: 0 16px 0 32px; }
+
+/* Login del admin = .acceso__tarjeta */
+body.login { background: var(--color-fondo); }
+body.login #container {
+  background: var(--color-tarjeta); border: 1px solid var(--borde-suave);
+  border-radius: var(--radio-lg); box-shadow: var(--sombra-lg);
+  overflow: hidden; max-width: 28rem; width: 100%; margin: 80px auto; padding: 0;
+}
+body.login #header {
+  background: var(--acceso-fondo); border-bottom: 0; color: var(--sobre-acento);
+  padding: 24px 28px; justify-content: flex-start;
+}
+body.login #header .marca-admin__nombre { color: var(--sobre-acento); }
+body.login #header .marca-admin__subtitulo { color: var(--acceso-secundario); }
+body.login #content { padding: 24px 28px 28px; }
+body.login .form-row { border: 0; padding: 8px 0; }
+body.login .form-row label { display: block; font-weight: 600; margin-bottom: 6px; }
+body.login .form-row input { width: 100%; min-height: 48px; background: var(--relleno-suave); }
+body.login .submit-row { background: none; border: 0; padding: 16px 0 0; }
+body.login .submit-row input[type=submit] {
+  width: 100%; min-height: 48px; background: var(--color-acento); border-color: var(--color-acento); color: var(--sobre-acento);
+}
+body.login .submit-row input[type=submit]:hover { background: var(--color-acento-hover); }
+body.login .password-reset-link { text-align: center; }
+
+/* Responsive: el layout de Django se conserva (por debajo de 767px oculta la
+   barra lateral con su propio botón); entre 767 y 900px la estrecha como la app. */
+@media (max-width: 900px) {
+  #header { padding: 14px 24px; }
+  div.breadcrumbs { padding: 12px 24px; }
+  #content { padding: 24px; }
+  #nav-sidebar { padding: 20px 12px; }
+}
+@media (max-width: 700px) {
+  #header { padding: 14px 16px; }
+  div.breadcrumbs { padding: 12px 16px; }
+  #content { padding: 20px 16px; }
+}

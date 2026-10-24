@@ -11,11 +11,14 @@ router.register("predicciones", views.PrediccionViewSet,
 router.register("modelos", views.VersionModeloViewSet, basename="modelo")
 router.register("repositorios", views.RepositorioViewSet,
                 basename="repositorio")
+router.register("asignaciones", views.AsignacionViewSet,
+                basename="asignacion")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/token/", obtain_auth_token),
     path("api/yo/", views.yo),
     path("api/integraciones/", views.integraciones),
+    path("api/resumen-admin/", views.resumen_admin),
     path("api/", include(router.urls)),
 ]
