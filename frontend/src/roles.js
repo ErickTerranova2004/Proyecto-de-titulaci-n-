@@ -21,7 +21,7 @@ const ICONOS = {
   integraciones: "M9 7H6a5 5 0 0 0 0 10h3M15 7h3a5 5 0 0 1 0 10h-3M8 12h8",
 };
 
-// `enlace`: la sección abre el administrador de Django en una pestaña nueva.
+// `enlace`: la sección abre el administrador de Django en la misma pestaña.
 const seccion = (id, texto, icono, enlace) => ({ id, texto, icono: ICONOS[icono], enlace });
 
 // La primera sección de cada lista es la vista inicial del rol.

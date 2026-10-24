@@ -134,10 +134,10 @@ export default function App() {
         <p className="menu__etiqueta">ESPACIO DE TRABAJO</p><nav className="menu" aria-label={rol ? `Secciones del perfil ${NOMBRES_ROL[rol]}` : "Secciones de la plataforma"}>
           {secciones.map(({ id, texto, icono, enlace }) =>
             enlace ? (
-              <a key={id} className="menu__boton" href={urlAdmin(enlace)} target="_blank" rel="noopener noreferrer">
+              <a key={id} className="menu__boton" href={urlAdmin(enlace)}>
                 <svg viewBox="0 0 24 24" className="menu__icono" aria-hidden="true"><path d={icono} /></svg>
                 {texto}
-                <span className="solo-lector"> (abre el administrador de Django en una pestaña nueva)</span>
+                <span className="solo-lector"> (abre el administrador de Django)</span>
               </a>
             ) : (
               <button

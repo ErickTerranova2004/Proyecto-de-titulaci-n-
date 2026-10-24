@@ -11,7 +11,7 @@
 # distinta: una ventana normal, una de incógnito y otro navegador.
 
 param(
-    [int]$PuertoFrontend = 5173
+    [int]$PuertoFrontend = 5174
 )
 
 $ErrorActionPreference = "Stop"

@@ -213,7 +213,7 @@ La interfaz separa los perfiles por menú y por los datos o bloques del panel; e
 |---|---|---|
 | Desarrollador | Mi panel · Nuevo análisis · Mi historial | Sus análisis, sus repositorios asignados (`?todos=1`), sus resultados verificados y la tarjeta "Mis asignaciones"; campana con contador y aviso al entrar |
 | Líder técnico | Panel del equipo · Pendientes de decisión · Historial del equipo · Nuevo análisis | Riesgo alto por repositorio asignado, análisis por desarrollador, predicciones sin decisión; Pendientes y el historial muestran la fecha límite y si el desarrollador la vio o la cumplió |
-| Administrador | Panel de administración · Usuarios y accesos · Workflows · Modelos · Integraciones | Usuarios por rol y workflows (`/api/resumen-admin/`), estado de GitHub, modelo activo y supervisión. "Usuarios y accesos" y "Workflows" abren `/admin/` de Django en una pestaña nueva |
+| Administrador | Panel de administración · Usuarios y accesos · Workflows · Modelos · Integraciones | Usuarios por rol y workflows (`/api/resumen-admin/`), estado de GitHub, modelo activo y supervisión. "Usuarios y accesos" y "Workflows" abren `/admin/` de Django en la misma pestaña |
 
 Lo que ve cada rol lo decide la asignación de repositorios (`ACCESO_REPOSITORIO`): el líder ve los análisis de todos los desarrolladores asignados a sus repositorios; el desarrollador, solo los suyos.
 
