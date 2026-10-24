@@ -97,6 +97,17 @@ Interpretación:
 - Muestra pequeña (2.392 filas etiquetadas). Los intervalos de confianza de PR-AUC tienen una amplitud de unos ±0,09.
 - Las diferencias entre los modelos candidatos están dentro de esa variabilidad.
 
+## 4 bis. Datos de demostración frente a datos reales
+
+La tabla de supervisión (predicciones verificadas con su ejecución real) mezcla dos orígenes que no tienen el mismo valor:
+
+- **Repositorio de demostración** (`ErickTerranova2004/demo-despliegue-riesgo`, `es_demostracion = true`). Se creó para probar de extremo a extremo la verificación del resultado real: su workflow publica una imagen en ghcr.io y los fallos se **provocan a propósito** (commit con "[fallo]" o `simular_fallo`). Sus resultados dependen de cómo se eligieron los fallos, no del riesgo real del cambio. **Estas cifras no son validación del modelo**: demuestran que el flujo análisis → ejecución → verificación funciona. La interfaz indica cuántas predicciones de la supervisión son de demostración.
+- **Repositorios públicos reales** (`mastodon/mastodon` build-nightly, `Azure-Samples/azure-search-openai-demo` azure-dev; no son de demostración). Sus ejecuciones son reales, pero no controlamos cuándo hay un commit posterior a un análisis, así que no se usan para verificar a demanda. En las 30 ejecuciones revisadas, mastodon tuvo 30 éxitos (publicación nocturna a un registro de contenedores) y azure-search-openai-demo 30 fallos, todos al iniciar sesión en Azure antes del despliegue.
+
+Resultado de la prueba de demostración (24-10-2026): 16 análisis con el modelo v1.1 verificados con su ejecución real (10 completados y 6 no completados, estos últimos provocados). En la supervisión de v1.1 quedaron 16 verificadas y 16 evaluables, **todas de demostración**; la tasa observada fue 5/11 en nivel Bajo, 0/1 en Medio y 1/4 en Alto, con Brier 0,320. Como los fallos se eligieron a mano, estas cifras no miden la calidad del modelo (un Brier peor que el de la evaluación es lo esperable). Hasta ahora no hay predicciones verificadas de repositorios reales.
+
+Con pocos casos evaluables, la tasa observada por nivel y el Brier **no son concluyentes**; la validación del modelo sigue siendo la de la sección 3 (partición temporal de GHALogs).
+
 ## 5. Conclusiones vinculadas a los objetivos
 
 1. **Identificar datos para estimar el riesgo de despliegue.** `conclusion = failure` no equivale a un fallo de despliegue. Además, las reglas que deciden qué ejecución es un intento de despliegue deben ser independientes de su resultado; si no, inflan los fallos (v1 los inflaba en unos 4 puntos). Ningún dataset público disponible permite etiquetar con fiabilidad los fallos dentro del paso de despliegue ni los incidentes en producción.

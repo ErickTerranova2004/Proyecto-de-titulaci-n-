@@ -70,6 +70,7 @@ erDiagram
         string propietario
         string nombre
         datetime creado_en
+        bool es_demostracion "default false; no es validación del modelo"
     }
     ACCESO_REPOSITORIO {
         bigint id PK
@@ -163,6 +164,8 @@ erDiagram
         date fecha_limite "opcional; no anterior a hoy"
         datetime vista_por_desarrollador_en "opcional"
         datetime cumplida_en "opcional"
+        bigint prediccion_respuesta_id FK "opcional; nuevo análisis que la atiende (SET_NULL)"
+        text respuesta_desarrollador "opcional; qué cambió el desarrollador"
     }
 ```
 
@@ -220,11 +223,19 @@ El líder técnico (o el administrador) puede fijar una fecha límite al decidir
 
 La alarma funciona dentro de la aplicación: consulta `/api/asignaciones/` cada 60 s y al volver a la pestaña, muestra una campana con contador, un aviso al entrar con la asignación más próxima y recordatorios ("vence mañana", "vence hoy", "vencida"). Si el usuario lo permite tras pulsar un botón, usa notificaciones del navegador para asignaciones nuevas o por vencer. El correo es opcional y está desactivado por defecto (`CORREO_ASIGNACIONES=1`; sin `EMAIL_HOST` se usa el backend de consola).
 
+### Respuesta del desarrollador a una asignación
+
+Al entrar a su perfil, el desarrollador con asignaciones pendientes ve una ventana emergente accesible (`role="dialog"`, `aria-modal`, foco atrapado, Escape = "Más tarde") con el mensaje, el tipo de decisión y la fecha límite; las asignaciones mostradas quedan como vistas y la ventana vuelve a salir en el siguiente ingreso mientras sigan pendientes. Con "Posponer" o "Solicitar revisión", **Atender ahora** abre el análisis original y **Realizar nuevo análisis** lleva a Nuevo análisis con el repositorio y el workflow elegidos. Ese análisis se envía con `atiende_decision`; el backend valida que la decisión sea la última de un análisis del mismo usuario y del mismo workflow, de tipo posponer o revisión, y no atendida antes, y al crear la predicción la enlaza (`prediccion_respuesta`, `respuesta_desarrollador`) y la marca cumplida. Con "Autorizar" basta **Entendido**. El líder ve "Cumplida con el análisis #N", el nivel anterior frente al nuevo y el comentario. La marca manual de cumplida se conserva para casos sin nuevo análisis.
+
+### Coherencia de la sesión
+
+El token se guarda en `sessionStorage` (uno por pestaña). Al recuperar el foco y ante el evento `storage`, la interfaz vuelve a consultar `/api/yo/` y, si el usuario o el rol ya no coinciden con lo mostrado, reinicia la vista (`frontend/src/sesion.js`). `Panel` no tiene perfil por defecto: sin un perfil válido no se dibuja, en lugar de caer al panel de administración. Las tarjetas del panel de administración cargan por separado (`Promise.allSettled`, `frontend/src/cargaAdmin.js`) y distinguen datos, vacío y error con su motivo (sin permiso, sesión caducada, servidor sin respuesta).
+
 ### Limitaciones conocidas
 
 - **La alarma solo avisa con la aplicación abierta.** Sin correo configurado ni notificaciones push, no hay aviso con la aplicación cerrada.
 - **No hay fecha de última sincronización por repositorio**: `/api/integraciones/` solo informa la última extracción global.
-- El administrador de Django por el proxy de Vite funciona desde `localhost`; desde otra dirección de la red hace falta añadirla a `DJANGO_ALLOWED_HOSTS` y `CSRF_TRUSTED_ORIGINS`.
+- **Acceso desde otra máquina**: el proxy de Vite funciona desde `localhost`; desde otra dirección hace falta añadirla a `DJANGO_ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` y `CORS_ALLOWED_ORIGINS`.
 
 ## Roles y permisos
 
@@ -255,7 +266,7 @@ Al quitar un acceso, el usuario deja de ver ese repositorio y sus predicciones.
 | POST | `/api/auth/token/` | Obtiene el token con usuario y contraseña |
 | GET | `/api/yo/` | Usuario y roles |
 | GET | `/api/repositorios/` | Repositorios visibles con algún workflow validado y disponible (selector de Nuevo análisis). Con `?todos=1`: todos los repositorios visibles, con `workflows_validados` (paneles por rol) |
-| POST | `/api/predicciones/` | Nueva predicción. Errores con `codigo`: `repositorio_no_registrado`, `sin_acceso`, `workflow_no_validado`, `github_*`, `sin_modelo` |
+| POST | `/api/predicciones/` | Nueva predicción. Opcional: `atiende_decision` y `respuesta_desarrollador` para responder a una asignación. Errores con `codigo`: `repositorio_no_registrado`, `sin_acceso`, `workflow_no_validado`, `github_*`, `sin_modelo`, `asignacion_no_encontrada`, `asignacion_no_vigente`, `asignacion_no_atendible`, `asignacion_ya_atendida`, `asignacion_otro_workflow` |
 | GET | `/api/predicciones/` | Historial visible (`?repositorio=`) |
 | GET | `/api/predicciones/{id}/` | Detalle con historial usado y resultado real |
 | POST | `/api/predicciones/{id}/verificar/` | Enlaza y etiqueta la ejecución real posterior |
@@ -264,9 +275,10 @@ Al quitar un acceso, el usuario deja de ver ese repositorio y sus predicciones.
 | POST | `/api/predicciones/{id}/fecha-limite/` | Añade o cambia la fecha límite de la última decisión (400 `sin_decision` si no hay ninguna) |
 | GET | `/api/asignaciones/` | Últimas decisiones con fecha límite de las predicciones visibles: mensaje, fecha, repositorio, estado, `dias_restantes` y si fue vista |
 | POST | `/api/asignaciones/{id}/vista/` y `/cumplida/` | Marca la asignación (solo el desarrollador dueño de la predicción; si no, 403) |
+| POST | `/api/asignaciones/{id}/entendida/` | "Entendido" de una autorización (solo el dueño; 400 `no_es_autorizacion` para otras decisiones) |
 | GET | `/api/resumen-admin/` | Conteos sin datos personales: usuarios por rol principal (suman el total) y workflows validados, sin validar y disponibles en GitHub (administrador) |
 | POST | `/api/modelos/{id}/activar/` | Activa una versión (administrador) |
-| GET | `/api/modelos/{id}/supervision/` | Tasa observada de no completados por nivel y Brier sobre predicciones verificadas (administrador) |
+| GET | `/api/modelos/{id}/supervision/` | Tasa observada de no completados por nivel y Brier sobre predicciones verificadas, y `predicciones_demostracion` (administrador) |
 | GET | `/api/integraciones/` | Estado de la API de GitHub (cuota, token configurado sí/no) y volumen almacenado (administrador) |
 | POST | `/api/repositorios/{id}/sincronizar/` | Recopila ejecuciones completadas de los workflows validados (administrador) |
 

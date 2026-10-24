@@ -77,6 +77,24 @@ Resultado del 2026-10-17, con la migración `0003` (disponibilidad de workflows 
 | T57 | `/api/repositorios/?todos=1` por rol: incluye repositorios sin workflows; por defecto no cambia; sin rol 403 | Seguridad |
 | T58 | `/api/resumen-admin/`: líder y desarrollador 403; usuarios por rol de mayor jerarquía (suman el total) y conteo de workflows | Seguridad |
 | T59 | Comando `crear_usuario`: repetible sin duplicar, `--repos` fija los accesos, el administrador es superusuario, repositorio inexistente no crea nada | Funcional |
+| T60 | Un nuevo análisis con `atiende_decision` enlaza la respuesta, marca la asignación cumplida y vista, conserva `decision` y `comentario`; el líder ve el nuevo análisis, su nivel y el comentario | Funcional |
+| T61 | Una asignación no se atiende dos veces (`asignacion_ya_atendida`) | Seguridad |
+| T62 | Respuesta: otro desarrollador o decisión inexistente (`asignacion_no_encontrada`), otro workflow (`asignacion_otro_workflow`); no se enlaza nada | Seguridad |
+| T63 | Una autorización no se atiende con análisis (`asignacion_no_atendible`); "Entendido" solo para autorizaciones | Funcional |
+| T64 | Una decisión que ya no es la última no se atiende (`asignacion_no_vigente`); una autorización sin fecha llega como asignación y se cierra con Entendido | Funcional |
+| T65 | Verificar: ejecución exitosa enlazada (`despliegue_completado`, y = 0) | Integración |
+| T66 | Verificar: ejecución en curso no se enlaza (pendiente) | Integración |
+| T67 | Verificar: reintento (`run_attempt` = 2) etiquetado con los jobs de ese intento | Integración |
+| T68 | Supervisión: 4 predicciones, 3 verificadas, 2 evaluables (la ambigua no cuenta), Brier = media de (p − y)², `predicciones_demostracion` al marcar el repositorio | Funcional |
+
+### Frontend (`npm test`, `node --test`, sin dependencias)
+
+| ID | Caso | Tipo |
+|---|---|---|
+| F01 | La interfaz de administrador se reinicia si el token pasa a ser de un desarrollador; no se reinicia si usuario y rol coinciden; sí si cambia el rol o caduca la sesión | Unitaria |
+| F02 | El foco, la visibilidad y el evento `storage` de la clave del token disparan la comprobación de `/api/yo/` | Unitaria |
+| F03 | Panel de administración: si un endpoint falla, las demás tarjetas siguen con sus datos | Unitaria |
+| F04 | Un dato inexistente es un estado vacío, distinto de un error; el motivo del error es concreto (403, 401, 0, 404) | Unitaria |
 
 ## 2. Pruebas de punta a punta (manual)
 
@@ -95,10 +113,15 @@ Con la nueva regla, `novuhq/novu` `deploy.yml` ya no se admite: no está en el d
 | 2026-10-23 | `npm run build` del frontend por perfiles (no hay ESLint en el proyecto) | OK |
 | 2026-10-23 | `crear_usuario` para `prueba_admin`, `prueba_lider` (2 repositorios) y `prueba_dev` (1); repetido sin duplicar | OK |
 | 2026-10-23 | Tres perfiles a la vez por el proxy de Vite: el líder decide con fecha límite sobre un análisis de `prueba_dev`; el desarrollador recibe la asignación (por vencer), la marca vista y cumplida; el líder ve las marcas; fecha pasada 400; `resumen-admin` 403 para líder y desarrollador | OK |
+| 2026-10-24 | Diagnóstico del panel de administración con un token real de administrador | Los 8 endpoints responden 200 directamente y por el proxy; los fallos vistos eran 403 pedidos con la sesión de `prueba_dev` (65 en el registro del backend) |
+| 2026-10-24 | Proxy de `/admin` tras reiniciar Vite (el reinicio automático había fallado al cambiar `vite.config.js`) | OK: sirve el admin de Django |
+| 2026-10-24 | Registro y sincronización de `mastodon/mastodon` (build-nightly) y `Azure-Samples/azure-search-openai-demo` (azure-dev) por la API; `todo-nodejs-mongo` descartado (1 ejecución en 7 semanas) | OK: 20 ejecuciones guardadas en cada uno |
+| 2026-10-24 | Prueba de extremo a extremo con GitHub Actions real en el repositorio de demostración `ErickTerranova2004/demo-despliegue-riesgo` (16 ciclos: análisis de `prueba_dev` antes de la ejecución → `workflow_dispatch` o push a `main` desde una rama de preparación → `gh run watch` → Verificar resultado real; 6 fallos provocados) | OK: 16 de 16 verificados; 10 `despliegue_completado` y 6 `despliegue_no_completado`, coincidiendo con el fallo provocado en los 16 casos |
+| 2026-10-24 | Respuesta a una asignación por la API con los tres perfiles: el líder pospone el análisis 130, el desarrollador lo atiende con el análisis 131, un segundo intento se rechaza, el líder ve Cumplida con el análisis #131 (Bajo → Bajo) | OK |
 
 ## 3. Pruebas funcionales pendientes para el usuario
 
 - Abrir los tres perfiles a la vez (ventana normal, incógnito y otro navegador, con `scripts/iniciar_demo.ps1`) y comprobar en la interfaz: menú de cada rol, campana y aviso del desarrollador, tarjeta "Mis asignaciones", marcar cumplida y ver el cambio en Pendientes del líder.
 - Aceptar las notificaciones del navegador en el perfil del desarrollador y comprobar el aviso de una asignación nueva (tarda hasta 60 s).
-- Hacer un análisis sobre un repositorio validado con `GITHUB_TOKEN` configurado y, tras su siguiente ejecución, usar "Verificar resultado real".
+- Con los tres perfiles a la vez: el desarrollador recibe la ventana emergente al entrar, pulsa Atender ahora, hace el nuevo análisis y la asignación queda cumplida; el líder ve "Cumplida con el análisis #N" y la comparación de riesgo; el administrador ve las cuatro tarjetas con datos o con su estado vacío o error específico.
 - Repetir `migrate`, `registrar_modelo` y `validar_workflows_dataset` sobre PostgreSQL.
