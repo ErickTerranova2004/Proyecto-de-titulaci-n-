@@ -2,16 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
 import { MisAsignaciones } from "./Alarma.jsx";
 import { Alerta, Fecha, NIVELES, NivelRiesgo, porcentaje } from "./comunes.jsx";
-import { Embudo } from "./graficos.jsx";
+import { BarrasApiladas, Dona, Embudo, Linea } from "./graficos.jsx";
 import Resultado, { ETIQUETAS } from "./Resultado.jsx";
 
-// Panel de cada perfil, con el mismo diseño (tarjetas, tablas y clases).
-// Cada perfil muestra solo sus bloques:
-// - Desarrollador: sus análisis, sus repositorios y sus resultados verificados.
-// - Líder técnico: riesgo alto por repositorio, análisis por desarrollador y
-//   predicciones sin decisión.
-// - Administrador: usuarios por rol, workflows validados o pendientes, modelo
-//   activo y supervisión, y estado de GitHub.
+// Dashboard principal con el mismo diseño para los tres perfiles: flujo de la
+// plataforma, distribución por nivel, análisis por día, seguimiento de
+// resultados y tendencia, calculados con los análisis que ve cada rol. Además,
+// cada perfil añade sus bloques:
+// - Desarrollador: Mis asignaciones, Mis repositorios y Mis análisis recientes.
+// - Líder técnico: riesgo alto por repositorio, predicciones sin decisión y
+//   análisis por desarrollador.
+// - Administrador: usuarios por rol, workflows, estado de GitHub, modelo activo
+//   y supervisión, repositorios con mayor riesgo y análisis recientes.
 // Todo se calcula a partir de la API (GET /api/predicciones/, ya filtrado por
 // rol, y /api/repositorios/?todos=1; el administrador usa /api/resumen-admin/,
 // /api/integraciones/ y la supervisión del modelo). No hay valores fijos.
@@ -26,9 +28,37 @@ const DIA = 24 * 60 * 60 * 1000;
 
 const PERFILES = {
   desarrollador: { titulo: "Mi panel", alcance: "Sus análisis, sus repositorios y sus resultados verificados" },
-  lider: { titulo: "Panel del equipo", alcance: "Riesgo de sus repositorios asignados, su equipo y las decisiones pendientes" },
-  administrador: { titulo: "Panel de administración", alcance: "Usuarios, workflows, modelo activo y estado de GitHub" },
+  lider: { titulo: "Panel del equipo", alcance: "Análisis de los desarrolladores de sus repositorios asignados" },
+  administrador: { titulo: "Panel de administración", alcance: "Todos los análisis, usuarios, workflows, modelo y GitHub" },
 };
+
+function claveDia(fecha) {
+  const d = new Date(fecha);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function serieDiaria(predicciones, desde, hasta) {
+  const dias = [];
+  const inicio = new Date(desde);
+  inicio.setHours(0, 0, 0, 0);
+  for (let t = inicio.getTime(); t <= hasta; t += DIA) {
+    const d = new Date(t);
+    dias.push({
+      clave: claveDia(d),
+      etiqueta: d.toLocaleDateString("es-EC", { day: "2-digit", month: "short" }),
+      bajo: 0, medio: 0, alto: 0, suma: 0, n: 0,
+    });
+  }
+  const indice = Object.fromEntries(dias.map((d) => [d.clave, d]));
+  for (const p of predicciones) {
+    const d = indice[claveDia(p.creada_en)];
+    if (!d) continue;
+    d[p.nivel] += 1;
+    d.suma += p.probabilidad;
+    d.n += 1;
+  }
+  return dias.map((d) => ({ ...d, valor: d.n ? d.suma / d.n : null }));
+}
 
 function nivelDe(probabilidad, limites) {
   if (!limites) return null;
@@ -122,12 +152,7 @@ export default function Panel({ perfil = "administrador", modelos, alNuevoAnalis
   const limites = activo?.metadatos?.limites_riesgo;
   const admin = useDatosAdmin(activo, esAdmin);
 
-  // El administrador no usa análisis ni repositorios en su panel.
   function cargar() {
-    if (esAdmin) {
-      setCargadoEn(new Date().toISOString());
-      return;
-    }
     setError("");
     setCargando(true);
     Promise.all([api.historial(), api.repositoriosAsignados()])
@@ -163,7 +188,9 @@ export default function Panel({ perfil = "administrador", modelos, alNuevoAnalis
         }).length;
 
     const total = enPeriodo.length;
-    const alto = enPeriodo.filter((p) => p.nivel === "alto").length;
+    const conteos = { bajo: 0, medio: 0, alto: 0 };
+    enPeriodo.forEach((p) => { conteos[p.nivel] += 1; });
+    const alto = conteos.alto;
     const probMedia = total ? enPeriodo.reduce((s, p) => s + p.probabilidad, 0) / total : null;
     const verificadas = enPeriodo.filter((p) => p.ejecucion_real);
     const evaluables = verificadas.filter((p) => p.ejecucion_real.y !== null && p.ejecucion_real.y !== undefined);
@@ -171,24 +198,100 @@ export default function Panel({ perfil = "administrador", modelos, alNuevoAnalis
     const ordenarRecientes = (lista) => [...lista].sort((a, b) => (a.creada_en < b.creada_en ? 1 : -1));
     const sinDecision = ordenarRecientes(enPeriodo.filter((p) => !p.decisiones?.length && p.nivel !== "bajo"));
 
-    // Repositorios asignados (con o sin análisis en el período).
+    // Repositorios: el administrador ve los de mayor riesgo; el líder y el
+    // desarrollador, sus repositorios asignados aunque no tengan análisis.
     const porRepo = Object.fromEntries(agrupar(enPeriodo, "repositorio").map((r) => [r.nombre, r]));
-    const repositorios = repos.map((r) => ({
-      nombre: r.nombre_completo, validados: r.workflows_validados, n: 0, alto: 0, media: null, ultimo: null,
-      ...porRepo[r.nombre_completo],
-    }));
-    repositorios.sort(perfil === "lider"
-      ? (a, b) => b.alto - a.alto || (b.media ?? -1) - (a.media ?? -1)
-      : (a, b) => b.n - a.n || a.nombre.localeCompare(b.nombre));
+    let repositorios;
+    if (esAdmin) {
+      repositorios = Object.values(porRepo).sort((a, b) => b.media - a.media).slice(0, 8);
+    } else {
+      repositorios = repos.map((r) => ({
+        nombre: r.nombre_completo, validados: r.workflows_validados, n: 0, alto: 0, media: null, ultimo: null,
+        ...porRepo[r.nombre_completo],
+      }));
+      repositorios.sort(perfil === "lider"
+        ? (a, b) => b.alto - a.alto || (b.media ?? -1) - (a.media ?? -1)
+        : (a, b) => b.n - a.n || a.nombre.localeCompare(b.nombre));
+    }
 
     return {
-      total, anterior, alto, probMedia, verificadas, evaluables, noCompletados, repositorios, sinDecision,
+      total, anterior, conteos, alto, probMedia, verificadas, evaluables, noCompletados, repositorios, sinDecision,
       desarrolladores: agrupar(enPeriodo, "usuario").sort((a, b) => b.n - a.n),
+      dias: serieDiaria(enPeriodo, desde, ahora),
       recientes: ordenarRecientes(enPeriodo).slice(0, 6),
     };
   }, [historial, repos, periodo, perfil]);
 
   const nombrePeriodo = PERIODOS.find(([id]) => id === periodo)[1].toLowerCase();
+  const workflowsValidados = repos.reduce((s, r) => s + r.workflows.length, 0);
+  const nVariables = activo
+    ? activo.metadatos.variables_categoricas.length + activo.metadatos.variables_numericas.length
+    : null;
+
+  // Bloques comunes del dashboard (los mismos del resumen anterior).
+  const flujo = datos && (
+    <section className="tarjeta" aria-labelledby="titulo-flujo">
+      <h2 id="titulo-flujo">Flujo de la plataforma</h2>
+      <ol className="flujo">
+        <li><strong>Fuente: GitHub</strong><span className="secundario">{repos.length} repositorios accesibles</span></li>
+        <li><strong>Integración y recolección</strong><span className="secundario">{workflowsValidados} workflows de despliegue validados</span></li>
+        <li><strong>Base de datos histórica</strong><span className="secundario">{historial.length} análisis registrados</span></li>
+        <li><strong>Preparación de datos</strong><span className="secundario">{nVariables === null ? "—" : `${nVariables} variables por análisis`}</span></li>
+        <li><strong>Modelo predictivo</strong><span className="secundario">{activo ? `${activo.version} · ${activo.nombre_modelo}` : "Sin modelo activo"}</span></li>
+        <li><strong>IA explicable</strong><span className="secundario">Factores SHAP en cada análisis</span></li>
+      </ol>
+    </section>
+  );
+  const graficos = datos && (
+    <div className="rejilla rejilla--3">
+      <section className="tarjeta" aria-labelledby="titulo-distribucion">
+        <h2 id="titulo-distribucion">Distribución por nivel</h2>
+        <p className="secundario">{datos.total} análisis · {nombrePeriodo}</p>
+        <figure className="figura">
+          <Dona conteos={datos.conteos} titulo="Análisis por nivel de riesgo" />
+          <figcaption className="solo-lector">Número de análisis en cada nivel de riesgo.</figcaption>
+        </figure>
+      </section>
+
+      <section className="tarjeta" aria-labelledby="titulo-diarios">
+        <h2 id="titulo-diarios">Análisis por día</h2>
+        <p className="secundario">Apilados por nivel de riesgo</p>
+        <figure className="figura">
+          <BarrasApiladas dias={datos.dias} titulo="Análisis por día y nivel de riesgo" />
+          <figcaption className="solo-lector">Cantidad diaria de análisis según su nivel.</figcaption>
+        </figure>
+      </section>
+
+      <section className="tarjeta" aria-labelledby="titulo-embudo">
+        <h2 id="titulo-embudo">{perfil === "desarrollador" ? "Mis resultados verificados" : "Seguimiento de resultados"}</h2>
+        <p className="secundario">De la predicción a la ejecución real</p>
+        <Embudo
+          pasos={[
+            { etiqueta: "Análisis realizados", valor: datos.total },
+            { etiqueta: "Ejecución real verificada", valor: datos.verificadas.length },
+            { etiqueta: "Resultado evaluable", valor: datos.evaluables.length },
+            { etiqueta: "Despliegue no completado", valor: datos.noCompletados.length },
+          ]}
+        />
+        <p className="secundario nota-pie">Los casos ambiguos o sin intento de despliegue no son evaluables.</p>
+      </section>
+    </div>
+  );
+  const tendencia = datos && (
+    <section className="tarjeta" aria-labelledby="titulo-tendencia">
+      <h2 id="titulo-tendencia">Tendencia de la probabilidad media</h2>
+      <p className="secundario">
+        Probabilidad media diaria de despliegue no completado
+        {activo && `, con los límites de nivel del modelo ${activo.version}`}
+      </p>
+      <figure className="figura">
+        <Linea dias={datos.dias} limites={limites} titulo="Probabilidad media diaria" />
+        <figcaption className="solo-lector">
+          Evolución diaria de la probabilidad media y umbrales de los niveles Medio y Alto.
+        </figcaption>
+      </figure>
+    </section>
+  );
 
   function verAnalisis(id) {
     const p = historial?.find((x) => x.id === id);
@@ -215,20 +318,17 @@ export default function Panel({ perfil = "administrador", modelos, alNuevoAnalis
         <div>
           <h1 id="titulo-panel">{textos.titulo}</h1>
           <p className="secundario">
-            {textos.alcance}
-            {!esAdmin && ` · ${nombrePeriodo}`}
+            {textos.alcance} · {nombrePeriodo}
             {cargadoEn && <> · datos cargados <Fecha valor={cargadoEn} /></>}
           </p>
         </div>
         <div className="panel__acciones">
-          {!esAdmin && (
-            <label className="campo campo--en-linea" htmlFor="panel-periodo">
-              <span>Período</span>
-              <select id="panel-periodo" value={periodo} onChange={(e) => setPeriodo(e.target.value)}>
-                {PERIODOS.map(([id, texto]) => <option key={id} value={id}>{texto}</option>)}
-              </select>
-            </label>
-          )}
+          <label className="campo campo--en-linea" htmlFor="panel-periodo">
+            <span>Período</span>
+            <select id="panel-periodo" value={periodo} onChange={(e) => setPeriodo(e.target.value)}>
+              {PERIODOS.map(([id, texto]) => <option key={id} value={id}>{texto}</option>)}
+            </select>
+          </label>
           <button className="boton boton--secundario" type="button" onClick={actualizar} disabled={cargando}>
             {cargando ? "Actualizando…" : "Actualizar"}
           </button>
@@ -243,9 +343,27 @@ export default function Panel({ perfil = "administrador", modelos, alNuevoAnalis
 
       <Alerta>{error}</Alerta>
 
-      {esAdmin && <PanelAdministrador admin={admin} activo={activo} />}
+      {!datos && !error && <p role="status" className="secundario">Cargando datos del panel…</p>}
 
-      {!esAdmin && !datos && !error && <p role="status" className="secundario">Cargando datos del panel…</p>}
+      {esAdmin && datos && (
+        <>
+          <PanelAdministrador admin={admin} activo={activo} antesDeBloques={flujo} />
+          {graficos}
+          <div className="rejilla rejilla--2-1">
+            <TablaRepositorios perfil={perfil} filas={datos.repositorios} limites={limites} />
+            <ListaAnalisis
+              id="titulo-recientes"
+              titulo="Análisis recientes"
+              filas={datos.recientes}
+              vacio="Sin análisis en el período."
+              detalle={(p) => ` · ${p.usuario}`}
+              accion="Ver"
+              alSeleccionar={setSeleccion}
+            />
+          </div>
+          {tendencia}
+        </>
+      )}
 
       {perfil === "desarrollador" && datos && (
         <>
@@ -282,6 +400,8 @@ export default function Panel({ perfil = "administrador", modelos, alNuevoAnalis
           </section>
 
           {alarma && <MisAsignaciones alarma={alarma} alVerAnalisis={verAnalisis} />}
+          {flujo}
+          {graficos}
 
           <div className="rejilla rejilla--2-1">
             <TablaRepositorios perfil={perfil} filas={datos.repositorios} limites={limites} />
@@ -296,19 +416,7 @@ export default function Panel({ perfil = "administrador", modelos, alNuevoAnalis
             />
           </div>
 
-          <section className="tarjeta" aria-labelledby="titulo-embudo">
-            <h2 id="titulo-embudo">Mis resultados verificados</h2>
-            <p className="secundario">De la predicción a la ejecución real · {nombrePeriodo}</p>
-            <Embudo
-              pasos={[
-                { etiqueta: "Mis análisis", valor: datos.total },
-                { etiqueta: "Ejecución real verificada", valor: datos.verificadas.length },
-                { etiqueta: "Resultado evaluable", valor: datos.evaluables.length },
-                { etiqueta: "Despliegue no completado", valor: datos.noCompletados.length },
-              ]}
-            />
-            <p className="secundario nota-pie">Los casos ambiguos o sin intento de despliegue no son evaluables.</p>
-          </section>
+          {tendencia}
         </>
       )}
 
@@ -335,6 +443,8 @@ export default function Panel({ perfil = "administrador", modelos, alNuevoAnalis
               <Kpi icono="pendiente" titulo="Sin decisión" valor={datos.sinDecision.length} detalle="Nivel medio o alto" />
             </div>
           </section>
+          {flujo}
+          {graficos}
 
           <div className="rejilla rejilla--2-1">
             <TablaRepositorios perfil={perfil} filas={datos.repositorios} limites={limites} />
@@ -384,6 +494,7 @@ export default function Panel({ perfil = "administrador", modelos, alNuevoAnalis
               </div>
             )}
           </section>
+          {tendencia}
         </>
       )}
     </section>
@@ -419,15 +530,20 @@ function ListaAnalisis({ id, titulo, filas, vacio, detalle, accion, alSelecciona
 
 // Mis repositorios (desarrollador) o riesgo alto por repositorio (líder).
 function TablaRepositorios({ perfil, filas, limites }) {
-  const [titulo, descripcion] = perfil === "lider"
-    ? ["Riesgo alto por repositorio", "Repositorios asignados, ordenados por análisis de riesgo Alto"]
-    : ["Mis repositorios", "Repositorios asignados y sus análisis del período"];
+  const [titulo, descripcion] = {
+    administrador: ["Repositorios con mayor riesgo", "Ordenados por probabilidad media del período"],
+    lider: ["Riesgo alto por repositorio", "Repositorios asignados, ordenados por análisis de riesgo Alto"],
+    desarrollador: ["Mis repositorios", "Repositorios asignados y sus análisis del período"],
+  }[perfil];
+  const asignados = perfil !== "administrador";
   return (
     <section className="tarjeta" aria-labelledby="titulo-repos">
       <h2 id="titulo-repos">{titulo}</h2>
       <p className="secundario">{descripcion}</p>
       {!filas.length ? (
-        <p className="secundario">No tiene repositorios asignados. Solicite acceso al administrador.</p>
+        <p className="secundario">
+          {asignados ? "No tiene repositorios asignados. Solicite acceso al administrador." : "Sin análisis en el período."}
+        </p>
       ) : (
         <div className="tabla-contenedor">
           <table>
@@ -435,7 +551,7 @@ function TablaRepositorios({ perfil, filas, limites }) {
             <thead>
               <tr>
                 <th scope="col">Repositorio</th>
-                <th scope="col" className="numero">Workflows validados</th>
+                {asignados && <th scope="col" className="numero">Workflows validados</th>}
                 <th scope="col" className="numero">Análisis</th>
                 <th scope="col" className="numero">Riesgo Alto</th>
                 <th scope="col" className="numero">Prob. media</th>
@@ -447,7 +563,7 @@ function TablaRepositorios({ perfil, filas, limites }) {
               {filas.map((r) => (
                 <tr key={r.nombre}>
                   <td>{r.nombre}</td>
-                  <td className="numero">{r.validados}</td>
+                  {asignados && <td className="numero">{r.validados}</td>}
                   <td className="numero">{r.n}</td>
                   <td className="numero">{r.alto}</td>
                   <td className="numero">{r.media === null ? "—" : porcentaje(r.media)}</td>
@@ -466,7 +582,7 @@ function TablaRepositorios({ perfil, filas, limites }) {
 // Panel del administrador: usuarios por rol, workflows, modelo activo y
 // supervisión, y estado de GitHub. Si un endpoint no responde, el bloque lo
 // indica en lugar de mostrar cifras.
-function PanelAdministrador({ admin, activo }) {
+function PanelAdministrador({ admin, activo, antesDeBloques }) {
   const { resumen, github, supervision } = admin;
   const cargandoTexto = (valor) => (valor === undefined ? <p role="status" className="secundario">Cargando…</p> : null);
   const sinDatos = <p className="secundario">No se pudieron obtener estos datos de la API.</p>;
@@ -496,6 +612,8 @@ function PanelAdministrador({ admin, activo }) {
           />
         </div>
       </section>
+
+      {antesDeBloques}
 
       <div className="rejilla rejilla--3">
         <section className="tarjeta" aria-labelledby="titulo-usuarios-rol">

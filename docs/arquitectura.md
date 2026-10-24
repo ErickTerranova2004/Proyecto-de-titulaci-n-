@@ -204,9 +204,9 @@ Las FK hacia `REPOSITORIO`, `WORKFLOW`, `COMMIT`, `VERSION_MODELO` y `EJECUCION_
 
 ## Perfiles de la interfaz por rol
 
-La interfaz separa los perfiles por menú y por los datos o bloques del panel; el diseño (layout, tarjetas, gráficos y colores) es el mismo para todos (`Panel.jsx` con `perfil`). Si un usuario tiene varios roles se usa el de mayor jerarquía (administrador > líder técnico > desarrollador; el superusuario es administrador), igual que `permissions.rol_principal`. La vista inicial es el panel del rol y una vista que no existe para el rol vuelve a él. Definición: `frontend/src/roles.js`. El pie de página no muestra el modelo activo.
+La interfaz separa los perfiles por menú y por los datos o bloques del panel; el diseño (layout, tarjetas, gráficos y colores) es el mismo para todos (`Panel.jsx` con `perfil`). Todos los paneles conservan el dashboard principal (flujo de la plataforma, distribución por nivel, análisis por día, seguimiento de resultados y tendencia), calculado con los análisis que ve cada rol, y debajo añaden sus bloques propios. Si un usuario tiene varios roles se usa el de mayor jerarquía (administrador > líder técnico > desarrollador; el superusuario es administrador), igual que `permissions.rol_principal`. La vista inicial es el panel del rol y una vista que no existe para el rol vuelve a él. Definición: `frontend/src/roles.js`. El pie de página no muestra el modelo activo.
 
-| Rol | Menú | El panel muestra (solo estos bloques) |
+| Rol | Menú | Bloques propios del panel (además del dashboard común) |
 |---|---|---|
 | Desarrollador | Mi panel · Nuevo análisis · Mi historial | Sus análisis, sus repositorios asignados (`?todos=1`), sus resultados verificados y la tarjeta "Mis asignaciones"; campana con contador y aviso al entrar |
 | Líder técnico | Panel del equipo · Pendientes de decisión · Historial del equipo · Nuevo análisis | Riesgo alto por repositorio asignado, análisis por desarrollador, predicciones sin decisión; Pendientes y el historial muestran la fecha límite y si el desarrollador la vio o la cumplió |
