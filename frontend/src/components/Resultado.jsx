@@ -350,12 +350,6 @@ export default function Resultado({ prediccion, modelos }) {
         <h3 id={`decision-${p.id}`}>Decisión del líder técnico</h3>
         <Decision prediccion={p} alActualizar={setP} />
       </section>
-
-      <footer className="secundario">
-        Modelo {p.version_modelo} · historial usado: {p.ejecuciones_previas.length} ejecuciones previas · datos de
-        GitHub extraídos el <Fecha valor={p.datos_github_extraidos_en} /> · análisis de {p.usuario} el{" "}
-        <Fecha valor={p.creada_en} />
-      </footer>
     </article>
   );
 }
