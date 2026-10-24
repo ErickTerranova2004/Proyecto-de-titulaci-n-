@@ -55,19 +55,42 @@ function Factores({ factores }) {
   );
 }
 
+// Pasos para conseguir la ejecución real cuando la verificación queda pendiente.
+// La regla está en PrediccionViewSet.verificar: mismo workflow y mismo commit,
+// ejecución terminada e iniciada después del análisis.
+function PasosPendiente({ pendiente }) {
+  return (
+    <div className="nota" role="status">
+      <p><strong>{pendiente.detail}</strong></p>
+      <p className="secundario">Para obtener el resultado real:</p>
+      <ol>
+        <li>
+          Ejecute el workflow <code className="codigo">{pendiente.workflow_path}</code> en GitHub sobre el commit{" "}
+          <code className="codigo">{pendiente.sha_corto}</code> de {pendiente.repositorio}.
+        </li>
+        <li>Espere a que la ejecución termine.</li>
+        <li>Vuelva a pulsar «Verificar resultado real».</li>
+      </ol>
+      <p>
+        <a href={pendiente.url_actions}>Abrir el workflow en GitHub Actions</a>
+      </p>
+    </div>
+  );
+}
+
 function ResultadoReal({ prediccion, alActualizar }) {
-  const [mensaje, setMensaje] = useState("");
+  const [pendiente, setPendiente] = useState(null);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const real = prediccion.ejecucion_real;
 
   async function verificar() {
     setCargando(true);
-    setMensaje("");
+    setPendiente(null);
     setError("");
     try {
       const respuesta = await api.verificar(prediccion.id);
-      if (respuesta.estado === "pendiente") setMensaje(respuesta.detail);
+      if (respuesta.estado === "pendiente") setPendiente(respuesta);
       else alActualizar(respuesta);
     } catch (e) {
       setError(e.message);
@@ -79,11 +102,14 @@ function ResultadoReal({ prediccion, alActualizar }) {
   if (!real) {
     return (
       <div className="recuadro">
-        <p className="secundario">Aún no se ha enlazado la ejecución real de este workflow y commit.</p>
+        <p className="secundario">
+          Aún no se ha enlazado la ejecución real. Se enlaza la primera ejecución terminada del mismo workflow y del
+          mismo commit que haya empezado después de este análisis.
+        </p>
         <button className="boton" type="button" disabled={cargando} onClick={verificar}>
           {cargando ? "Consultando GitHub…" : "Verificar resultado real"}
         </button>
-        {mensaje && <p className="secundario" role="status">{mensaje}</p>}
+        {pendiente && <PasosPendiente pendiente={pendiente} />}
         <Alerta>{error}</Alerta>
       </div>
     );

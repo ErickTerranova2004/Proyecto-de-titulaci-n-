@@ -71,6 +71,36 @@ def _error_github(exc):
                   status.HTTP_502_BAD_GATEWAY)
 
 
+MOTIVOS_PENDIENTE = {
+    "sin_ejecuciones": "No hay ejecuciones de este workflow para este commit.",
+    "en_curso": "Hay una ejecución de este commit en curso; todavía no ha "
+                "terminado.",
+    "solo_anteriores": "Solo hay ejecuciones de este commit anteriores a la "
+                       "predicción.",
+}
+
+
+def _verificacion_pendiente(runs, workflow, repo, sha, creada_en):
+    """Motivo exacto por el que aún no hay ejecución real que enlazar."""
+    del_commit = [r for r in runs
+                  if r.get("head_sha") == sha
+                  and (r.get("path") or workflow.path).split("@")[0]
+                  == workflow.path]
+    if not del_commit:
+        motivo = "sin_ejecuciones"
+    elif any(r.get("status") != "completed" for r in del_commit):
+        motivo = "en_curso"
+    else:
+        motivo = "solo_anteriores"
+    archivo = workflow.path.rsplit("/", 1)[-1]
+    return {"estado": "pendiente", "motivo": motivo,
+            "detail": MOTIVOS_PENDIENTE[motivo],
+            "repositorio": repo, "workflow_path": workflow.path,
+            "sha_corto": sha[:7],
+            "url_actions": f"https://github.com/{repo}/actions/workflows/"
+                           f"{archivo}"}
+
+
 @api_view(["GET"])
 def yo(request):
     return Response({"usuario": request.user.username,
@@ -330,11 +360,8 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                  and fecha(r["run_started_at"]) > prediccion.creada_en),
                 key=lambda r: r["run_started_at"])
             if not candidatas:
-                return Response({"estado": "pendiente",
-                                 "detail": "Todavía no hay una ejecución "
-                                           "completada del mismo workflow "
-                                           "y commit posterior a la "
-                                           "predicción."})
+                return Response(_verificacion_pendiente(
+                    runs, workflow, repo, sha, prediccion.creada_en))
             run = candidatas[0]
             jobs = cliente.jobs_intento(repo, run["id"],
                                         run.get("run_attempt") or 1)

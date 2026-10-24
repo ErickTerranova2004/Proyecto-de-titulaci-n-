@@ -286,7 +286,19 @@ class ApiTest(TestCase):
         id_ = self.predecir(self.dev).json()["id"]
         r = self.verificar(self.dev, id_, [self.run_real(id_, -10)], [])
         self.assertEqual(r.json()["estado"], "pendiente")
+        self.assertEqual(r.json()["motivo"], "solo_anteriores")
         self.assertIsNone(Prediccion.objects.get(id=id_).ejecucion_real)
+
+    def test_verificacion_pendiente_sin_ejecuciones_del_commit(self):
+        id_ = self.predecir(self.dev).json()["id"]
+        otro_commit = self.run_real(id_, 5, sha="d" * 40)
+        cuerpo = self.verificar(self.dev, id_, [otro_commit], []).json()
+        self.assertEqual(cuerpo["motivo"], "sin_ejecuciones")
+        self.assertEqual(cuerpo["repositorio"], "acme/tienda")
+        self.assertEqual(cuerpo["workflow_path"], ".github/workflows/deploy.yml")
+        self.assertEqual(cuerpo["sha_corto"], SHA[:7])
+        self.assertEqual(cuerpo["url_actions"],
+                         "https://github.com/acme/tienda/actions/workflows/deploy.yml")
 
     def test_verificacion_ambigua_no_se_etiqueta_como_fallo(self):
         id_ = self.predecir(self.dev).json()["id"]
@@ -326,6 +338,7 @@ class ApiTest(TestCase):
         run = dict(self.run_real(id_, 5), status="in_progress", conclusion=None)
         r = self.verificar(self.dev, id_, [run], self.JOBS_FALLO)
         self.assertEqual(r.json()["estado"], "pendiente")
+        self.assertEqual(r.json()["motivo"], "en_curso")
         self.assertIsNone(Prediccion.objects.get(id=id_).ejecucion_real)
 
     def test_verifica_el_reintento_de_la_ejecucion(self):
