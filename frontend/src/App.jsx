@@ -10,6 +10,8 @@ import Modelos from "./components/Modelos.jsx";
 import NuevoAnalisis from "./components/NuevoAnalisis.jsx";
 import Panel from "./components/Panel.jsx";
 import Pendientes from "./components/Pendientes.jsx";
+import Usuarios from "./components/Usuarios.jsx";
+import Workflows from "./components/Workflows.jsx";
 import { NOMBRES_ROL, rolPrincipal, seccionesDe } from "./roles.js";
 import { debeReiniciar, escucharSesion } from "./sesion.js";
 
@@ -31,6 +33,7 @@ export default function App() {
   usuarioRef.current = usuario;
 
   const rol = usuario ? rolPrincipal(usuario.roles) : null;
+  const nombreUsuario = usuario ? usuario.usuario : null;
   // La alarma de asignaciones solo se activa para el desarrollador.
   const alarma = useAsignaciones(rol === "desarrollador");
 
@@ -57,7 +60,7 @@ export default function App() {
   }, []);
   useEffect(() => {
     if (usuario) cargarModelos();
-  }, [usuario?.usuario]);
+  }, [nombreUsuario]);
 
   // Si el token de la pestaña cambia (otra pestaña, pestaña duplicada o sesión
   // caducada), la interfaz no puede seguir siendo la del usuario anterior.
@@ -85,7 +88,8 @@ export default function App() {
 
   const secciones = seccionesDe(rol);
   // Si la vista elegida no existe para el rol, se vuelve al panel del rol.
-  const actual = secciones.find((s) => s.id === vista && !s.enlace) ?? secciones[0] ?? null;
+  const actual = secciones.find((s) => s.id === vista && !s.enlace) || secciones[0] || null;
+  const idActual = actual ? actual.id : null;
 
   function salir() {
     sesion.cerrar();
@@ -103,7 +107,10 @@ export default function App() {
   function verAsignaciones() {
     setVentanaCerrada(true);
     irA("panel");
-    setTimeout(() => document.getElementById("mis-asignaciones")?.scrollIntoView({ behavior: "smooth" }), 0);
+    setTimeout(() => {
+      const bloque = document.getElementById("mis-asignaciones");
+      if (bloque) bloque.scrollIntoView({ behavior: "smooth" });
+    }, 0);
   }
 
   function atender(asignacion) {
@@ -116,7 +123,7 @@ export default function App() {
       asignacion,
       repositorio: asignacion.repositorio,
       workflow_path: asignacion.workflow_path,
-      rama: prediccion?.rama,
+      rama: prediccion ? prediccion.rama : undefined,
     });
     setAtendiendo(null);
     setVista("nuevo");
@@ -144,7 +151,7 @@ export default function App() {
                 key={id}
                 type="button"
                 className="menu__boton"
-                aria-current={!atendiendo && actual?.id === id ? "page" : undefined}
+                aria-current={!atendiendo && idActual === id ? "page" : undefined}
                 onClick={() => irA(id)}
               >
                 <svg viewBox="0 0 24 24" className="menu__icono" aria-hidden="true"><path d={icono} /></svg>
@@ -164,7 +171,7 @@ export default function App() {
       </aside>
 
       <div className="principal">
-        <header className="barra-superior"><div><span className="barra-superior__seccion">{rol ? NOMBRES_ROL[rol] : "Gestión de riesgo"}</span><span className="barra-superior__separador" aria-hidden="true">/</span><strong>{atendiendo ? "Atender asignación" : actual?.texto}</strong></div><div className="panel__acciones">{rol === "desarrollador" && <Campana pendientes={alarma.pendientes} alAbrir={verAsignaciones} />}<span className="barra-superior__perfil">{usuario.usuario}</span></div></header><main className="contenido">
+        <header className="barra-superior"><div><span className="barra-superior__seccion">{rol ? NOMBRES_ROL[rol] : "Gestión de riesgo"}</span><span className="barra-superior__separador" aria-hidden="true">/</span><strong>{atendiendo ? "Atender asignación" : (actual ? actual.texto : "")}</strong></div><div className="panel__acciones">{rol === "desarrollador" && <Campana pendientes={alarma.pendientes} alAbrir={verAsignaciones} />}<span className="barra-superior__perfil">{usuario.usuario}</span></div></header><main className="contenido">
           {!rol && (
             <Alerta>Su cuenta no tiene un rol asignado. Contacte al administrador.</Alerta>
           )}
@@ -181,7 +188,7 @@ export default function App() {
             />
           ) : (
             <>
-              {actual?.id === "panel" && (
+              {idActual === "panel" && (
                 <Panel
                   key={rol}
                   perfil={PERFIL_PANEL[rol]}
@@ -192,22 +199,24 @@ export default function App() {
                   alAtender={atender}
                 />
               )}
-              {actual?.id === "nuevo" && (
+              {idActual === "nuevo" && (
                 <NuevoAnalisis
-                  key={respuesta?.asignacion.id ?? "nuevo"}
+                  key={respuesta ? respuesta.asignacion.id : "nuevo"}
                   modelos={modelos}
                   respuesta={respuesta}
                   alResponder={() => alarma.recargar()}
                 />
               )}
-              {actual?.id === "pendientes" && <Pendientes modelos={modelos} />}
-              {actual?.id === "historial" && (
+              {idActual === "pendientes" && <Pendientes modelos={modelos} />}
+              {idActual === "historial" && (
                 rol === "desarrollador"
                   ? <Historial modelos={modelos} titulo="Mi historial" descripcion="Desarrollador · sus análisis en sus repositorios asignados" mostrarDesarrollador={false} />
                   : <Historial modelos={modelos} titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento />
               )}
-              {actual?.id === "modelos" && <Modelos modelos={modelos} esAdmin alCambiar={cargarModelos} />}
-              {actual?.id === "integraciones" && <Integraciones />}
+              {idActual === "usuarios" && <Usuarios />}
+              {idActual === "workflows" && <Workflows />}
+              {idActual === "modelos" && <Modelos modelos={modelos} esAdmin alCambiar={cargarModelos} />}
+              {idActual === "integraciones" && <Integraciones />}
             </>
           )}
         </main>
