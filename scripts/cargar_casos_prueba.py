@@ -37,7 +37,15 @@ class Api:
         self.cabeceras = {"Authorization": f"Token {r.json()['token']}"}
 
     def pedir(self, metodo, ruta, **kw):
-        r = requests.request(metodo, f"{self.base}{ruta}", headers=self.cabeceras, timeout=300, **kw)
+        # La plataforma limita las peticiones por usuario (429): se espera lo
+        # que indique Retry-After y se reintenta.
+        for _ in range(5):
+            r = requests.request(metodo, f"{self.base}{ruta}", headers=self.cabeceras, timeout=300, **kw)
+            if r.status_code != 429:
+                break
+            espera = int(r.headers.get("Retry-After", "60")) + 1
+            print(f"  límite de peticiones: espero {espera} s", flush=True)
+            time.sleep(espera)
         try:
             cuerpo = r.json()
         except ValueError:
@@ -54,15 +62,19 @@ def sesiones(base, roles):
     return {rol: Api(base, USUARIOS[rol], clave(rol)) for rol in roles}
 
 
-def asignar(admin, usuario, repo_id):
-    """Añade el repositorio a los accesos del usuario sin quitar los que ya tiene."""
-    _, datos = admin.pedir("GET", "/gestion/usuarios/")
-    u = next(x for x in datos["usuarios"] if x["usuario"] == usuario)
+def asignar(admin, usuarios, usuario, repo_id):
+    """Añade el repositorio a los accesos del usuario sin quitar los que ya tiene.
+
+    `usuarios` es la lista de /gestion/usuarios/ leída una vez; se actualiza
+    con la respuesta para no volver a pedirla en cada asignación."""
+    u = usuarios[usuario]
     actuales = {r["id"] for r in u["repositorios"]}
     if repo_id in actuales:
         return "ya asignado"
-    codigo, _ = admin.pedir("PUT", f"/gestion/usuarios/{u['id']}/repositorios/",
-                            json={"repositorios": sorted(actuales | {repo_id})})
+    codigo, nuevo = admin.pedir("PUT", f"/gestion/usuarios/{u['id']}/repositorios/",
+                                json={"repositorios": sorted(actuales | {repo_id})})
+    if codigo == 200:
+        usuarios[usuario] = nuevo
     return "asignado" if codigo == 200 else f"error {codigo}"
 
 
@@ -74,6 +86,8 @@ def id_repositorio(admin, nombre):
 def cargar(args):
     casos = json.loads(CASOS.read_text(encoding="utf-8"))
     admin = sesiones(args.api, ["admin"])["admin"]
+    _, datos = admin.pedir("GET", "/gestion/usuarios/")
+    usuarios = {u["usuario"]: u for u in datos["usuarios"]}
     filas, discrepancias = [], []
     for caso in casos:
         inicio = time.monotonic()
@@ -85,7 +99,7 @@ def cargar(args):
         repo_id = id_repositorio(admin, caso["repositorio"]) if codigo in (201, 409) else None
         if repo_id:
             for rol in caso["asignar_a"]:
-                acciones.append(f"{USUARIOS[rol]}: {asignar(admin, USUARIOS[rol], repo_id)}")
+                acciones.append(f"{USUARIOS[rol]}: {asignar(admin, usuarios, USUARIOS[rol], repo_id)}")
         sincronizacion = "—"
         if repo_id and codigo == 201 and not args.sin_sincronizar:
             t0 = time.monotonic()
