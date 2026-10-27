@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { Alerta } from "./comunes.jsx";
 
-const REGISTRO_VACIO = { repositorio: "", workflow_path: ".github/workflows/", evidencia: "" };
+const REGISTRO_VACIO = { repositorio: "", workflow_path: ".github/workflows/", evidencia: "", usuarios: [] };
+// Roles a los que se puede asignar el repositorio (el administrador ya ve todos).
+const ROLES_ASIGNABLES = [
+  ["lider_tecnico", "Líderes técnicos"],
+  ["desarrollador", "Desarrolladores"],
+];
 
 // Alta manual de un workflow de despliegue que no está en el dataset.
 // El backend comprueba en GitHub que el repositorio y el archivo existen.
@@ -11,8 +16,21 @@ function RegistroWorkflow({ alRegistrar }) {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
   const [hecho, setHecho] = useState(null);
+  const [candidatos, setCandidatos] = useState(null);
+
+  useEffect(() => {
+    api
+      .gestionUsuarios()
+      .then((r) => setCandidatos(r.usuarios.filter((u) => u.activo && ROLES_ASIGNABLES.some(([rol]) => rol === u.rol))))
+      .catch(() => setCandidatos([]));
+  }, []);
 
   const campo = (nombre) => (e) => setDatos({ ...datos, [nombre]: e.target.value });
+  const alternarUsuario = (id) => (e) =>
+    setDatos({
+      ...datos,
+      usuarios: e.target.checked ? [...datos.usuarios, id] : datos.usuarios.filter((x) => x !== id),
+    });
 
   async function enviar(e) {
     e.preventDefault();
@@ -80,10 +98,43 @@ function RegistroWorkflow({ alRegistrar }) {
           required
         />
       </div>
+      <fieldset aria-describedby="ayuda-asignar">
+        <legend>Asignar el repositorio</legend>
+        <p id="ayuda-asignar" className="secundario">
+          Los líderes técnicos y desarrolladores solo ven los repositorios que tienen asignados. Marque quién podrá
+          analizar este repositorio; también puede asignarlo después en Usuarios y accesos.
+        </p>
+        {!candidatos && <p role="status" className="secundario">Cargando usuarios…</p>}
+        {candidatos && !candidatos.length && (
+          <p className="secundario">No hay líderes técnicos ni desarrolladores activos para asignar.</p>
+        )}
+        {candidatos && candidatos.length > 0 && (
+          <div className="campos">
+            {ROLES_ASIGNABLES.map(([rol, titulo]) => {
+              const delRol = candidatos.filter((u) => u.rol === rol);
+              return (
+                <div key={rol} className="campo">
+                  <span className="secundario"><strong>{titulo}</strong></span>
+                  {!delRol.length && <span className="secundario">Ninguno</span>}
+                  {delRol.map((u) => (
+                    <label key={u.id} className="opcion">
+                      <input type="checkbox" checked={datos.usuarios.includes(u.id)} onChange={alternarUsuario(u.id)} />
+                      {u.usuario}
+                    </label>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </fieldset>
       <Alerta>{error}</Alerta>
       {hecho && (
         <p className="nota" role="status">
-          {hecho.workflow_path} de {hecho.repositorio} quedó validado y disponible en Nuevo análisis.
+          {hecho.workflow_path} de {hecho.repositorio} quedó validado y disponible en Nuevo análisis.{" "}
+          {hecho.asignado_a?.length
+            ? `Asignado a: ${hecho.asignado_a.join(", ")}.`
+            : "No se asignó a nadie: por ahora solo lo ven los administradores."}
           {hecho.ejecuciones_recientes < 10 &&
             ` Tiene ${hecho.ejecuciones_recientes} ejecuciones recientes: con poco historial la estimación es poco informativa.`}
         </p>

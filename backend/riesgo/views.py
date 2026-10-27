@@ -11,7 +11,8 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, mixins
 
-from riesgo.models import (EjecucionWorkflow, Prediccion, Repositorio,
+from riesgo.models import (AccesoRepositorio, EjecucionWorkflow,
+                           Prediccion, Repositorio,
                            VersionModelo, Workflow)
 from riesgo.permissions import (EsAdministrador, EsLiderOAdministrador,
                                 PuedePredecir, predicciones_visibles,
@@ -152,6 +153,16 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
         solicitud = SolicitudRegistroSerializer(data=request.data)
         solicitud.is_valid(raise_exception=True)
         datos = solicitud.validated_data
+        # Usuarios a los que se asigna el repositorio: solo líderes técnicos
+        # y desarrolladores activos (el administrador ya ve todos).
+        asignar = list(get_user_model().objects.filter(
+            id__in=set(datos["usuarios"]), is_active=True))
+        if (len(asignar) != len(set(datos["usuarios"])) or any(
+                rol_principal(u) not in ("lider_tecnico", "desarrollador")
+                for u in asignar)):
+            return _error("Solo se puede asignar el repositorio a líderes "
+                          "técnicos y desarrolladores activos.",
+                          "usuario_no_valido", status.HTTP_400_BAD_REQUEST)
         cliente = github.GitHubClient()
         try:
             info_repo = cliente.repositorio(datos["repositorio"])
@@ -198,6 +209,10 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
             workflow.disponible_github = True
             workflow.verificado_github_en = timezone.now()
             workflow.save()
+            for usuario in asignar:
+                AccesoRepositorio.objects.get_or_create(
+                    usuario=usuario, repositorio=repositorio,
+                    defaults={"asignado_por": request.user})
 
         logger.info("Workflow %s registrado por %s", workflow,
                     request.user.username)
@@ -205,6 +220,7 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
             "repositorio": nombre,
             "workflow_path": workflow.path,
             "ejecuciones_recientes": len(recientes),
+            "asignado_a": sorted(u.username for u in asignar),
         }, status=status.HTTP_201_CREATED)
 
 

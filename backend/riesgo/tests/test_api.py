@@ -542,6 +542,29 @@ class ApiTest(TestCase):
         self.assertFalse(Repositorio.objects.filter(
             nombre_completo="acme/nuevo").exists())
 
+    def test_registro_asigna_el_repositorio_a_lider_y_desarrollador(self):
+        nombres = lambda u: [x["nombre_completo"] for x in self.cliente(u).get("/api/repositorios/").json()]
+        self.assertNotIn("acme/nuevo", nombres(self.dev))
+        r = self.registrar(self.admin, {
+            "repositorio": "acme/nuevo", "workflow_path": ".github/workflows/deploy.yml",
+            "evidencia": self.EVIDENCIA, "usuarios": [self.dev.id, self.lider.id]})
+        self.assertEqual(r.status_code, 201, r.content)
+        self.assertEqual(r.json()["asignado_a"], ["dev", "lider"])
+        # Desde ese momento lo ven en Nuevo análisis; quien no fue asignado, no.
+        self.assertIn("acme/nuevo", nombres(self.dev))
+        self.assertIn("acme/nuevo", nombres(self.lider))
+        self.assertNotIn("acme/nuevo", nombres(self.dev2))
+        acceso = AccesoRepositorio.objects.get(usuario=self.dev, repositorio__nombre_completo="acme/nuevo")
+        self.assertEqual(acceso.asignado_por, self.admin)
+
+    def test_registro_rechaza_asignar_a_usuarios_no_validos(self):
+        datos = {"repositorio": "acme/nuevo", "workflow_path": ".github/workflows/deploy.yml",
+                 "evidencia": self.EVIDENCIA}
+        for usuarios in ([self.admin.id], [self.sin_rol.id], [999999]):
+            r = self.registrar(self.admin, dict(datos, usuarios=usuarios))
+            self.assertEqual((r.status_code, r.json()["codigo"]), (400, "usuario_no_valido"))
+        self.assertFalse(Repositorio.objects.filter(nombre_completo="acme/nuevo").exists())
+
     def test_registro_rechaza_workflow_inexistente(self):
         class SinWorkflow(ClienteFalso):
             def repositorio(self, repo):

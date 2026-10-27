@@ -47,6 +47,10 @@ class SolicitudRegistroSerializer(serializers.Serializer):
         error_messages={"min_length": (
             "Describa la evidencia con al menos 30 caracteres: a qué entorno "
             "despliega y en qué paso del workflow.")})
+    # Opcional: líderes técnicos y desarrolladores que tendrán acceso al
+    # repositorio. Sin acceso asignado solo lo ve el administrador.
+    usuarios = serializers.ListField(child=serializers.IntegerField(),
+                                     required=False, default=list)
 
 
 class EjecucionSerializer(serializers.ModelSerializer):
