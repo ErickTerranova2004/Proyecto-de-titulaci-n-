@@ -47,6 +47,10 @@ class SolicitudRegistroSerializer(serializers.Serializer):
         error_messages={"min_length": (
             "Describa la evidencia con al menos 30 caracteres: a qué entorno "
             "despliega y en qué paso del workflow.")})
+    # Opcional: líderes técnicos y desarrolladores que tendrán acceso al
+    # repositorio. Sin acceso asignado solo lo ve el administrador.
+    usuarios = serializers.ListField(child=serializers.IntegerField(),
+                                     required=False, default=list)
 
 
 class EjecucionSerializer(serializers.ModelSerializer):
@@ -147,6 +151,27 @@ class AsignacionSerializer(serializers.ModelSerializer):
         return decision.vista_por_desarrollador_en is not None
 
 
+class SolicitudEscenarioSerializer(serializers.Serializer):
+    """Condiciones del escenario alternativo (día y hora locales).
+
+    Solo se aceptan las condiciones que decide el desarrollador; cualquier
+    otra variable del modelo se rechaza.
+    """
+
+    dia = serializers.IntegerField(min_value=0, max_value=6)
+    hora = serializers.IntegerField(min_value=0, max_value=23)
+    es_reintento = serializers.BooleanField()
+    tiene_pr = serializers.BooleanField()
+
+    def validate(self, datos):
+        extra = sorted(set(self.initial_data) - set(self.fields))
+        if extra:
+            raise serializers.ValidationError(
+                {campo: "El planificador no permite cambiar esta variable."
+                 for campo in extra})
+        return datos
+
+
 class PrediccionSerializer(serializers.ModelSerializer):
     usuario = serializers.CharField(source="usuario.username")
     repositorio = serializers.CharField(
@@ -163,7 +188,8 @@ class PrediccionSerializer(serializers.ModelSerializer):
         model = Prediccion
         fields = ["id", "usuario", "repositorio", "workflow_path", "head_sha",
                   "rama", "evento", "cambio", "variables", "probabilidad",
-                  "nivel", "factores", "recomendaciones", "version_modelo",
+                  "nivel", "factores", "recomendaciones", "analisis_ia",
+                  "version_modelo",
                   "ejecuciones_previas", "ejecucion_real", "decisiones",
                   "verificada_en", "datos_github_extraidos_en", "creada_en"]
 

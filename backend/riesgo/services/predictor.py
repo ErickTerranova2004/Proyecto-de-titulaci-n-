@@ -88,35 +88,58 @@ def _valor_legible(valor):
     return valor
 
 
-def predecir(variables, version=None):
-    version = version or modelo_activo()
-    meta = version.metadatos
-    modelo, base, explicador = _cargar(_ruta(version.archivo),
-                                       _ruta(version.archivo_explicacion))
+def _modelos(version):
+    return _cargar(_ruta(version.archivo), _ruta(version.archivo_explicacion))
+
+
+def _filas(lista_variables, meta):
     columnas = meta["variables_categoricas"] + meta["variables_numericas"]
-    fila = pd.DataFrame([{c: variables.get(c, np.nan) for c in columnas}])
-    probabilidad = float(modelo.predict_proba(fila)[0, 1])
+    return pd.DataFrame([{c: _a_numero(v.get(c)) for c in columnas}
+                         for v in lista_variables], columns=columnas)
 
-    limites = meta["limites_riesgo"]
+
+def _a_numero(valor):
+    # Las variables guardadas en JSON tienen None donde hubo NaN.
+    return np.nan if valor is None else valor
+
+
+def nivel_de(probabilidad, limites):
     if probabilidad >= limites["alto"]:
-        nivel = "alto"
-    elif probabilidad >= limites["medio"]:
-        nivel = "medio"
-    else:
-        nivel = "bajo"
+        return "alto"
+    if probabilidad >= limites["medio"]:
+        return "medio"
+    return "bajo"
 
+
+def probabilidades(lista_variables, version):
+    """Probabilidad de varias filas en una sola llamada (sin SHAP)."""
+    modelo, _, _ = _modelos(version)
+    filas = _filas(lista_variables, version.metadatos)
+    return [float(p) for p in modelo.predict_proba(filas)[:, 1]]
+
+
+def contribuciones(variables, version):
+    """Contribución SHAP de cada variable original (todas, sin recortar)."""
+    _, base, explicador = _modelos(version)
     # SHAP sobre el modelo sin calibrar (misma ordenación de riesgo).
     prep = base.named_steps["prep"]
-    transformada = pd.DataFrame(prep.transform(fila),
-                                columns=prep.get_feature_names_out())
+    transformada = pd.DataFrame(
+        prep.transform(_filas([variables], version.metadatos)),
+        columns=prep.get_feature_names_out())
     valores = explicador(transformada).values
     if valores.ndim == 3:
         valores = valores[:, :, 1]
-    contribuciones = {}
+    resultado = {}
     for nombre, valor in zip(transformada.columns, valores[0]):
         original, _ = _nombre_original(nombre)
-        contribuciones[original] = contribuciones.get(original, 0.0) + float(
-            valor)
+        resultado[original] = resultado.get(original, 0.0) + float(valor)
+    return resultado
+
+
+def predecir(variables, version=None):
+    version = version or modelo_activo()
+    probabilidad = probabilidades([variables], version)[0]
+    nivel = nivel_de(probabilidad, version.metadatos["limites_riesgo"])
     factores = [
         {
             "variable": nombre,
@@ -125,7 +148,7 @@ def predecir(variables, version=None):
             "contribucion": round(c, 4),
             "efecto": "aumenta" if c > 0 else "reduce",
         }
-        for nombre, c in sorted(contribuciones.items(),
+        for nombre, c in sorted(contribuciones(variables, version).items(),
                                 key=lambda x: -abs(x[1]))
         if abs(c) > 1e-6
     ][:8]

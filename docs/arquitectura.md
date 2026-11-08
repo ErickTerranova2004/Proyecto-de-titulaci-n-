@@ -330,5 +330,5 @@ Cada dato visible viene de la API y, por ella, de la base de datos. Prefijo de t
 - Token de GitHub de solo lectura. Un repositorio privado sin acceso responde igual que uno inexistente (404).
 - Control de acceso por repositorio (`ACCESO_REPOSITORIO`) además del rol.
 - El filtro `OcultarSecretos` elimina tokens de los registros.
-- Autenticación por token, permisos por rol y límite de 120 solicitudes por hora por usuario.
+- Autenticación por token, permisos por rol y límite de 1000 solicitudes por hora por usuario.
 - De los autores de commits solo se guarda un hash; nunca nombres ni correos.

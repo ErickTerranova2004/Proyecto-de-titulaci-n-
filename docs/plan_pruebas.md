@@ -119,6 +119,30 @@ Con la nueva regla, `novuhq/novu` `deploy.yml` ya no se admite: no está en el d
 | 2026-10-24 | Prueba de extremo a extremo con GitHub Actions real en el repositorio de demostración `ErickTerranova2004/demo-despliegue-riesgo` (16 ciclos: análisis de `prueba_dev` antes de la ejecución → `workflow_dispatch` o push a `main` desde una rama de preparación → `gh run watch` → Verificar resultado real; 6 fallos provocados) | OK: 16 de 16 verificados; 10 `despliegue_completado` y 6 `despliegue_no_completado`, coincidiendo con el fallo provocado en los 16 casos |
 | 2026-10-24 | Respuesta a una asignación por la API con los tres perfiles: el líder pospone el análisis 130, el desarrollador lo atiende con el análisis 131, un segundo intento se rechaza, el líder ve Cumplida con el análisis #131 (Bajo → Bajo) | OK |
 
+### Casos de registro de workflows y de permisos con repositorios públicos reales
+
+30 casos verificados el 2026-10-26 con `gh api` y `gh run list` (solo lectura): 22 VÁLIDOS (≥ 4 servidor/SSH, 4 AWS, 3 Azure,
+3 Google Cloud, 4 Kubernetes, 4 PaaS; con ≥ 10 ejecuciones completadas desde el 2026-04-26), 5 INVÁLIDOS (2 solo imagen,
+GitHub Pages, solo CI, PyPI) y 3 LÍMITE (despliegue omitido en el repositorio original, workflow reutilizable y duplicado).
+
+- Casos: [datos_prueba/casos_prueba_30.md](../datos_prueba/casos_prueba_30.md) y [casos_prueba_30.json](../datos_prueba/casos_prueba_30.json)
+- Descartes y motivos: [datos_prueba/casos_descartados.md](../datos_prueba/casos_descartados.md)
+- Carga (registro real, asignación idempotente y sincronización con pausas) y verificación de permisos:
+  `python scripts/cargar_casos_prueba.py cargar` y `python scripts/cargar_casos_prueba.py permisos`
+  (contraseñas por `PRUEBA_ADMIN_PASS`, `PRUEBA_LIDER_PASS`, `PRUEBA_DEV_PASS` o por teclado)
+- Resultados: `datos_prueba/resultado_carga.md` y `datos_prueba/resultado_permisos.md`
+
+| ID | Caso | Resultado esperado (comportamiento real del código) |
+|---|---|---|
+| R-REG-01 | Registro de los 22 workflows VÁLIDOS | 201 y disponibles en Nuevo análisis para el administrador |
+| R-REG-02 | Registro de los 5 INVÁLIDOS (imagen, Pages, CI, PyPI) | 201: el registro no analiza el YAML (hallazgo: el texto del formulario dice que se rechazan) |
+| R-REG-03 | C1: despliegue con `if: github.repository != …` | 201; la sincronización guarda ejecuciones `skipped` sin etiquetarlas como éxito ni fallo |
+| R-REG-04 | C2: workflow reutilizable (`on: workflow_call`) | 201 con 0 ejecuciones recientes |
+| R-REG-05 | C3: workflow ya registrado | 409 `ya_registrado` |
+| R-PER-01 | prueba_admin | Ve los 30 en Nuevo análisis y en asignados |
+| R-PER-02 | prueba_lider | Ve solo los 12 asignados (Nuevo análisis y `?todos=1`) |
+| R-PER-03 | prueba_dev | Ve solo los 11 asignados |
+
 ## 3. Pruebas funcionales pendientes para el usuario
 
 - Abrir los tres perfiles a la vez (ventana normal, incógnito y otro navegador, con `scripts/iniciar_demo.ps1`) y comprobar en la interfaz: menú de cada rol, campana y aviso del desarrollador, tarjeta "Mis asignaciones", marcar cumplida y ver el cambio en Pendientes del líder.

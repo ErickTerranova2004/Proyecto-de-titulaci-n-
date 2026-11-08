@@ -8,7 +8,7 @@ from unittest import mock
 from django.contrib.auth.models import Group, User
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 
@@ -72,6 +72,8 @@ class ClienteNoEncontrado(ClienteFalso):
         raise github.NoEncontrado(repo)
 
 
+# Sin clave: las pruebas no llaman a Gemini (ver test_analisis_ia.py).
+@override_settings(GEMINI_API_KEY="")
 class ApiTest(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -284,9 +286,18 @@ class ApiTest(TestCase):
 
     def test_verificacion_pendiente_si_no_hay_ejecucion_posterior(self):
         id_ = self.predecir(self.dev).json()["id"]
-        r = self.verificar(self.dev, id_, [self.run_real(id_, -10)], [])
+        jobs = [{"id": 1, "name": "deploy", "conclusion": "success",
+                 "started_at": "x", "steps": [
+                     {"number": 1, "name": "Deploy to ECS",
+                      "conclusion": "success"}]}]
+        anterior = self.run_real(id_, -10, run_id=9, conclusion="success")
+        r = self.verificar(self.dev, id_, [anterior], jobs)
         self.assertEqual(r.json()["estado"], "pendiente")
         self.assertEqual(r.json()["motivo"], "solo_anteriores")
+        # Se muestra el resultado en GitHub, pero no se enlaza.
+        github_ = r.json()["ejecucion_github"]
+        self.assertEqual(github_["run_id"], 9)
+        self.assertEqual(github_["etiqueta"], "despliegue_completado")
         self.assertIsNone(Prediccion.objects.get(id=id_).ejecucion_real)
 
     def test_verificacion_pendiente_sin_ejecuciones_del_commit(self):
@@ -294,6 +305,7 @@ class ApiTest(TestCase):
         otro_commit = self.run_real(id_, 5, sha="d" * 40)
         cuerpo = self.verificar(self.dev, id_, [otro_commit], []).json()
         self.assertEqual(cuerpo["motivo"], "sin_ejecuciones")
+        self.assertIsNone(cuerpo["ejecucion_github"])
         self.assertEqual(cuerpo["repositorio"], "acme/tienda")
         self.assertEqual(cuerpo["workflow_path"], ".github/workflows/deploy.yml")
         self.assertEqual(cuerpo["sha_corto"], SHA[:7])
@@ -541,6 +553,29 @@ class ApiTest(TestCase):
         self.assertIn("evidencia", r.json())
         self.assertFalse(Repositorio.objects.filter(
             nombre_completo="acme/nuevo").exists())
+
+    def test_registro_asigna_el_repositorio_a_lider_y_desarrollador(self):
+        nombres = lambda u: [x["nombre_completo"] for x in self.cliente(u).get("/api/repositorios/").json()]
+        self.assertNotIn("acme/nuevo", nombres(self.dev))
+        r = self.registrar(self.admin, {
+            "repositorio": "acme/nuevo", "workflow_path": ".github/workflows/deploy.yml",
+            "evidencia": self.EVIDENCIA, "usuarios": [self.dev.id, self.lider.id]})
+        self.assertEqual(r.status_code, 201, r.content)
+        self.assertEqual(r.json()["asignado_a"], ["dev", "lider"])
+        # Desde ese momento lo ven en Nuevo análisis; quien no fue asignado, no.
+        self.assertIn("acme/nuevo", nombres(self.dev))
+        self.assertIn("acme/nuevo", nombres(self.lider))
+        self.assertNotIn("acme/nuevo", nombres(self.dev2))
+        acceso = AccesoRepositorio.objects.get(usuario=self.dev, repositorio__nombre_completo="acme/nuevo")
+        self.assertEqual(acceso.asignado_por, self.admin)
+
+    def test_registro_rechaza_asignar_a_usuarios_no_validos(self):
+        datos = {"repositorio": "acme/nuevo", "workflow_path": ".github/workflows/deploy.yml",
+                 "evidencia": self.EVIDENCIA}
+        for usuarios in ([self.admin.id], [self.sin_rol.id], [999999]):
+            r = self.registrar(self.admin, dict(datos, usuarios=usuarios))
+            self.assertEqual((r.status_code, r.json()["codigo"]), (400, "usuario_no_valido"))
+        self.assertFalse(Repositorio.objects.filter(nombre_completo="acme/nuevo").exists())
 
     def test_registro_rechaza_workflow_inexistente(self):
         class SinWorkflow(ClienteFalso):

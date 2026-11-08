@@ -11,7 +11,8 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, mixins
 
-from riesgo.models import (EjecucionWorkflow, Prediccion, Repositorio,
+from riesgo.models import (AccesoRepositorio, EjecucionWorkflow,
+                           Prediccion, Repositorio,
                            VersionModelo, Workflow)
 from riesgo.permissions import (EsAdministrador, EsLiderOAdministrador,
                                 PuedePredecir, predicciones_visibles,
@@ -20,16 +21,16 @@ from riesgo.permissions import (EsAdministrador, EsLiderOAdministrador,
 from riesgo.serializers import (AsignacionSerializer, PrediccionSerializer,
                                 RepositorioSerializer,
                                 SolicitudDecisionSerializer,
+                                SolicitudEscenarioSerializer,
                                 SolicitudFechaLimiteSerializer,
                                 SolicitudPrediccionSerializer,
                                 SolicitudRegistroSerializer,
                                 VersionModeloSerializer)
-from riesgo.services import asignaciones, github
+from riesgo.services import analisis_ia, asignaciones, github, planificador
 from riesgo.services.sincronizacion import sincronizar_repositorio
 from riesgo.services.etiquetado import etiquetar_ejecucion
 from riesgo.services.features import calcular_variables, fecha
 from riesgo.services.predictor import SinModeloActivo, predecir
-from riesgo.services.recomendaciones import recomendar
 from riesgo.services.trazabilidad import (RepositorioNoRegistrado,
                                           guardar_commit, guardar_ejecucion,
                                           resolver_repositorio)
@@ -101,6 +102,32 @@ def _verificacion_pendiente(runs, workflow, repo, sha, creada_en):
                            f"{archivo}"}
 
 
+def _ultima_ejecucion_commit(cliente, runs, workflow, repo, sha):
+    """Resultado en GitHub de la última ejecución terminada del commit.
+
+    Se muestra aunque haya empezado antes del análisis, pero no se enlaza a
+    la predicción: no cuenta en la supervisión del modelo.
+    """
+    terminadas = sorted(
+        (r for r in runs
+         if r.get("head_sha") == sha and r.get("status") == "completed"
+         and (r.get("path") or workflow.path).split("@")[0] == workflow.path
+         and r.get("run_started_at")),
+        key=lambda r: r["run_started_at"])
+    if not terminadas:
+        return None
+    run = terminadas[-1]
+    intento = run.get("run_attempt") or 1
+    jobs = cliente.jobs_intento(repo, run["id"], intento)
+    etiqueta = etiquetar_ejecucion(run.get("conclusion"), jobs,
+                                   workflow.patron_paso_despliegue)
+    return {"run_id": run["id"], "run_attempt": intento,
+            "evento": run.get("event", ""), "rama": run.get("head_branch", ""),
+            "conclusion": run.get("conclusion", ""),
+            "iniciada_en": run["run_started_at"], "url": run.get("html_url"),
+            **etiqueta}
+
+
 @api_view(["GET"])
 def yo(request):
     return Response({"usuario": request.user.username,
@@ -152,6 +179,16 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
         solicitud = SolicitudRegistroSerializer(data=request.data)
         solicitud.is_valid(raise_exception=True)
         datos = solicitud.validated_data
+        # Usuarios a los que se asigna el repositorio: solo líderes técnicos
+        # y desarrolladores activos (el administrador ya ve todos).
+        asignar = list(get_user_model().objects.filter(
+            id__in=set(datos["usuarios"]), is_active=True))
+        if (len(asignar) != len(set(datos["usuarios"])) or any(
+                rol_principal(u) not in ("lider_tecnico", "desarrollador")
+                for u in asignar)):
+            return _error("Solo se puede asignar el repositorio a líderes "
+                          "técnicos y desarrolladores activos.",
+                          "usuario_no_valido", status.HTTP_400_BAD_REQUEST)
         cliente = github.GitHubClient()
         try:
             info_repo = cliente.repositorio(datos["repositorio"])
@@ -198,6 +235,10 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
             workflow.disponible_github = True
             workflow.verificado_github_en = timezone.now()
             workflow.save()
+            for usuario in asignar:
+                AccesoRepositorio.objects.get_or_create(
+                    usuario=usuario, repositorio=repositorio,
+                    defaults={"asignado_por": request.user})
 
         logger.info("Workflow %s registrado por %s", workflow,
                     request.user.username)
@@ -205,6 +246,7 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
             "repositorio": nombre,
             "workflow_path": workflow.path,
             "ejecuciones_recientes": len(recientes),
+            "asignado_a": sorted(u.username for u in asignar),
         }, status=status.HTTP_201_CREATED)
 
 
@@ -309,6 +351,9 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         except SinModeloActivo:
             return _error("No hay un modelo activo.", "sin_modelo",
                           status.HTTP_503_SERVICE_UNAVAILABLE)
+        analisis, recomendaciones = analisis_ia.analizar(
+            variables, resultado, contexto, nombre, workflow.path,
+            datos["rama"], datos["evento"])
 
         with transaction.atomic():
             commit = guardar_commit(repositorio, contexto["commit"].get("sha")
@@ -324,7 +369,8 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 probabilidad=resultado["probabilidad"],
                 nivel=resultado["nivel"],
                 factores=resultado["factores"],
-                recomendaciones=recomendar(variables, resultado["factores"]),
+                recomendaciones=recomendaciones,
+                analisis_ia=analisis,
                 version_modelo=resultado["version"],
                 datos_github_extraidos_en=extraido,
             )
@@ -360,8 +406,11 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                  and fecha(r["run_started_at"]) > prediccion.creada_en),
                 key=lambda r: r["run_started_at"])
             if not candidatas:
-                return Response(_verificacion_pendiente(
-                    runs, workflow, repo, sha, prediccion.creada_en))
+                pendiente = _verificacion_pendiente(
+                    runs, workflow, repo, sha, prediccion.creada_en)
+                pendiente["ejecucion_github"] = _ultima_ejecucion_commit(
+                    cliente, runs, workflow, repo, sha)
+                return Response(pendiente)
             run = candidatas[0]
             jobs = cliente.jobs_intento(repo, run["id"],
                                         run.get("run_attempt") or 1)
@@ -382,6 +431,20 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             prediccion.save(update_fields=["ejecucion_real",
                                            "verificada_en"])
         return Response(PrediccionSerializer(prediccion).data)
+
+    @action(detail=True, methods=["post"])
+    def escenario(self, request, pk=None):
+        """Estima un escenario alternativo del análisis. No guarda nada."""
+        prediccion = self.get_object()
+        solicitud = SolicitudEscenarioSerializer(data=request.data)
+        solicitud.is_valid(raise_exception=True)
+        return Response(planificador.estimar_escenario(
+            prediccion, solicitud.validated_data))
+
+    @action(detail=True, methods=["get"])
+    def ventanas(self, request, pk=None):
+        """Franjas de menor riesgo de los 7 días siguientes al análisis."""
+        return Response(planificador.mejores_ventanas(self.get_object()))
 
     @action(detail=True, methods=["post"],
             permission_classes=[EsLiderOAdministrador])

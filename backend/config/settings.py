@@ -126,7 +126,9 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"user": "120/hour"},
+    # La interfaz consulta sola (asignaciones, seguimiento de la ejecución
+    # real cada 30 s), por eso el límite deja margen al uso normal.
+    "DEFAULT_THROTTLE_RATES": {"user": "1000/hour"},
 }
 
 CORS_ALLOWED_ORIGINS = [o for o in os.environ.get(
@@ -140,6 +142,12 @@ CACHES = {
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_API_URL = "https://api.github.com"
 MODELOS_DIR = Path(os.environ.get("MODELOS_DIR", PROJECT_DIR / "modelos"))
+
+# Análisis explicado con Gemini. Sin GEMINI_API_KEY se usan las
+# recomendaciones por reglas.
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODELO = os.environ.get("GEMINI_MODELO", "gemini-3.5-flash")
+IA_TIMEOUT = int(os.environ.get("IA_TIMEOUT", "90"))
 
 # Correo de asignaciones al desarrollador: desactivado por defecto. Se envía
 # solo con CORREO_ASIGNACIONES=1; sin EMAIL_HOST se usa el backend de consola
