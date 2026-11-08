@@ -339,8 +339,11 @@ function DialogoWorkflow({ workflow, patronPorDefecto, alCerrar, alActualizar, a
         </div>
 
         <label className="gestion-check">
-          <input type="checkbox" checked={validado} onChange={(e) => setValidado(e.target.checked)} />
-          <span>Validado como workflow de despliegue a una aplicación</span>
+          <span className="gestion-check__texto">
+            <strong>Validado como workflow de despliegue a una aplicación</strong>
+            <span>{validado ? "Se ofrece en Nuevo análisis." : "No se ofrece en Nuevo análisis."}</span>
+          </span>
+          <input type="checkbox" role="switch" checked={validado} onChange={(e) => setValidado(e.target.checked)} />
         </label>
         {!validado && workflow.validado && (
           <p className="secundario nota-pie">

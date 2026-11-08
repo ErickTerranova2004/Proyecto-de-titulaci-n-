@@ -218,6 +218,11 @@ export default function Usuarios() {
             setEditando(null);
             avisar(`Cambios de ${u.usuario} guardados.`);
           }}
+          alEliminar={(u) => {
+            setDatos((d) => ({ ...d, usuarios: d.usuarios.filter((x) => x.id !== u.id) }));
+            setEditando(null);
+            avisar(`Usuario ${u.usuario} eliminado.`);
+          }}
         />
       )}
     </section>
@@ -276,7 +281,76 @@ function DialogoNuevo({ alCerrar, alCrear }) {
   );
 }
 
-function DialogoUsuario({ usuario, repositorios, alCerrar, alGuardar }) {
+// Motivo por el que la cuenta no se puede eliminar, o null si se puede. La
+// regla real está en views_gestion._eliminar_usuario.
+function motivoNoEliminar(usuario) {
+  if (usuario.es_actual) return "No puede eliminar su propia cuenta.";
+  if (usuario.superusuario) return "El superusuario no se puede eliminar.";
+  if (usuario.analisis || usuario.decisiones) {
+    return (
+      `Tiene ${usuario.analisis} análisis y ${usuario.decisiones} decisiones registradas: para conservar la ` +
+      "trazabilidad no se puede eliminar. Desmarque «Cuenta activa» para quitarle el acceso."
+    );
+  }
+  return null;
+}
+
+function ZonaEliminar({ usuario, alEliminar }) {
+  const [confirmando, setConfirmando] = useState(false);
+  const [eliminando, setEliminando] = useState(false);
+  const [error, setError] = useState("");
+  const motivo = motivoNoEliminar(usuario);
+
+  async function eliminar() {
+    setEliminando(true);
+    setError("");
+    try {
+      await api.eliminarUsuario(usuario.id);
+      alEliminar(usuario);
+    } catch (err) {
+      setError(err.message);
+      setEliminando(false);
+      setConfirmando(false);
+    }
+  }
+
+  return (
+    <div className="gestion-eliminar">
+      {confirmando ? (
+        <>
+          <p>
+            ¿Eliminar definitivamente la cuenta <strong>{usuario.usuario}</strong>? Se borrarán también sus accesos a
+            repositorios. Esta acción no se puede deshacer.
+          </p>
+          <div className="gestion-dialogo__acciones gestion-dialogo__acciones--inicio">
+            <button type="button" className="boton boton--peligro" onClick={eliminar} disabled={eliminando}>
+              {eliminando ? "Eliminando…" : "Sí, eliminar"}
+            </button>
+            <button type="button" className="boton boton--secundario" onClick={() => setConfirmando(false)}>
+              No, conservarla
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <button
+            type="button"
+            className="boton boton--peligro-suave"
+            onClick={() => setConfirmando(true)}
+            disabled={Boolean(motivo)}
+            aria-describedby={motivo ? "motivo-eliminar" : undefined}
+          >
+            Eliminar usuario
+          </button>
+          {motivo && <p id="motivo-eliminar" className="secundario nota-pie">{motivo}</p>}
+        </>
+      )}
+      <Alerta>{error}</Alerta>
+    </div>
+  );
+}
+
+function DialogoUsuario({ usuario, repositorios, alCerrar, alGuardar, alEliminar }) {
   const [rol, setRol] = useState(usuario.rol || "");
   const [activo, setActivo] = useState(usuario.activo);
   const [correo, setCorreo] = useState(usuario.correo);
@@ -332,8 +406,23 @@ function DialogoUsuario({ usuario, repositorios, alCerrar, alGuardar }) {
         )}
 
         <label className="gestion-check">
-          <input type="checkbox" checked={activo} onChange={(e) => setActivo(e.target.checked)} disabled={usuario.es_actual} />
-          <span>Cuenta activa {!activo && "· al guardar se cerrarán sus sesiones abiertas"}</span>
+          <span className="gestion-check__texto">
+            <strong>Cuenta activa</strong>
+            <span>
+              {usuario.es_actual
+                ? "No puede desactivar su propia cuenta."
+                : activo
+                  ? "Puede iniciar sesión en la plataforma."
+                  : "No podrá iniciar sesión; al guardar se cerrarán sus sesiones abiertas."}
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            role="switch"
+            checked={activo}
+            onChange={(e) => setActivo(e.target.checked)}
+            disabled={usuario.es_actual}
+          />
         </label>
 
         <label className="campo"><span>Nueva contraseña (opcional)</span>
@@ -362,6 +451,7 @@ function DialogoUsuario({ usuario, repositorios, alCerrar, alGuardar }) {
           <button className="boton" disabled={guardando}>{guardando ? "Guardando…" : "Guardar cambios"}</button>
         </div>
       </form>
+      <ZonaEliminar usuario={usuario} alEliminar={alEliminar} />
     </Dialogo>
   );
 }

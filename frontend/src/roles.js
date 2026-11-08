@@ -13,6 +13,7 @@ export const NOMBRES_ROL = {
 const ICONOS = {
     panel: "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",
     nuevo: "M12 5v14M5 12h14",
+    planificador: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 15l3 3 5-6",
     historial: "M12 7v5l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
     pendientes: "M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11",
     usuarios: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
@@ -28,6 +29,7 @@ export const SECCIONES = {
     desarrollador: [
         seccion("panel", "Mi panel", "panel"),
         seccion("nuevo", "Nuevo análisis", "nuevo"),
+        seccion("planificador", "Planificador", "planificador"),
         seccion("historial", "Mi historial", "historial"),
     ],
     lider_tecnico: [

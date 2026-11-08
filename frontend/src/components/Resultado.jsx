@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import {
   Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, hoyLocal, NIVELES, NivelRiesgo, porcentaje, useRoles,
@@ -68,8 +68,9 @@ function PasosPendiente({ pendiente }) {
           Ejecute el workflow <code className="codigo">{pendiente.workflow_path}</code> en GitHub sobre el commit{" "}
           <code className="codigo">{pendiente.sha_corto}</code> de {pendiente.repositorio}.
         </li>
-        <li>Espere a que la ejecución termine.</li>
-        <li>Vuelva a pulsar «Verificar resultado real».</li>
+        <li>
+          Espere a que la ejecución termine: mientras el seguimiento automático esté activo, la plataforma la enlaza sola.
+        </li>
       </ol>
       <p>
         <a href={pendiente.url_actions}>Abrir el workflow en GitHub Actions</a>
@@ -78,25 +79,61 @@ function PasosPendiente({ pendiente }) {
   );
 }
 
+// Seguimiento automático: mientras la verificación quede pendiente se vuelve a
+// consultar GitHub cada INTERVALO_SEGUIMIENTO, como máximo DURACION_SEGUIMIENTO.
+const INTERVALO_SEGUIMIENTO = 30_000;
+const DURACION_SEGUIMIENTO = 2 * 60 * 60 * 1000;
+
 function ResultadoReal({ prediccion, alActualizar }) {
   const [pendiente, setPendiente] = useState(null);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [siguiendo, setSiguiendo] = useState(false);
+  const [ultimaConsulta, setUltimaConsulta] = useState(null);
+  const temporizador = useRef(null);
+  const inicio = useRef(0);
   const real = prediccion.ejecucion_real;
 
-  async function verificar() {
+  function detener() {
+    clearTimeout(temporizador.current);
+    temporizador.current = null;
+    setSiguiendo(false);
+  }
+
+  useEffect(() => () => clearTimeout(temporizador.current), []);
+
+  async function consultar() {
     setCargando(true);
-    setPendiente(null);
     setError("");
     try {
       const respuesta = await api.verificar(prediccion.id);
-      if (respuesta.estado === "pendiente") setPendiente(respuesta);
-      else alActualizar(respuesta);
+      setUltimaConsulta(new Date());
+      if (respuesta.estado !== "pendiente") {
+        detener();
+        setPendiente(null);
+        alActualizar(respuesta);
+        return;
+      }
+      setPendiente(respuesta);
+      if (Date.now() - inicio.current >= DURACION_SEGUIMIENTO) {
+        detener();
+        return;
+      }
+      setSiguiendo(true);
+      temporizador.current = setTimeout(consultar, INTERVALO_SEGUIMIENTO);
     } catch (e) {
+      detener();
       setError(e.message);
     } finally {
       setCargando(false);
     }
+  }
+
+  function verificar() {
+    clearTimeout(temporizador.current);
+    inicio.current = Date.now();
+    setPendiente(null);
+    consultar();
   }
 
   if (!real) {
@@ -106,16 +143,60 @@ function ResultadoReal({ prediccion, alActualizar }) {
           Aún no se ha enlazado la ejecución real. Se enlaza la primera ejecución terminada del mismo workflow y del
           mismo commit que haya empezado después de este análisis.
         </p>
-        <button className="boton" type="button" disabled={cargando} onClick={verificar}>
-          {cargando ? "Consultando GitHub…" : "Verificar resultado real"}
-        </button>
-        {pendiente && <PasosPendiente pendiente={pendiente} />}
+        {siguiendo ? (
+          <button className="boton boton--secundario" type="button" onClick={detener}>
+            Detener seguimiento
+          </button>
+        ) : (
+          <button className="boton" type="button" disabled={cargando} onClick={verificar}>
+            {cargando ? "Consultando GitHub…" : "Verificar resultado real"}
+          </button>
+        )}
+        {siguiendo && (
+          <p className="secundario" role="status">
+            {cargando ? "Consultando GitHub…" : "Seguimiento automático activo"}: se consulta GitHub cada 30 s y el
+            resultado se enlaza en cuanto la ejecución termine.
+            {ultimaConsulta && (
+              <> Última consulta: {ultimaConsulta.toLocaleTimeString("es-EC", { timeZone: "America/Guayaquil" })}.</>
+            )}
+          </p>
+        )}
+        {!siguiendo && pendiente && (
+          <p className="secundario">El seguimiento automático está detenido. Pulse «Verificar resultado real» para reanudarlo.</p>
+        )}
+        {pendiente?.ejecucion_github ? (
+          <EjecucionGitHub ejecucion={pendiente.ejecucion_github} />
+        ) : (
+          pendiente && <PasosPendiente pendiente={pendiente} />
+        )}
         <Alerta>{error}</Alerta>
       </div>
     );
   }
+  return <DatosEjecucion real={real} className="datos recuadro" />;
+}
+
+// Resultado en GitHub de una ejecución del mismo commit que empezó antes del
+// análisis: se muestra, pero no se enlaza ni cuenta en la supervisión.
+function EjecucionGitHub({ ejecucion }) {
   return (
-    <dl className="datos recuadro">
+    <div className="nota" role="status">
+      <p><strong>Resultado real en GitHub</strong></p>
+      <DatosEjecucion real={ejecucion} className="datos" />
+      <p className="secundario">
+        Esta ejecución empezó antes del análisis, por eso no se enlaza ni cuenta en la supervisión del modelo. Si llega
+        una ejecución posterior, se enlazará automáticamente.
+        {ejecucion.url && (
+          <> <a href={ejecucion.url}>Ver la ejecución en GitHub</a>.</>
+        )}
+      </p>
+    </div>
+  );
+}
+
+function DatosEjecucion({ real, className }) {
+  return (
+    <dl className={className}>
       <dt>Etiqueta</dt>
       <dd>{ETIQUETAS[real.etiqueta] || real.etiqueta}</dd>
       {real.subtipo_etiqueta && (
@@ -350,6 +431,17 @@ export default function Resultado({ prediccion, modelos }) {
       )}
       </div>
 
+      {p.analisis_ia?.origen === "ia" && (
+        <section aria-labelledby={`analisis-${p.id}`}>
+          <h3 id={`analisis-${p.id}`}>Análisis</h3>
+          <p>{p.analisis_ia.resumen}</p>
+          <p className="secundario">
+            Redactado por {p.analisis_ia.modelo} a partir del resultado del modelo {p.version_modelo}; el nivel y la
+            probabilidad son del modelo.
+          </p>
+        </section>
+      )}
+
       <section aria-labelledby={`factores-${p.id}`}>
         <h3 id={`factores-${p.id}`}>Factores que más influyen</h3>
         <Factores factores={p.factores} />
@@ -365,6 +457,12 @@ export default function Resultado({ prediccion, modelos }) {
             </li>
           ))}
         </ul>
+        {p.analisis_ia?.origen === "reglas" && p.analisis_ia.error && (
+          <p className="secundario">
+            El análisis con IA no estuvo disponible ({p.analisis_ia.error}); se muestran las recomendaciones por
+            reglas.
+          </p>
+        )}
       </section>
 
       <section aria-labelledby={`real-${p.id}`}>

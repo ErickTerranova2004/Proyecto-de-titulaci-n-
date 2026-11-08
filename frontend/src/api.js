@@ -55,6 +55,10 @@ export const api = {
     historial: () => solicitar("/predicciones/"),
     prediccion: (id) => solicitar(`/predicciones/${id}/`),
     verificar: (id) => solicitar(`/predicciones/${id}/verificar/`, { method: "POST" }),
+    // Planificador: estimar un escenario alternativo no guarda nada.
+    estimarEscenario: (id, condiciones) =>
+        solicitar(`/predicciones/${id}/escenario/`, { method: "POST", body: JSON.stringify(condiciones) }),
+    ventanas: (id) => solicitar(`/predicciones/${id}/ventanas/`),
     repositorios: () => solicitar("/repositorios/"),
     // Todos los repositorios asignados, aunque no tengan workflows utilizables.
     repositoriosAsignados: () => solicitar("/repositorios/?todos=1"),
@@ -81,6 +85,7 @@ export const api = {
         solicitar("/gestion/usuarios/", { method: "POST", body: JSON.stringify(datos) }),
     editarUsuario: (id, datos) =>
         solicitar(`/gestion/usuarios/${id}/`, { method: "PATCH", body: JSON.stringify(datos) }),
+    eliminarUsuario: (id) => solicitar(`/gestion/usuarios/${id}/`, { method: "DELETE" }),
     accesosUsuario: (id, repositorios) =>
         solicitar(`/gestion/usuarios/${id}/repositorios/`, { method: "PUT", body: JSON.stringify({ repositorios }) }),
     gestionWorkflows: () => solicitar("/gestion/workflows/"),

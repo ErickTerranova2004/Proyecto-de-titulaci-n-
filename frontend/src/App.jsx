@@ -10,6 +10,7 @@ import Modelos from "./components/Modelos.jsx";
 import NuevoAnalisis from "./components/NuevoAnalisis.jsx";
 import Panel from "./components/Panel.jsx";
 import Pendientes from "./components/Pendientes.jsx";
+import Planificador from "./components/Planificador.jsx";
 import Usuarios from "./components/Usuarios.jsx";
 import Workflows from "./components/Workflows.jsx";
 import { NOMBRES_ROL, rolPrincipal, seccionesDe } from "./roles.js";
@@ -207,6 +208,7 @@ export default function App() {
                   alResponder={() => alarma.recargar()}
                 />
               )}
+              {idActual === "planificador" && <Planificador />}
               {idActual === "pendientes" && <Pendientes modelos={modelos} />}
               {idActual === "historial" && (
                 rol === "desarrollador"

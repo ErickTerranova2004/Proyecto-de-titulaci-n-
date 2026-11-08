@@ -1,7 +1,7 @@
 """Gestión de usuarios, accesos y workflows desde la interfaz (solo administrador).
 
 Reemplaza el uso del administrador de Django para estas tareas. Cada listado
-devuelve todo en una sola petición para no gastar el límite de 120/hora.
+devuelve todo en una sola petición para no gastar el límite de peticiones por hora.
 """
 import re
 
@@ -31,7 +31,9 @@ NO_ENCONTRADO = status.HTTP_404_NOT_FOUND
 # ------------------------------------------------------------------ Usuarios
 def _consulta_usuarios():
     return Usuario.objects.prefetch_related(
-        "groups", "accesos__repositorio").order_by("username")
+        "groups", "accesos__repositorio").annotate(
+        n_analisis=Count("predicciones", distinct=True),
+        n_decisiones=Count("decisiones", distinct=True)).order_by("username")
 
 
 def _serializar_usuario(u, actual):
@@ -50,6 +52,9 @@ def _serializar_usuario(u, actual):
              for a in u.accesos.all()),
             key=lambda r: r["nombre"].lower()),
         "es_actual": u.id == actual.id,
+        # Con historial no se puede eliminar (trazabilidad): solo desactivar.
+        "analisis": u.n_analisis,
+        "decisiones": u.n_decisiones,
     }
 
 
@@ -109,7 +114,29 @@ def usuarios(request):
         status=status.HTTP_201_CREATED)
 
 
-@api_view(["PATCH"])
+def _eliminar_usuario(usuario, es_yo):
+    """Elimina una cuenta sin historial; con historial solo se desactiva."""
+    if es_yo:
+        return _error("No puede eliminar su propia cuenta.", "propia_cuenta",
+                      MAL)
+    if usuario.is_superuser:
+        return _error("El superusuario no se puede eliminar.",
+                      "es_superusuario", MAL)
+    analisis = usuario.predicciones.count()
+    decisiones = usuario.decisiones.count()
+    if analisis or decisiones:
+        return _error(
+            f"{usuario.username} tiene {analisis} análisis y {decisiones} "
+            "decisiones registradas. Para conservar la trazabilidad no se "
+            "puede eliminar: desactive la cuenta.", "con_historial",
+            status.HTTP_409_CONFLICT)
+    # Accesos y token se borran en cascada; quien validó workflows o asignó
+    # accesos queda como "sin usuario" (SET_NULL).
+    usuario.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["PATCH", "DELETE"])
 @permission_classes([EsAdministrador])
 def usuario_detalle(request, pk):
     usuario = Usuario.objects.filter(pk=pk).first()
@@ -117,6 +144,8 @@ def usuario_detalle(request, pk):
         return _error("Usuario no encontrado.", "no_encontrado", NO_ENCONTRADO)
     datos = request.data
     es_yo = usuario.pk == request.user.pk
+    if request.method == "DELETE":
+        return _eliminar_usuario(usuario, es_yo)
 
     # 1. Validar todo antes de cambiar nada.
     if "rol" in datos:

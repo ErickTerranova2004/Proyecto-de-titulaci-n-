@@ -208,6 +208,9 @@ class Prediccion(models.Model):
     factores = models.JSONField()
     # Lista de {"codigo", "variable", "texto"}.
     recomendaciones = models.JSONField()
+    # {"origen": "ia"|"reglas", "modelo", "resumen", "error"}; nulo en
+    # predicciones anteriores al análisis con IA.
+    analisis_ia = models.JSONField(null=True, blank=True)
     ejecuciones_previas = models.ManyToManyField(
         EjecucionWorkflow, blank=True, related_name="predicciones_que_la_usan")
     ejecucion_real = models.ForeignKey(
