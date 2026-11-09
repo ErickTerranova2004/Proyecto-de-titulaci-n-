@@ -389,10 +389,13 @@ class ApiTest(TestCase):
         self.assertEqual(sum(n["evaluables"] for n in por_nivel.values()), 2)
         self.assertEqual(sum(n["no_completados"] for n in por_nivel.values()), 1)
         self.assertEqual(datos["predicciones_demostracion"], 0)
-        # Al marcar el repositorio como demostración se informa por separado.
+        # Al marcar el repositorio como demostración sus predicciones salen de
+        # todas las métricas y solo se informa cuántas se excluyeron.
         Repositorio.objects.filter(id=self.repo.id).update(es_demostracion=True)
         datos = self.cliente(self.admin).get(f"/api/modelos/{modelo}/supervision/").json()
         self.assertEqual(datos["predicciones_demostracion"], 4)
+        self.assertEqual((datos["predicciones"], datos["verificadas"], datos["evaluables"]), (0, 0, 0))
+        self.assertIsNone(datos["brier"])
 
     # --- Modelos ------------------------------------------------------------
 

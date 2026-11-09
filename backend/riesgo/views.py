@@ -493,7 +493,9 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
     def supervision(self, request, pk=None):
         """Comparación de las predicciones con los resultados reales."""
         version = self.get_object()
-        predicciones = Prediccion.objects.filter(version_modelo=version)
+        todas = Prediccion.objects.filter(version_modelo=version)
+        # Las de repositorios de demostración no son validación del modelo.
+        predicciones = todas.para_modelo()
         evaluables = [
             (p.nivel, p.probabilidad, p.ejecucion_real.y)
             for p in predicciones.filter(
@@ -513,9 +515,8 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
         return Response({
             "version": version.version,
             "predicciones": predicciones.count(),
-            # Las de repositorios de demostración no son validación del modelo.
-            "predicciones_demostracion": predicciones.filter(
-                workflow__repositorio__es_demostracion=True).count(),
+            # Excluidas de todas las métricas anteriores.
+            "predicciones_demostracion": todas.de_demostracion().count(),
             "verificadas": predicciones.filter(
                 ejecucion_real__isnull=False).count(),
             "evaluables": len(evaluables),

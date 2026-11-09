@@ -179,6 +179,9 @@ class PrediccionSerializer(serializers.ModelSerializer):
     workflow_path = serializers.CharField(source="workflow.path")
     head_sha = serializers.CharField(source="commit.sha")
     version_modelo = serializers.CharField(source="version_modelo.version")
+    # Repositorio de demostración: los dashboards no lo cuentan.
+    demostracion = serializers.BooleanField(
+        source="workflow.repositorio.es_demostracion", read_only=True)
     cambio = serializers.SerializerMethodField()
     ejecuciones_previas = serializers.SerializerMethodField()
     ejecucion_real = EjecucionSerializer(read_only=True)
@@ -186,7 +189,7 @@ class PrediccionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Prediccion
-        fields = ["id", "usuario", "repositorio", "workflow_path", "head_sha",
+        fields = ["id", "usuario", "repositorio", "workflow_path", "head_sha", "demostracion",
                   "rama", "evento", "cambio", "variables", "probabilidad",
                   "nivel", "factores", "recomendaciones", "analisis_ia",
                   "version_modelo",

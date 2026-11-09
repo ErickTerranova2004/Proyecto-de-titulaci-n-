@@ -114,8 +114,27 @@ class Commit(models.Model):
         return f"{self.repositorio}@{self.sha[:7]}"
 
 
+class DatosModeloQuerySet(models.QuerySet):
+    """Filas que pueden usarse para entrenar, evaluar o supervisar el modelo.
+
+    Los repositorios de demostración (Repositorio.es_demostracion) quedan
+    fuera: sirven para demostraciones en vivo, no como datos del modelo.
+    Toda exportación a entrenamiento, métrica o dashboard debe partir de
+    para_modelo()."""
+
+    campo_repositorio = "workflow__repositorio"
+
+    def para_modelo(self):
+        return self.exclude(**{f"{self.campo_repositorio}__es_demostracion": True})
+
+    def de_demostracion(self):
+        return self.filter(**{f"{self.campo_repositorio}__es_demostracion": True})
+
+
 class EjecucionWorkflow(models.Model):
     """Un intento (run_id + run_attempt) de un workflow en GitHub Actions."""
+
+    objects = DatosModeloQuerySet.as_manager()
 
     ETIQUETAS = [
         ("despliegue_completado", "Despliegue completado (y = 0)"),
@@ -124,6 +143,7 @@ class EjecucionWorkflow(models.Model):
         ("excluida_ambigua", "Excluida: fallo en otro job con el despliegue "
                              "completado"),
         ("excluida_otro_resultado", "Excluida: cancelada, omitida u otro"),
+        ("excluida_sin_jobs", "Excluida: el workflow no arrancó (sin jobs)"),
     ]
     SUBTIPOS = [
         ("antes_del_despliegue", "Falló antes de llegar al despliegue"),
@@ -187,6 +207,8 @@ class VersionModelo(models.Model):
 
 class Prediccion(models.Model):
     """Análisis de riesgo de un despliegue con trazabilidad completa."""
+
+    objects = DatosModeloQuerySet.as_manager()
 
     NIVELES = [("bajo", "Bajo"), ("medio", "Medio"), ("alto", "Alto")]
 

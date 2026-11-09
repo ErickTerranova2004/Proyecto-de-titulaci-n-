@@ -37,7 +37,7 @@ Fecha: 2026-10-15. Evidencia: `informes/informe_niveles_despliegue.md`,
 **Variable objetivo `y` (despliegue no completado):**
 - `y = 0`: el paso de despliegue se ejecutó y el workflow terminó en `success`.
 - `y = 1`: el intento no se completó. El workflow falló antes de llegar al despliegue (compilación o pruebas del pipeline), durante el despliegue o en un paso posterior del mismo job.
-- **Excluidas:** ejecuciones exitosas sin paso de despliegue (no hubo intento), fallos en otro job con el despliegue completado (ambiguas), y ejecuciones `cancelled`, `skipped` o `action_required`.
+- **Excluidas:** ejecuciones exitosas sin paso de despliegue (no hubo intento), fallos en otro job con el despliegue completado (ambiguas), ejecuciones `cancelled`, `skipped` o `action_required`, y ejecuciones que terminaron **sin ningún job** (`startup_failure`, YAML inválido, permisos del workflow…): no llegaron a arrancar, así que no son un intento de despliegue y no cuentan como y = 1. *(Añadido el 2026-11-09 al construir el dataset de repositorios reales; ver `informes/informe_filtrado_repos_reales.md`.)*
 
 ## 5. Cambio de alcance (declaración explícita)
 
@@ -61,6 +61,7 @@ Al verificar una predicción (`POST /api/predicciones/{id}/verificar/`), la plat
 | `excluida_ambigua` | — | — | Falló otro job y el despliegue terminó bien (caso novu) |
 | `excluida_sin_intento` | — | — | Workflow `success` sin paso de despliegue en `success` |
 | `excluida_otro_resultado` | — | — | `cancelled`, `skipped`, `action_required`… |
+| `excluida_sin_jobs` | — | — | Workflow `failure` sin ningún job: no llegó a arrancar (`startup_failure`, YAML inválido…) |
 
 La etiqueta se llama **"despliegue no completado"**, nunca "fallo real de despliegue". Solo el subtipo `en_paso_de_despliegue` aporta evidencia directa de un fallo *durante* el despliegue. Guardar ese subtipo es lo que permitirá, con el tiempo, construir la etiqueta de fallo real que hoy no existe en los datos públicos.
 

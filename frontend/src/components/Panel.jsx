@@ -154,7 +154,10 @@ export default function Panel(props) {
 function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma, alAtender }) {
   const textos = PERFILES[perfil];
   const esAdmin = perfil === "administrador";
+  // Los análisis de repositorios de demostración no cuentan en el dashboard
+  // (siguen en Historial y en el resultado de cada análisis).
   const [historial, setHistorial] = useState(null);
+  const [demostraciones, setDemostraciones] = useState(0);
   const [repos, setRepos] = useState([]);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
@@ -171,7 +174,9 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
     setCargando(true);
     Promise.all([api.historial(), api.repositoriosAsignados()])
       .then(([h, r]) => {
-        setHistorial(h);
+        const reales = h.filter((p) => !p.demostracion);
+        setHistorial(reales);
+        setDemostraciones(h.length - reales.length);
         setRepos(r);
         setCargadoEn(new Date().toISOString());
       })
@@ -249,7 +254,13 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
       <ol className="flujo">
         <li><strong>Fuente: GitHub</strong><span className="secundario">{repos.length} repositorios accesibles</span></li>
         <li><strong>Integración y recolección</strong><span className="secundario">{workflowsValidados} workflows de despliegue validados</span></li>
-        <li><strong>Base de datos histórica</strong><span className="secundario">{historial.length} análisis registrados</span></li>
+        <li>
+          <strong>Base de datos histórica</strong>
+          <span className="secundario">
+            {historial.length} análisis registrados
+            {demostraciones > 0 && ` (sin contar ${demostraciones} de demostración)`}
+          </span>
+        </li>
         <li><strong>Preparación de datos</strong><span className="secundario">{nVariables === null ? "—" : `${nVariables} variables por análisis`}</span></li>
         <li><strong>Modelo predictivo</strong><span className="secundario">{activo ? `${activo.version} · ${activo.nombre_modelo}` : "Sin modelo activo"}</span></li>
         <li><strong>IA explicable</strong><span className="secundario">Factores SHAP en cada análisis</span></li>
@@ -715,7 +726,7 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
         )}
         {supervision?.predicciones_demostracion > 0 && (
           <p className="secundario nota-pie">
-            Incluye {supervision.predicciones_demostracion} predicciones de repositorios de demostración (no son validación del modelo).
+            No incluye {supervision.predicciones_demostracion} predicciones de repositorios de demostración: no son validación del modelo.
           </p>
         )}
         {supervision && supervision.evaluables === 0 && (

@@ -11,6 +11,8 @@ Usa el resultado exacto de cada paso que devuelve la API de jobs de GitHub:
 - excluida_sin_intento: workflow exitoso sin paso de despliegue exitoso.
 - excluida_ambigua: falló otro job y el despliegue terminó bien.
 - excluida_otro_resultado: cancelada, omitida, pendiente de aprobación…
+- excluida_sin_jobs: terminó en failure sin ningún job (startup_failure,
+  YAML inválido…): no llegó a arrancar, así que no hubo intento.
 
 "en_paso_de_despliegue" es el único caso con evidencia directa de un fallo
 durante el despliegue; las demás son "despliegue no completado".
@@ -52,6 +54,9 @@ def etiquetar_ejecucion(conclusion, jobs, patron):
         return resultado
     if conclusion != "failure":
         resultado["etiqueta"] = "excluida_otro_resultado"
+        return resultado
+    if not jobs:
+        resultado["etiqueta"] = "excluida_sin_jobs"
         return resultado
 
     if fallido and regex.search(fallido[1].get("name") or ""):

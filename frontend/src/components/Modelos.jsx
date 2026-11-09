@@ -154,7 +154,7 @@ function Supervision({ modelos }) {
         const n = datos[m.id]?.predicciones_demostracion;
         return n ? (
           <p key={m.id} className="secundario nota-pie">
-            {datos[m.id].version}: incluye {n} predicciones de repositorios de demostración (no son validación del modelo).
+            {datos[m.id].version}: no incluye {n} predicciones de repositorios de demostración (no son validación del modelo).
           </p>
         ) : null;
       })}
