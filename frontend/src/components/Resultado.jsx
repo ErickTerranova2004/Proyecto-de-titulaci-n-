@@ -13,6 +13,7 @@ const ETIQUETAS = {
   excluida_ambigua: "Ambigua: falló otro job con el despliegue completado (no evaluable)",
   excluida_otro_resultado: "Cancelada u omitida (no evaluable)",
   excluida_sin_jobs: "El workflow no llegó a arrancar (no evaluable)",
+  excluida_no_produccion: "Despliegue a un entorno no productivo (no evaluable)",
 };
 const SUBTIPOS = {
   antes_del_despliegue: "Falló antes de llegar al despliegue",

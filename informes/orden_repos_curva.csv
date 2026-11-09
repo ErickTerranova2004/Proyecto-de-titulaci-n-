@@ -1,0 +1,203 @@
+orden,repositorio,plataforma,entra_desde_n
+1,UMNET-perfSONAR/pssid-gui2,Servidor propio,50
+2,usegalaxy-eu/infrastructure-playbook,Servidor propio,50
+3,chloerei/geeknote,Fly.io,50
+4,vapor/penny-bot,AWS,50
+5,dailybruin/flamingo,Kubernetes,50
+6,eigenweltlabs/legaloss,Google Cloud,50
+7,Enterprise-CMCS/macpro-appian-connector,AWS,50
+8,Asing1001/MovieRater,Google Cloud,50
+9,TrigpointingUK/platform,AWS,50
+10,PRX/github-toolkit,AWS,50
+11,globe-swiss/phaenonet-functions,Google Cloud,50
+12,playfulprogramming/hoof,Fly.io,50
+13,finite-sample/rmcp,Google Cloud,50
+14,andrewda/inthesoup,Google Cloud,50
+15,nulib/dc-api-v2,AWS,50
+16,pandorabox-io/pandorabox.io,Servidor propio,50
+17,PythonistasBR/bot,Fly.io,50
+18,forem/forem,Heroku,50
+19,MickaelFontes/noplp-stats,Google Cloud,50
+20,CBIIT/nci-webtools-ccr-cprosite,AWS,50
+21,ocftw/open-star-ter-village,Fly.io,50
+22,FINTLabs/fint-flyt-frontend,Kubernetes,50
+23,PREreview/stats,Fly.io,50
+24,fairbanksio/f5news,AWS,50
+25,thecourseforum/theCourseForum2,AWS,50
+26,xsnippet/xsnippet-infra,Servidor propio,50
+27,ReactiveCircus/kstreamlined-backend,Google Cloud,50
+28,custom-twemoji/custom-twemoji-api,Google Cloud,50
+29,CBIIT/nci-webtools-dceg-classification,AWS,50
+30,vicharanashala/vibe,Google Cloud,50
+31,OpenHistoricalMap/ohm-deploy,Kubernetes,50
+32,ekzhang/sshx,Fly.io,50
+33,EastsidePreparatorySchool/epschedule,Google Cloud,50
+34,OpenConceptLab/oclweb2,AWS,50
+35,ministryofjustice/laa-fee-calculator,Kubernetes,50
+36,Vauhtijuoksu/vauhtijuoksu-api,Kubernetes,50
+37,SuffolkLITLab/LITEfile,Fly.io,50
+38,voces/emoji-sheep-tag,Fly.io,50
+39,OWASP/threat-dragon,Heroku,50
+40,tuist/tuist,Kubernetes,50
+41,puiiyuen/badges,Cloudflare,50
+42,SuffolkLITLab/EfileProxyServer,Fly.io,50
+43,DRC-UA/infoportal,Azure,50
+44,jlab-sensing/ENTS-backend,AWS,50
+45,opencap-org/opencap-api,AWS,50
+46,RockefellerArchiveCenter/digitized_image_notifications,AWS,50
+47,estuary/ui,Google Cloud,50
+48,con2/kompassi,Kubernetes,50
+49,allcll/allcll-frontend,Servidor propio,50
+50,data-mermaid/mermaid-api,AWS,50
+51,con2/edegal,Kubernetes,100
+52,broadinstitute/PrimerCast,Google Cloud,100
+53,clementine-player/Website,Google Cloud,100
+54,kglw-dot-net/tapes,Fly.io,100
+55,PROCOLLAB-github/procollab,Servidor propio,100
+56,29th/personnel-v3,DigitalOcean,100
+57,openforis/fra-platform,Heroku,100
+58,utahudot/udot-atspm,Google Cloud,100
+59,FINTLabs/fint-kontroll-assignment-catalog,Kubernetes,100
+60,auth0/openidconnect-playground,Vercel,100
+61,chrismuha/pineneedledesigns.website,Servidor propio,100
+62,OpenReferralUK/oruk-validator,Heroku,100
+63,noi-techpark/opendatahub-timeseries-api,Kubernetes,100
+64,redhat-openshift-ecosystem/pullsar,Servidor propio,100
+65,github-copilot-resources/copilot-metrics-viewer,Azure,100
+66,asusoda/platform,Servidor propio,100
+67,devlead/BitbucketPipelinesShield,Azure,100
+68,FINTLabs/fint-kunde-portal-frontend-v2,Kubernetes,100
+69,Explorer-Consulting/SchoolFeedBackWebAPI,Azure,100
+70,remix-run/remix-website,Fly.io,100
+71,kusitms-com/api.kusitms.com,Heroku,100
+72,ristekoss/susunjadwal-frontend,Vercel,100
+73,Twisted-Artists-Guild/tag-web,Azure,100
+74,basedosdados/website,Kubernetes,100
+75,redhat-openshift-ecosystem/operator-pipelines,Servidor propio,100
+76,REAN-Foundation/rean-bot-wrapper,AWS,100
+77,codeforboston/home-energy-analysis-tool,Fly.io,100
+78,asyncapi/cli,DigitalOcean,100
+79,ScriptureHabit/scripture-habit,Vercel,100
+80,quarkusio/search.quarkus.io,Kubernetes,100
+81,bcgov/klamm,Kubernetes,100
+82,domits1/Domits,AWS,100
+83,cosmik-network/semble,Fly.io,100
+84,gamedevpl/www.gamedev.pl,Google Cloud,100
+85,instantdb/instant,Fly.io,100
+86,Oatmeal-Farm-Network/oatmealfarmnetwork-in,Google Cloud,100
+87,FINTLabs/fint-kontroll-user-catalog,Kubernetes,100
+88,hms-dbmi-cellenics/iac,AWS,100
+89,emerald-legacy/emeralddb,Heroku,100
+90,redhat-openshift-ecosystem/pipeline-metrics,Servidor propio,100
+91,TrafeX/clipboard.ninja,Vercel,100
+92,bakaphp/kanvas-ecosystem-api,Servidor propio,100
+93,linuxfoundation/insights,Kubernetes,100
+94,cdklabs/aws-cdk-notices,AWS,100
+95,moztechCEE/ecom-accounting-system-,Google Cloud,100
+96,aghjones/goal-bot,AWS,100
+97,Lumos-Programming/lumos-web,Google Cloud,100
+98,sue445/regional-rb-calendar,Google Cloud,100
+99,danielroe/nuxt.fyi,Fly.io,100
+100,RockefellerArchiveCenter/digital_ingest_webhook,AWS,100
+101,ourresearch/parseland-lib,AWS,150
+102,CBIIT/nci-webtools-ccr-microarray,AWS,150
+103,Makespace/members-app,Fly.io,150
+104,sillsdev/web-xforge,Servidor propio,150
+105,ccrma/webchuck-ide,Servidor propio,150
+106,cascadiaquakes/CRESCENT-CVM-WEB,AWS,150
+107,fre5h/rnokpp-telegram-bot,AWS,150
+108,estuary/flow,Google Cloud,150
+109,wri/project-zeno-deploy,Kubernetes,150
+110,git-for-windows/gfw-helper-github-app,Azure,150
+111,mozilla/probe-scraper,Google Cloud,150
+112,egovernments/Citizen-Complaint-Resolution-System,Servidor propio,150
+113,Open-Earth-Foundation/CityCatalyst,Kubernetes,150
+114,ReseauEntourage/entourage-ror,Heroku,150
+115,pharmacosmos-dev/pharma-crm-backend,Servidor propio,150
+116,govote-sh/govote,Fly.io,150
+117,makutamoto/mojacoder,AWS,150
+118,frontendnetwork/veganify,Kubernetes,150
+119,fajita-io/fajita,Vercel,150
+120,Health-Education-England/TIS-SYNC,AWS,150
+121,b-partners/geo-jobs,AWS,150
+122,aquario-ufpb/aquario,Vercel,150
+123,ConservationInternational/resilienceatlas,AWS,150
+124,b10cks/cms,AWS,150
+125,oslokommune/okdata-token-service,AWS,150
+126,dreamwidth/dreamwidth,AWS,150
+127,bikebrigade/dispatch,Fly.io,150
+128,Vacademy-io/vacademy_edtech_platform,Kubernetes,150
+129,RunOnFlux/flux-domain-manager,Servidor propio,150
+130,bjorn-ali-goransson/built-in-saudi,Google Cloud,150
+131,brave/store-brave-com,AWS,150
+132,PJECZ/pjecz-hercules-flask,Google Cloud,150
+133,bramp/myip,Google Cloud,150
+134,digital-land/digital-land-lambda,AWS,150
+135,opensearch-project/oscar-ai-bot,AWS,150
+136,nothink-jp/suzumina.click,Google Cloud,150
+137,KCSU/store,Google Cloud,150
+138,ruby-no-kai/sponsor-app,AWS,150
+139,lc-tut/tut-bus,Google Cloud,150
+140,alliance-genome/agr_curation,AWS,150
+141,Sophon/FightingNerd,Fly.io,150
+142,michelecoppi/guess_the_player_from_the_path,Google Cloud,150
+143,FINTLabs/fint-kontroll-role-factory,Kubernetes,150
+144,RetellAI/retell-typescript-sdk,AWS,150
+145,boostorg/website-v2,Kubernetes,150
+146,alphavantage/alpha_vantage_mcp,AWS,150
+147,infanf/myanili,Google Cloud,150
+148,HHS/OPRE-OPS,Azure,150
+149,burningmantech/ranger-ims-go,AWS,150
+150,OSU-Sustainability-Office/energy-dashboard,AWS,150
+151,google/neuroglancer,Google Cloud,200
+152,dimagi/open-chat-studio,AWS,200
+153,DataDrivenSustainabilitySolutions/off-key,Servidor propio,200
+154,VATSIM-Radar/vatsim-radar,Kubernetes,200
+155,replicatedhq/ttl.sh,Servidor propio,200
+156,benvinegar/counterscale,Cloudflare,200
+157,bokralabs/mizan,DigitalOcean,200
+158,ImCa0/just-laws,Servidor propio,200
+159,carbonplan/offsets-db-api,Fly.io,200
+160,sil-org/cloudflare-scanner,AWS,200
+161,twohoursonelife/dictator,Fly.io,200
+162,bcgov/sso-realm-registry,Kubernetes,200
+163,sil-org/app-monitoring-archiver,AWS,200
+164,OpenSID/pantau,Servidor propio,200
+165,pcraig3/hols,Google Cloud,200
+166,beda-software/fhir-emr,Servidor propio,200
+167,sugaroverflow/timetable,DigitalOcean,200
+168,PA-NIHR-CRN/dte-study-api,AWS,200
+169,AllenNeuralDynamics/aind-qc-portal,AWS,200
+170,accept-io/midas,Azure,200
+171,mbeher2200/DarkHours,AWS,200
+172,defikarte/defikarte.ch,Azure,200
+173,ServiceCanada/feedback-cron,Kubernetes,200
+174,con2/larpit-fi,Kubernetes,200
+175,trylinky/linky,Cloudflare,200
+176,ourresearch/openalex-api-proxy,Cloudflare,200
+177,Ribbit-Network/api,Fly.io,200
+178,italia/graph-italia,Kubernetes,200
+179,wevm/frog,Cloudflare,200
+180,moneyadviceservice/frontend,Heroku,200
+181,flock-community/flock-eco-workday,Google Cloud,200
+182,Stars-and-Stripes-Honor-Flight/sshf-api,Google Cloud,200
+183,SecondRobotics/SecondWebsite,Servidor propio,200
+184,HelmholtzAI-Consultants-Munich/oligo-designer-toolsuite-front-end,Servidor propio,200
+185,CodeForPhilly/benefit-decision-toolkit,Google Cloud,200
+186,Cog-Creators/Red-GitHubBot,Fly.io,200
+187,contrapunk-audio/contrapunk,Fly.io,200
+188,meerkat-events/meerkat,Fly.io,200
+189,Health-Education-England/TIS-TCS,AWS,200
+190,haskellweekly/haskellweekly,AWS,200
+191,vrk-kpa/opendata,AWS,200
+192,puzzlenetwork/puzzle-swap,Heroku,200
+193,LucasDEVBA/BAUSA,Google Cloud,200
+194,thegreenwebfoundation/carbon-txt-validator,Servidor propio,200
+195,OpenConceptLab/oclmap,AWS,200
+196,ServiceCanada/feedback-viewer,Kubernetes,200
+197,Tiameds-pvt-ltd/Lab-automation,AWS,200
+198,VectorInstitute/aieng-bot,Google Cloud,200
+199,thewca/worldcubeassociation.org,AWS,200
+200,Choice-of-Law-Dataverse/cold-web-app,Azure,200
+201,MAPSuio/peoply-frontend,DigitalOcean,250
+202,opensafely/open-pathology,DigitalOcean,250

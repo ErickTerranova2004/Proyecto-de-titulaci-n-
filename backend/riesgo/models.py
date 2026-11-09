@@ -7,11 +7,14 @@ ROLES = ("desarrollador", "lider_tecnico", "administrador")
 # Expresión regular por defecto para reconocer pasos de despliegue por su
 # nombre en la API de jobs de GitHub. El administrador puede ajustarla por
 # workflow.
+# Verbos de despliegue en el nombre del paso (señal de menor prioridad; ver
+# riesgo/services/etiquetado.py). No incluye nombres de herramientas: «Compute
+# App Engine version tag», «Install Vercel CLI» o «Select Cypress specs»
+# contaban como despliegue con el patrón anterior.
 PATRON_DESPLIEGUE = (
-    r"(?i)deploy|despliegue|rollout|helm (upgrade|install)|kubectl "
-    r"(apply|set image|rollout)|terraform apply|cdk deploy|flyctl|"
-    r"heroku|netlify|vercel|firebase|wrangler|ecs|webapp|cloud run|"
-    r"app engine|beanstalk|serverless"
+    r"(?i)\bdeploy|despliegue|despleg|\brollout\b|\bpromote\b|"
+    r"helm (upgrade|install)|kubectl (apply|set image|rollout)|"
+    r"terraform apply|wrangler-action"
 )
 
 
@@ -144,6 +147,8 @@ class EjecucionWorkflow(models.Model):
                              "completado"),
         ("excluida_otro_resultado", "Excluida: cancelada, omitida u otro"),
         ("excluida_sin_jobs", "Excluida: el workflow no arrancó (sin jobs)"),
+        ("excluida_no_produccion",
+         "Excluida: despliegue a un entorno no productivo"),
     ]
     SUBTIPOS = [
         ("antes_del_despliegue", "Falló antes de llegar al despliegue"),

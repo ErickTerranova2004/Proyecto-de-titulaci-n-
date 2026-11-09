@@ -145,8 +145,8 @@
   "lote": 1
  },
  "Northeastern-Electric-Racing/FinishLine": {
-  "decision": "valido",
-  "motivo": "Dashboard de gestión en uso por el equipo NER (finishlinebyner.com), 253 contribuidores; Elastic Beanstalk.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; despliega a un entorno sandbox de Elastic Beanstalk.",
   "lote": 1
  },
  "Dayvhiid/CareerPilot": {
@@ -280,8 +280,8 @@
   "lote": 2
  },
  "diconium/ethereal-nexus": {
-  "decision": "valido",
-  "motivo": "Herramienta de la empresa diconium para integrar micro-frontends en CMS, 11 contribuidores; Azure Container Apps.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el workflow dashboard-dev.yml despliega al entorno playground.",
   "lote": 2
  },
  "MaciejBuczek/gm-toolset": {
@@ -340,13 +340,13 @@
   "lote": 2
  },
  "alkem-io/notifications": {
-  "decision": "valido",
-  "motivo": "Servicio de notificaciones de la plataforma Alkemio, 16 contribuidores; despliegue en Kubernetes (AKS).",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el workflow build-deploy-k8s-dev-hetzner.yml despliega a dev.",
   "lote": 2
  },
  "alkem-io/server": {
-  "decision": "valido",
-  "motivo": "Servidor principal de la plataforma Alkemio (alkem.io), 10058 commits; despliegue en Kubernetes (AKS).",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el workflow build-deploy-k8s-dev-hetzner.yml despliega a dev.",
   "lote": 2
  },
  "konjoinfinity/songscraper": {
@@ -385,8 +385,8 @@
   "lote": 2
  },
  "OpenCircuits/OpenCircuits": {
-  "decision": "valido",
-  "motivo": "Diseñador de circuitos en línea en producción (opencircuits.io), 70 contribuidores; App Engine.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el workflow deploy_nightly.yml publica la versión nightly.",
   "lote": 2
  },
  "flock-community/aigentic": {
@@ -400,8 +400,8 @@
   "lote": 2
  },
  "deep-learning-indaba/Baobab": {
-  "decision": "valido",
-  "motivo": "Aplicación de postulaciones usada por Deep Learning Indaba, 48 contribuidores; App Engine.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el workflow staging.yml despliega a staging.",
   "lote": 2
  },
  "nirholas/crypto-vision": {
@@ -410,8 +410,8 @@
   "lote": 2
  },
  "zesty-io/manager-ui": {
-  "decision": "valido",
-  "motivo": "Gestor de instancias del CMS de la empresa Zesty.io, 17 contribuidores; App Engine.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el job deploy_dev despliega a dev.",
   "lote": 2
  },
  "bmlt-enabled/bmlt-server": {
@@ -450,8 +450,8 @@
   "lote": 2
  },
  "CBIIT/nci-webtools-dceg-ctb": {
-  "decision": "valido",
-  "motivo": "Sitio del Chernobyl Tissue Bank del NCI (cancer.gov), 15 contribuidores; App Engine.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; despliega a dev o qa (ramas *_dev y *_qa; sus 100 deployments registrados son dev y qa).",
   "lote": 2
  },
  "sue445/regional-rb-calendar": {
@@ -475,13 +475,13 @@
   "lote": 2
  },
  "canada-ca/navigator": {
-  "decision": "valido",
-  "motivo": "Herramienta de modelado de amenazas del Gobierno de Canadá; AWS ECS.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el job deploy-staging despliega a staging.",
   "lote": 2
  },
  "OpenZeppelin/ui-builder": {
-  "decision": "valido",
-  "motivo": "Producto de OpenZeppelin en producción (builder.openzeppelin.com); AWS ECS.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el workflow docker-stg.yaml despliega a staging.",
   "lote": 2
  },
  "bjorn-ali-goransson/built-in-saudi": {
@@ -495,9 +495,9 @@
   "lote": 2
  },
  "mobs-lab/epistorm-dashboard": {
-  "decision": "valido",
-  "motivo": "Dashboard público de pronóstico de gripe (fluforecast.epistorm.org) del laboratorio MOBS; App Engine.",
-  "lote": 2
+  "decision": "excluido",
+  "lote": 2,
+  "motivo": "Criterio 2: el workflow despliega a un entorno de demostración (job deploy-demo, App Engine de demostración), no a producción. Corregido el 2026-11-08 tras analizar sus fallos."
  },
  "MickaelFontes/noplp-stats": {
   "decision": "valido",
@@ -755,8 +755,8 @@
   "lote": 4
  },
  "bluewave-labs/Checkmate": {
-  "decision": "valido",
-  "motivo": "Monitor de disponibilidad open source (11 036 estrellas, 175 contribuidores); despliega staging.checkmate.so por SSH.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; despliega staging.checkmate.so y demo.checkmate.so (el job deploy-prod es la demo).",
   "lote": 4
  },
  "dwyl/imgup": {
@@ -795,8 +795,8 @@
   "lote": 4
  },
  "Metaculus/metaculus": {
-  "decision": "valido",
-  "motivo": "Plataforma de predicciones metaculus.com, 29 contribuidores; Heroku.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el workflow deploy_staging.yml despliega a staging.",
   "lote": 4
  },
  "nuxt-modules/shopify": {
@@ -825,8 +825,8 @@
   "lote": 4
  },
  "dorylab/dory": {
-  "decision": "valido",
-  "motivo": "Producto Dory (getdory.dev), cliente SQL; despliega el entorno beta de la web en Vercel.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; despliega el entorno beta de la web.",
   "lote": 4
  },
  "JasperFx/polecat": {
@@ -860,8 +860,8 @@
   "lote": 4
  },
  "aeternity/superhero-ui": {
-  "decision": "valido",
-  "motivo": "Interfaz de superhero.com (agregador de propinas de aeternity), 20 contribuidores; despliega stage por SSH.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; su 'producción' es GitHub Pages y el despliegue por SSH va solo a stage.",
   "lote": 4
  },
  "SUSTech-CRA/sustech-online-ng": {
@@ -875,8 +875,8 @@
   "lote": 4
  },
  "wevisdemo/parliament-watch": {
-  "decision": "valido",
-  "motivo": "Aplicación cívica Parliament Watch (parliamentwatch.wevis.info) de WeVis, 46 contribuidores; despliega por rsync.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el workflow staging.yml despliega a staging.",
   "lote": 4
  },
  "anchapin/portkit": {
@@ -920,8 +920,8 @@
   "lote": 4
  },
  "cisagov/XFD": {
-  "decision": "valido",
-  "motivo": "Dashboard CyHy de CISA (gobierno de EE. UU.), 31 contribuidores; Serverless Framework en AWS.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; despliega a staging e integration.",
   "lote": 4
  },
  "fabrica-bayarea/Sprint-Tracker": {
@@ -1010,8 +1010,8 @@
   "lote": 5
  },
  "noi-techpark/opendatahub-timeseries-writer": {
-  "decision": "valido",
-  "motivo": "API de escritura de series temporales del Open Data Hub (NOI Techpark), 17 contribuidores; Helm en Kubernetes.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el job deploy-test-scw despliega al entorno test.",
   "lote": 5
  },
  "yplam/osrtos": {
@@ -1040,8 +1040,8 @@
   "lote": 5
  },
  "step-security/secure-repo": {
-  "decision": "valido",
-  "motivo": "Backend del producto de StepSecurity (app.stepsecurity.io); despliega el entorno de integración con CloudFormation.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el job publish-test despliega al entorno de integración (int.yml).",
   "lote": 5
  },
  "trindadetiago/map.art": {
@@ -1195,8 +1195,8 @@
   "lote": 5
  },
  "superhero-com/superhero-wallet": {
-  "decision": "valido",
-  "motivo": "Cartera multi-blockchain en producción (wallet.superhero.com), 28 contribuidores; despliega por SSH.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; su 'producción' es GitHub Pages y el despliegue por SSH va solo a stage.",
   "lote": 5
  },
  "alexlipa91/nutmeg-flutter": {
@@ -1330,8 +1330,8 @@
   "lote": 6
  },
  "moeru-ai/airi": {
-  "decision": "valido",
-  "motivo": "Aplicación AIRI (51 222 estrellas, 217 contribuidores); despliega su web en el entorno ServerDev de Cloudflare Workers.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el workflow despliega el servidor de desarrollo (ServerDev).",
   "lote": 6
  },
  "lism-css/core": {
@@ -1365,8 +1365,8 @@
   "lote": 6
  },
  "memser-spaceport/pln-directory-portal": {
-  "decision": "valido",
-  "motivo": "API del directorio de Protocol Labs Network (directory.plnetwork.io), 32 contribuidores; Helm.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el job dev-deploy despliega a dev.",
   "lote": 6
  },
  "Diamondstar-Mods/Minecraft-Command-Maker": {
@@ -1380,8 +1380,8 @@
   "lote": 6
  },
  "martinellich/jtaf4": {
-  "decision": "valido",
-  "motivo": "Aplicación de gestión de competencias de atletismo (1676 commits); despliega su entorno de test en Fly.io.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el job deploy-test despliega al entorno de test.",
   "lote": 6
  },
  "Virelis/Stellar-Guard": {
@@ -1455,9 +1455,9 @@
   "lote": 6
  },
  "Icehunter/dune-admin": {
-  "decision": "valido",
-  "motivo": "Panel de administración web en servicio (dune-admin.layout.tools), 7 contribuidores; Cloudflare Workers.",
-  "lote": 6
+  "decision": "excluido",
+  "lote": 6,
+  "motivo": "Criterio 2 (hosting estático): el workflow solo despliega el frontend a Cloudflare Pages, no una aplicación."
  },
  "verygoodplugins/automem-website": {
   "decision": "excluido",
@@ -1475,8 +1475,8 @@
   "lote": 6
  },
  "ngutech21/vipr-wallet": {
-  "decision": "valido",
-  "motivo": "Cartera web en producción vipr.cash (Fedimint/Lightning), 1233 commits; DigitalOcean.",
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; el job deploy-dev despliega a dev.",
   "lote": 6
  },
  "quarkusio/search.quarkus.io": {
@@ -1498,5 +1498,1650 @@
   "decision": "excluido",
   "motivo": "Proyecto de equipo de un curso de DevOps (AET-DevOps26).",
   "lote": 6
+ },
+ "Eduhn26/Truco-Paulista2026": {
+  "decision": "excluido",
+  "motivo": "Proyecto personal de un solo autor sin evidencia de usuarios.",
+  "lote": 7
+ },
+ "ENDARTStudios/Auto-Trader": {
+  "decision": "excluido",
+  "motivo": "Proyecto personal (trading simulado) con la mayoría de ejecuciones omitidas.",
+  "lote": 7
+ },
+ "facereguniversal/face-reg": {
+  "decision": "excluido",
+  "motivo": "Organización de un solo contribuidor sin evidencia de usuarios; frontend en una URL de Vercel autogenerada.",
+  "lote": 7
+ },
+ "msantoria/mlb-prediction-app": {
+  "decision": "excluido",
+  "motivo": "Ritmo de commits atípico (3168 commits en 170 días, unos 19 diarios).",
+  "lote": 7
+ },
+ "Programmer-Shubh/Programmer-Shubh-rapython": {
+  "decision": "excluido",
+  "motivo": "App de un solo autor generada con Anvil (80 días) sin evidencia de usuarios.",
+  "lote": 7
+ },
+ "AkaWalle/VAI-DE-PIX": {
+  "decision": "excluido",
+  "motivo": "Aplicación de finanzas personales del autor; 49 de 52 ejecuciones fallidas.",
+  "lote": 7
+ },
+ "ensolabs/webflow-markdown": {
+  "decision": "excluido",
+  "motivo": "Utilidad pequeña (37 commits) sin web ni evidencia de usuarios.",
+  "lote": 7
+ },
+ "Jwongjs/MediSage": {
+  "decision": "excluido",
+  "motivo": "Proyecto de portafolio sin evidencia de usuarios.",
+  "lote": 7
+ },
+ "M-873/AutoOD": {
+  "decision": "excluido",
+  "motivo": "Proyecto personal de un solo autor sin evidencia de usuarios.",
+  "lote": 7
+ },
+ "mpw5/wheres-my-vds-team": {
+  "decision": "excluido",
+  "motivo": "Aplicación de liga privada sin web pública ni evidencia de usuarios.",
+  "lote": 7
+ },
+ "Nahtuna/Finvista": {
+  "decision": "excluido",
+  "motivo": "Proyecto de 72 días sin contribuidores registrados ni evidencia de usuarios.",
+  "lote": 7
+ },
+ "piyush1457/DocAiApp-AI-Powered-Document-Multimedia-Q-A": {
+  "decision": "excluido",
+  "motivo": "Proyecto de portafolio sin evidencia de usuarios.",
+  "lote": 7
+ },
+ "saketh169/WBD-Deployment": {
+  "decision": "excluido",
+  "motivo": "Proyecto de curso (WBD).",
+  "lote": 7
+ },
+ "Sam-Razavi/rostid": {
+  "decision": "excluido",
+  "motivo": "Proyecto de portafolio; las 38 ejecuciones recientes fallaron.",
+  "lote": 7
+ },
+ "timothylee58/MIFCG-AI": {
+  "decision": "excluido",
+  "motivo": "Proyecto de 88 días sin evidencia de usuarios; todas las ejecuciones fallidas.",
+  "lote": 7
+ },
+ "yudai142/FloorMap": {
+  "decision": "excluido",
+  "motivo": "Proyecto personal; las 40 ejecuciones recientes fallaron.",
+  "lote": 7
+ },
+ "abhishek-khadse/Trinetra-Sec": {
+  "decision": "excluido",
+  "motivo": "Proyecto personal de un solo autor sin evidencia de usuarios.",
+  "lote": 7
+ },
+ "Aerotalk/EdgeStone_Backend": {
+  "decision": "excluido",
+  "motivo": "Un solo contribuidor sin evidencia de usuarios; las 93 ejecuciones recientes fallaron.",
+  "lote": 7
+ },
+ "FredrikAlmen93/Mail-Service": {
+  "decision": "excluido",
+  "motivo": "Microservicio de un proyecto de webshop de formación, sin evidencia de usuarios.",
+  "lote": 7
+ },
+ "jenkauppila/mechanic_shop_api": {
+  "decision": "excluido",
+  "motivo": "API de ejemplo de formación (taller mecánico) sin usuarios reales.",
+  "lote": 7
+ },
+ "TevBenji/OAuth-2.1-MCP-Gateway": {
+  "decision": "excluido",
+  "motivo": "Proyecto personal de un solo autor sin evidencia de usuarios.",
+  "lote": 7
+ },
+ "0Mouse0/task-manager": {
+  "decision": "excluido",
+  "motivo": "Proyecto de curso (Diplomado de desarrollo Fullstack, Universidad Católica Boliviana).",
+  "lote": 7
+ },
+ "ericvanm/fullstack_open_par11_based_part6": {
+  "decision": "excluido",
+  "motivo": "Ejercicio del curso Full Stack Open.",
+  "lote": 7
+ },
+ "bkumars22/SupplyChainPlatformProject": {
+  "decision": "excluido",
+  "motivo": "Proyecto de portafolio con demo; las 88 ejecuciones recientes fallaron.",
+  "lote": 7
+ },
+ "weedguetmildort/motivation_exploring_platform": {
+  "decision": "excluido",
+  "motivo": "Proyecto de equipo estudiantil en una URL de Heroku autogenerada.",
+  "lote": 7
+ },
+ "danielroe/nuxt.fyi": {
+  "decision": "valido",
+  "motivo": "Servicio en producción nuxt.fyi que detecta sitios Nuxt en Bluesky; despliega el escáner en Fly.io (production).",
+  "lote": 7
+ },
+ "livrasand/gitGost": {
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; despliega al entorno Preview de Fly.io.",
+  "lote": 7
+ },
+ "sakazuki-org/sakazuki": {
+  "decision": "excluido",
+  "motivo": "Aplicación personal; la instancia desplegada es la demo.",
+  "lote": 7
+ },
+ "seethroughlab/familiar": {
+  "decision": "excluido",
+  "motivo": "Reproductor local; el despliegue es a hosting estático (Cloudflare Pages).",
+  "lote": 7
+ },
+ "tiansivive/yap": {
+  "decision": "excluido",
+  "motivo": "Lenguaje de programación personal ('It's mine'); no es una aplicación en uso.",
+  "lote": 7
+ },
+ "TrafeX/clipboard.ninja": {
+  "decision": "valido",
+  "motivo": "Servicio público clipboard.ninja, con app en Play Store; Vercel.",
+  "lote": 7
+ },
+ "voces/emoji-sheep-tag": {
+  "decision": "valido",
+  "motivo": "Juego multijugador en el navegador alojado de forma persistente (est.w3x.io); Fly.io.",
+  "lote": 7
+ },
+ "wrenlift/hatch": {
+  "decision": "excluido",
+  "motivo": "Herramienta; el workflow candidato solo despliega su sitio.",
+  "lote": 7
+ },
+ "21Kurse/Lerp-Engine": {
+  "decision": "excluido",
+  "motivo": "Proyecto de 78 días sin evidencia de usuarios; las 13 ejecuciones fallaron.",
+  "lote": 7
+ },
+ "chloerei/geeknote": {
+  "decision": "valido",
+  "motivo": "Plataforma comunitaria de blogs en producción geeknote.net; Fly.io.",
+  "lote": 7
+ },
+ "eternidad475/luks-professional": {
+  "decision": "excluido",
+  "motivo": "El README no corresponde al proyecto desplegado: no se puede confirmar qué es ni que esté en uso.",
+  "lote": 7
+ },
+ "franciscovaleromartin/graphmycode": {
+  "decision": "excluido",
+  "motivo": "Aplicación que se ejecuta solo en el navegador; el despliegue publica un frontend estático.",
+  "lote": 7
+ },
+ "frostbase-dev/frostbase": {
+  "decision": "excluido",
+  "motivo": "El workflow candidato solo despliega previews (entorno preview).",
+  "lote": 7
+ },
+ "MEYD-605/maw-board": {
+  "decision": "excluido",
+  "motivo": "Fork extendido de sshx sin evidencia de usuarios; las 21 ejecuciones fallaron.",
+  "lote": 7
+ },
+ "natinael96/sinq": {
+  "decision": "excluido",
+  "motivo": "App de Android; el despliegue es de su sitio web.",
+  "lote": 7
+ },
+ "ourresearch/openalex-api-proxy": {
+  "decision": "valido",
+  "motivo": "Proxy de producción de la API de OpenAlex (OurResearch); Cloudflare Workers.",
+  "lote": 7
+ },
+ "paulthanson082-glitch/friendly-outlaw": {
+  "decision": "excluido",
+  "motivo": "Sin descripción del producto ni evidencia de usuarios (README apunta a localhost).",
+  "lote": 7
+ },
+ "pivoshenko/kasetto": {
+  "decision": "excluido",
+  "motivo": "Herramienta de línea de comandos; el despliegue es de su sitio.",
+  "lote": 7
+ },
+ "puiiyuen/badges": {
+  "decision": "valido",
+  "motivo": "Servicio público de badges (badges.peiyuan.ch); Cloudflare Workers.",
+  "lote": 7
+ },
+ "PythonistasBR/bot": {
+  "decision": "valido",
+  "motivo": "Bot de Telegram en servicio de la comunidad Python Brasil, 11 contribuidores; Fly.io.",
+  "lote": 7
+ },
+ "romhml/compodium": {
+  "decision": "excluido",
+  "motivo": "Módulo de Nuxt; el despliegue es de su documentación.",
+  "lote": 7
+ },
+ "sbmagar13/recipe-jar": {
+  "decision": "valido",
+  "motivo": "Aplicación pública recipejar.app (extrae recetas de un enlace); Cloudflare Workers.",
+  "lote": 7
+ },
+ "Sophon/FightingNerd": {
+  "decision": "valido",
+  "motivo": "Bot de Discord en servicio con apps en Play Store y App Store (datos de juegos de lucha); Fly.io.",
+  "lote": 7
+ },
+ "Specy/genshin-music": {
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset no despliega a producción; publica la versión nightly.",
+  "lote": 7
+ },
+ "tiangolo/library-skills": {
+  "decision": "excluido",
+  "motivo": "El workflow candidato solo despliega la documentación.",
+  "lote": 7
+ },
+ "sillsdev/web-xforge": {
+  "decision": "valido",
+  "motivo": "Scripture Forge (scriptureforge.org), app de traducción colaborativa de SIL, 31 contribuidores; despliegue con Ansible.",
+  "lote": 8
+ },
+ "bakaphp/kanvas-ecosystem-api": {
+  "decision": "valido",
+  "motivo": "API del producto Kanvas de la empresa Bakaphp, 19 contribuidores; despliegue por rsync.",
+  "lote": 8
+ },
+ "ColoredCow/portal": {
+  "decision": "valido",
+  "motivo": "Portal de operaciones en uso por la empresa ColoredCow, 140 contribuidores; despliegue por SSH.",
+  "lote": 8
+ },
+ "huettenbau-oberi/website": {
+  "decision": "excluido",
+  "motivo": "El workflow candidato restaura un backup (restore.yaml); no despliega la aplicación.",
+  "lote": 8
+ },
+ "redhat-openshift-ecosystem/operator-pipelines": {
+  "decision": "valido",
+  "motivo": "Pipelines de certificación de operadores de Red Hat en servicio, 48 contribuidores; Ansible.",
+  "lote": 8
+ },
+ "ae-utbm/sith": {
+  "decision": "valido",
+  "motivo": "Sitio y sistema en producción de la asociación de estudiantes de la UTBM (ae.utbm.fr), 23 contribuidores; SSH.",
+  "lote": 8
+ },
+ "badgeteam/website": {
+  "decision": "excluido",
+  "motivo": "Sitio de documentación o estático, no una aplicación. (Hugo)",
+  "lote": 8
+ },
+ "groupdocs-signature/GroupDocs.Signature-Docs": {
+  "decision": "excluido",
+  "motivo": "Sitio de documentación o estático, no una aplicación.",
+  "lote": 8
+ },
+ "Arx-Game/arxii": {
+  "decision": "excluido",
+  "motivo": "El workflow candidato solo valida los playbooks (ansible-lint y --syntax-check); no despliega.",
+  "lote": 8
+ },
+ "codedthemes/materially-free-react-admin-template": {
+  "decision": "excluido",
+  "motivo": "Plantilla de administración (template).",
+  "lote": 8
+ },
+ "DataDrivenSustainabilitySolutions/off-key": {
+  "decision": "valido",
+  "motivo": "Plataforma de detección de anomalías en producción (aberration.app), 7 contribuidores; Ansible.",
+  "lote": 8
+ },
+ "Fachschaftsrat-Informatik-FH-Dortmund/fsrfb4.de-mkdocs": {
+  "decision": "excluido",
+  "motivo": "Sitio de documentación o estático, no una aplicación. (MkDocs)",
+  "lote": 8
+ },
+ "github-copilot-resources/copilot-metrics-viewer": {
+  "decision": "valido",
+  "motivo": "Visor de métricas de Copilot (648 estrellas); despliega en Azure Web App con environment production.",
+  "lote": 8
+ },
+ "DRC-UA/infoportal": {
+  "decision": "valido",
+  "motivo": "Aplicación de la misión humanitaria de DRC en Ucrania (infoportal-ua.drc.ngo); Azure App Service.",
+  "lote": 8
+ },
+ "Twisted-Artists-Guild/tag-web": {
+  "decision": "valido",
+  "motivo": "Frontend de la plataforma TwistedArtistsGuild.com, 6 contribuidores; Azure App Service.",
+  "lote": 8
+ },
+ "Utdanningsdirektoratet/designsystem": {
+  "decision": "excluido",
+  "motivo": "Sistema de diseño (componentes y documentación), no una aplicación.",
+  "lote": 8
+ },
+ "Choice-of-Law-Dataverse/cold-web-app": {
+  "decision": "valido",
+  "motivo": "Base de conocimiento en producción cold.global (Universidad de Lucerna, premio ORD 2025); Azure Container Apps.",
+  "lote": 8
+ },
+ "basedosdados/website": {
+  "decision": "valido",
+  "motivo": "Sitio y plataforma de datos abiertos Base dos Dados (basedosdados.org), 30 contribuidores; Helm.",
+  "lote": 8
+ },
+ "con2/kompassi": {
+  "decision": "valido",
+  "motivo": "Sistema de gestión de eventos en producción kompassi.eu, 30 contribuidores; Helm.",
+  "lote": 8
+ },
+ "VATSIM-Radar/vatsim-radar": {
+  "decision": "valido",
+  "motivo": "Servicio de monitorización de tráfico en producción vatsim-radar.com, 59 contribuidores; Helm.",
+  "lote": 8
+ },
+ "algoproclub/algopro-ide": {
+  "decision": "valido",
+  "motivo": "IDE en línea usado por Algo Pro Club y MATFIN Foundation, 27 contribuidores; Vercel.",
+  "lote": 8
+ },
+ "bcgov/dep-public": {
+  "decision": "valido",
+  "motivo": "Digital Engagement Platform del Gobierno de Columbia Británica; Helm (OpenShift).",
+  "lote": 8
+ },
+ "aquario-ufpb/aquario": {
+  "decision": "valido",
+  "motivo": "Plataforma en uso por estudiantes y profesores del Centro de Informática de la UFPB (aquarioufpb.com), 24 contribuidores; Vercel.",
+  "lote": 8
+ },
+ "autosec-network/eaas": {
+  "decision": "excluido",
+  "motivo": "Proyecto de 3 personas en un dominio pages.dev, sin evidencia de usuarios.",
+  "lote": 8
+ },
+ "con2/larpit-fi": {
+  "decision": "valido",
+  "motivo": "Archivo comunitario en producción larpit.fi; Helm.",
+  "lote": 8
+ },
+ "ever-co/ever-works": {
+  "decision": "excluido",
+  "motivo": "Las ejecuciones recientes se omitieron (skipped): el despliegue no se ejecuta.",
+  "lote": 8
+ },
+ "laminlabs/lamin-blog": {
+  "decision": "excluido",
+  "motivo": "Blog, no una aplicación.",
+  "lote": 8
+ },
+ "pawtograder/platform": {
+  "decision": "valido",
+  "motivo": "Plataforma de operaciones de cursos en producción (app.pawtograder.com), 32 contribuidores; Helm.",
+  "lote": 8
+ },
+ "tuist/tuist": {
+  "decision": "valido",
+  "motivo": "Servidor de la plataforma Tuist (tuist.dev, 5861 estrellas); Helm.",
+  "lote": 8
+ },
+ "wri/project-zeno-deploy": {
+  "decision": "valido",
+  "motivo": "Despliegue del proyecto Zeno del World Resources Institute (staging y producción); Helm.",
+  "lote": 8
+ },
+ "FINTLabs/fint-kontroll-role-factory": {
+  "decision": "valido",
+  "motivo": "Servicio de FINT (TI de los condados noruegos) en Kubernetes (AKS).",
+  "lote": 8
+ },
+ "suap-ava-suite/djangoapp-painel_ava": {
+  "decision": "excluido",
+  "motivo": "Declarado solo para desarrollo ('APENAS PARA DESENVOLVIMENTO').",
+  "lote": 8
+ },
+ "nokia-steward/SReXperts": {
+  "decision": "excluido",
+  "motivo": "Código de ejemplo de conferencias.",
+  "lote": 8
+ },
+ "vicharanashala/ajrasakha": {
+  "decision": "valido",
+  "motivo": "Chat para agricultores en producción (chat.annam.ai), 42 contribuidores; Cloud Run.",
+  "lote": 8
+ },
+ "nothink-jp/suzumina.click": {
+  "decision": "valido",
+  "motivo": "Sitio comunitario en producción suzumina.click (autenticación con Discord, botones de audio); Cloud Functions.",
+  "lote": 8
+ },
+ "utahudot/udot-atspm": {
+  "decision": "valido",
+  "motivo": "Sistema ATSPM del Departamento de Transporte de Utah; Cloud Run.",
+  "lote": 8
+ },
+ "CENIA-DEV/multilingual-translator-app": {
+  "decision": "excluido",
+  "motivo": "Sin web ni evidencia de uso de la aplicación desplegada.",
+  "lote": 8
+ },
+ "KCSU/store": {
+  "decision": "valido",
+  "motivo": "Tienda de entradas en uso por el KCSU (store.kcsu.org.uk); Cloud Run.",
+  "lote": 8
+ },
+ "vicharanashala/vibe": {
+  "decision": "valido",
+  "motivo": "Plataforma de aprendizaje ViBe en uso, 68 contribuidores; Cloud Run.",
+  "lote": 8
+ },
+ "catalyst-cooperative/eel-hole": {
+  "decision": "excluido",
+  "motivo": "Prototipo declarado ('Frontend-only prototype').",
+  "lote": 8
+ },
+ "brave/store-brave-com": {
+  "decision": "valido",
+  "motivo": "Tienda en producción store.brave.com; AWS ECS.",
+  "lote": 8
+ },
+ "jlab-sensing/ENTS-backend": {
+  "decision": "valido",
+  "motivo": "Servicio de visualización de sensores en producción (dirtviz.jlab.ucsc.edu), 28 contribuidores; AWS ECS.",
+  "lote": 8
+ },
+ "ustaxcourt/website-wagtail": {
+  "decision": "valido",
+  "motivo": "Sitio del Tribunal Fiscal de EE. UU. (ustaxcourt.gov) en Wagtail; AWS ECS.",
+  "lote": 8
+ },
+ "bervProject/tell-me-everything-api": {
+  "decision": "excluido",
+  "motivo": "Proyecto personal de un solo autor.",
+  "lote": 8
+ },
+ "ConservationInternational/resilienceatlas": {
+  "decision": "valido",
+  "motivo": "Resilience Atlas de Conservation International, 22 contribuidores; SAM.",
+  "lote": 8
+ },
+ "Enterprise-CMCS/managed-care-review": {
+  "decision": "valido",
+  "motivo": "Aplicación Managed Care Review de CMS (gobierno de EE. UU.); AWS CDK.",
+  "lote": 8
+ },
+ "OasisDEX/summerfi-monorepo": {
+  "decision": "valido",
+  "motivo": "Aplicaciones del producto Summer.fi, 17 contribuidores; AWS ECS.",
+  "lote": 8
+ },
+ "OpenConceptLab/oclmap": {
+  "decision": "valido",
+  "motivo": "OCL Mapper (Open Concept Lab), herramienta de mapeo de terminología médica; AWS ECS.",
+  "lote": 8
+ },
+ "Predictaball/predictaball": {
+  "decision": "excluido",
+  "motivo": "Proyecto de aficionados de 3 personas en una URL de Vercel autogenerada.",
+  "lote": 8
+ },
+ "TrigpointingUK/platform": {
+  "decision": "valido",
+  "motivo": "Plataforma comunitaria trigpointing.uk (20 años); AWS ECS.",
+  "lote": 8
+ },
+ "gemini-hlsw/lucuma-odb": {
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset solo despliega a las apps de Heroku *-dev (entorno «development»); producción se promueve fuera del workflow. Detectado en la muestra de y=0 con semilla 2026.",
+  "lote": 9
+ },
+ "gemini-hlsw/lucuma-apps": {
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow del dataset solo despliega a las apps de Heroku observe-dev-* y explore-gemini-dev (entorno «development»); producción se promueve fuera del workflow. Detectado en la muestra de y=0 con semilla 2026.",
+  "lote": 9
+ },
+ "ipfs/service-worker-gateway": {
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow candidato es deploy-to-staging.yml (environment staging).",
+  "lote": 9
+ },
+ "PenguLoader/docs": {
+  "decision": "excluido",
+  "motivo": "Sitio de documentación (VitePress).",
+  "lote": 9
+ },
+ "verseles/codewalk": {
+  "decision": "excluido",
+  "motivo": "Las ejecuciones recientes se omitieron (skipped): el despliegue no se ejecuta.",
+  "lote": 9
+ },
+ "msgbyte/tianji": {
+  "decision": "excluido",
+  "motivo": "Producto autoalojado; el workflow candidato solo despliega su sitio web (deploy-website.yml).",
+  "lote": 9
+ },
+ "rit-sse/WebsiteTheSSEquel": {
+  "decision": "valido",
+  "motivo": "Sitio y herramientas de gestión en producción de la Society of Software Engineers del RIT (sse.rit.edu), 43 contribuidores; SSH.",
+  "lote": 9
+ },
+ "allcll/allcll-frontend": {
+  "decision": "valido",
+  "motivo": "Servicio en producción allcll.kr para la inscripción de asignaturas en la Universidad Sejong, 7 contribuidores; SSH.",
+  "lote": 9
+ },
+ "gdg-hongik-univ/gdsc-server": {
+  "decision": "excluido",
+  "motivo": "Sin README ni web: no se puede confirmar el uso.",
+  "lote": 9
+ },
+ "PROCOLLAB-github/procollab": {
+  "decision": "valido",
+  "motivo": "Plataforma social en producción app.procollab.ru; rsync.",
+  "lote": 9
+ },
+ "SalishSeaCast/salishsea-site": {
+  "decision": "valido",
+  "motivo": "Aplicación web dinámica de investigación oceanográfica de la UBC (salishsea.eos.ubc.ca); SSH.",
+  "lote": 9
+ },
+ "thegreenwebfoundation/carbon-txt-validator": {
+  "decision": "valido",
+  "motivo": "Validador de carbon.txt en servicio de la Green Web Foundation; Ansible.",
+  "lote": 9
+ },
+ "asusoda/platform": {
+  "decision": "valido",
+  "motivo": "Plataforma compartida en producción para los clubes de informática de ASU (platform.thesoda.io), 18 contribuidores; SSH.",
+  "lote": 9
+ },
+ "Menschlichkeit-Osterreich/menschlichkeit-oesterreich": {
+  "decision": "valido",
+  "motivo": "Sistemas de la ONG Menschlichkeit Österreich (web, API y CRM); rsync.",
+  "lote": 9
+ },
+ "redhat-openshift-ecosystem/pipeline-metrics": {
+  "decision": "valido",
+  "motivo": "Servicio de métricas de los pipelines de certificación de Red Hat; Ansible.",
+  "lote": 9
+ },
+ "myungmoon-dev/luv": {
+  "decision": "excluido",
+  "motivo": "Sitio web de contenidos de una iglesia (README de plantilla de Turborepo).",
+  "lote": 9
+ },
+ "SuffolkLITLab/LITEfile": {
+  "decision": "valido",
+  "motivo": "Aplicación de presentación electrónica del Suffolk LIT Lab; Fly.io.",
+  "lote": 9
+ },
+ "UoaWDCC/aucc": {
+  "decision": "excluido",
+  "motivo": "Sitio de contenidos de un club, hecho por un club estudiantil de desarrollo (URL de Vercel autogenerada).",
+  "lote": 9
+ },
+ "bcgov/eagle-api": {
+  "decision": "valido",
+  "motivo": "API de EPIC del Environmental Assessment Office de Columbia Británica (projects.eao.gov.bc.ca); Helm.",
+  "lote": 9
+ },
+ "noi-techpark/opendatahub-timeseries-api": {
+  "decision": "valido",
+  "motivo": "API de movilidad del Open Data Hub (NOI Techpark), 18 contribuidores; Helm.",
+  "lote": 9
+ },
+ "bcgov/klamm": {
+  "decision": "valido",
+  "motivo": "Herramienta de captura de datos del Gobierno de Columbia Británica; Helm.",
+  "lote": 9
+ },
+ "italia/graph-italia": {
+  "decision": "valido",
+  "motivo": "Servicio Graph Italia del gobierno italiano (Developers Italia); Helm.",
+  "lote": 9
+ },
+ "Vauhtijuoksu/wwwauhtijuoksu-cms": {
+  "decision": "excluido",
+  "motivo": "Declarado fuera de producción ('not in production').",
+  "lote": 9
+ },
+ "bcgov/weather-archive": {
+  "decision": "valido",
+  "motivo": "Servicio del Gobierno de Columbia Británica; Helm.",
+  "lote": 9
+ },
+ "rsksmart/rbtc-faucet": {
+  "decision": "valido",
+  "motivo": "Faucet público en servicio de Rootstock (RSK); Helm.",
+  "lote": 9
+ },
+ "pubky/pubky-app": {
+  "decision": "valido",
+  "motivo": "Aplicación web en producción pubky.app, 28 contribuidores; Cloud Run.",
+  "lote": 9
+ },
+ "PROCEED-Labs/proceed": {
+  "decision": "valido",
+  "motivo": "Sistema de gestión de procesos (BPMS) PROCEED, 14 contribuidores; Cloud Run.",
+  "lote": 9
+ },
+ "un-fao/exact-django-webapp": {
+  "decision": "valido",
+  "motivo": "Aplicación EX-ACT de la FAO (Naciones Unidas); App Engine.",
+  "lote": 9
+ },
+ "DataIntegrationGroup/OcotilloUI": {
+  "decision": "valido",
+  "motivo": "Aplicación de gestión de datos del New Mexico Bureau of Geology; App Engine.",
+  "lote": 9
+ },
+ "FelidaeFundConservation/wildepod.org": {
+  "decision": "valido",
+  "motivo": "Aplicación Django de WildePod (Felidae Conservation Fund), 12 contribuidores; App Engine.",
+  "lote": 9
+ },
+ "Legal-Terminus/legalterminus": {
+  "decision": "excluido",
+  "motivo": "Sin web ni descripción del uso: no se puede confirmar que esté en producción.",
+  "lote": 9
+ },
+ "Stars-and-Stripes-Honor-Flight/sshf-api": {
+  "decision": "valido",
+  "motivo": "API de operaciones de la ONG Stars and Stripes Honor Flight; Cloud Run.",
+  "lote": 9
+ },
+ "data-mermaid/mermaid-api": {
+  "decision": "valido",
+  "motivo": "API de MERMAID (Wildlife Conservation Society), 15 contribuidores; AWS CDK.",
+  "lote": 9
+ },
+ "dimagi/open-chat-studio": {
+  "decision": "valido",
+  "motivo": "Plataforma Open Chat Studio de Dimagi, 54 contribuidores; AWS ECS.",
+  "lote": 9
+ },
+ "naturebase-app/tnc-blue-carbon-cost-tool": {
+  "decision": "valido",
+  "motivo": "Herramienta Blue Carbon Cost Tool de The Nature Conservancy, 11 contribuidores; Elastic Beanstalk.",
+  "lote": 9
+ },
+ "OpenConceptLab/oclweb2": {
+  "decision": "valido",
+  "motivo": "TermBrowser v2 de Open Concept Lab, en uso; AWS ECS.",
+  "lote": 9
+ },
+ "REAN-Foundation/rean-bot-wrapper": {
+  "decision": "valido",
+  "motivo": "Servicios del chatbot de salud de la REAN Foundation (WhatsApp y Telegram); AWS ECS.",
+  "lote": 9
+ },
+ "RetellAI/retell-typescript-sdk": {
+  "decision": "valido",
+  "motivo": "Despliega el servidor MCP de producción de Retell AI en AWS ECS (environment production).",
+  "lote": 9
+ },
+ "Vizzuality/esa": {
+  "decision": "excluido",
+  "motivo": "Plantilla de aplicación ('Serverless App scaffold') en una URL de Vercel autogenerada.",
+  "lote": 9
+ },
+ "bcgov/reserve-rec-admin": {
+  "decision": "valido",
+  "motivo": "Administración de reservas de Parques de Columbia Británica (gobierno); AWS CDK.",
+  "lote": 9
+ },
+ "deepple-dev/deepple-api": {
+  "decision": "valido",
+  "motivo": "Backend del servicio de citas Deepple, 1190 commits; AWS ECS.",
+  "lote": 9
+ },
+ "department-for-transport-BODS/publish-devolved-bus-registration-data": {
+  "decision": "valido",
+  "motivo": "Servicio del Department for Transport del Reino Unido (BODS); SAM.",
+  "lote": 9
+ },
+ "developmentseed/eoapi-cdk": {
+  "decision": "excluido",
+  "motivo": "Biblioteca de constructs de CDK, no una aplicación.",
+  "lote": 9
+ },
+ "Health-Education-England/TIS-SYNC": {
+  "decision": "valido",
+  "motivo": "Servicio TIS de Health Education England (NHS); AWS ECS.",
+  "lote": 9
+ },
+ "OpenConceptLab/oclweb3": {
+  "decision": "excluido",
+  "motivo": "Declarado sin publicar ('not released!').",
+  "lote": 9
+ },
+ "PA-NIHR-CRN/dte-study-api": {
+  "decision": "valido",
+  "motivo": "API del servicio de voluntarios de investigación del NIHR (Reino Unido); AWS ECS.",
+  "lote": 9
+ },
+ "pagopa/developer-portal-cms": {
+  "decision": "valido",
+  "motivo": "CMS del portal para desarrolladores de PagoPA, 18 contribuidores; AWS ECS.",
+  "lote": 9
+ },
+ "rubberdok/indok-web": {
+  "decision": "valido",
+  "motivo": "Sitio y servicios en producción para los estudiantes de Indøk en la NTNU (indokntnu.no), 50 contribuidores; AWS ECS.",
+  "lote": 9
+ },
+ "sil-org/app-monitoring-archiver": {
+  "decision": "valido",
+  "motivo": "Servicio interno de SIL que archiva resultados de monitorización; AWS CDK.",
+  "lote": 9
+ },
+ "cascadiaquakes/CRESCENT-CVM-WEB": {
+  "decision": "valido",
+  "motivo": "Aplicación en producción cvm.cascadiaquakes.org del centro CRESCENT; AWS CDK.",
+  "lote": 9
+ },
+ "connve/flowgen": {
+  "decision": "excluido",
+  "motivo": "El workflow candidato solo despliega la documentación (Cloudflare Pages).",
+  "lote": 10
+ },
+ "digital-technologies-teachers-aotearoa/ams": {
+  "decision": "valido",
+  "motivo": "Software de gestión en uso por la asociación DTTA (Nueva Zelanda); DigitalOcean App Platform.",
+  "lote": 10
+ },
+ "depromeet/globber-client": {
+  "decision": "excluido",
+  "motivo": "Proyecto de equipo de un club de formación (Depromeet, 17.ª generación).",
+  "lote": 10
+ },
+ "twohoursonelife/dictator": {
+  "decision": "valido",
+  "motivo": "Bot de Discord en servicio de la comunidad del juego Two Hours One Life; Fly.io.",
+  "lote": 10
+ },
+ "bluebanquise/bluebanquise": {
+  "decision": "excluido",
+  "motivo": "Colección de roles de Ansible; el workflow prueba el despliegue de clústeres, no despliega una aplicación.",
+  "lote": 10
+ },
+ "ankaboot-source/supabase-selfhost-ops": {
+  "decision": "excluido",
+  "motivo": "El workflow candidato hace un backup (release.yml); no despliega una aplicación.",
+  "lote": 10
+ },
+ "binary-coffee-dev/dcs-frontend": {
+  "decision": "valido",
+  "motivo": "Frontend de la comunidad Binary Coffee, 8 contribuidores y 1509 commits; SSH.",
+  "lote": 10
+ },
+ "camthink-ai/wiki-documents": {
+  "decision": "excluido",
+  "motivo": "Sitio de documentación.",
+  "lote": 10
+ },
+ "cbg-ethz/WisePulse": {
+  "decision": "valido",
+  "motivo": "Infraestructura de vigilancia viral en aguas residuales del grupo CBG de ETH Zúrich; Ansible.",
+  "lote": 10
+ },
+ "Cour-de-cassation/judilibre-search": {
+  "decision": "valido",
+  "motivo": "API de búsqueda de Judilibre de la Cour de cassation (Francia); Ansible.",
+  "lote": 10
+ },
+ "docknetwork/dock-substrate": {
+  "decision": "valido",
+  "motivo": "Nodo de la blockchain Dock desplegado con Ansible.",
+  "lote": 10
+ },
+ "Aurora-site/aurora": {
+  "decision": "excluido",
+  "motivo": "Un solo autor y dominio de pruebas (duckdns): sin evidencia de uso.",
+  "lote": 10
+ },
+ "chrismuha/pineneedledesigns.website": {
+  "decision": "valido",
+  "motivo": "Tienda en línea de la empresa Pine Needle Designs, 7 contribuidores; SSH.",
+  "lote": 10
+ },
+ "DIVD-NL/web-www-v2": {
+  "decision": "excluido",
+  "motivo": "Sitio web estático y el workflow candidato publica en staging.",
+  "lote": 10
+ },
+ "dump-hr/futsal-app": {
+  "decision": "valido",
+  "motivo": "Aplicación del torneo de fútbol sala de DUMP (asociación de Split); Ansible.",
+  "lote": 10
+ },
+ "percona/pmm": {
+  "decision": "excluido",
+  "motivo": "El workflow candidato construye imágenes AMI; no despliega una aplicación.",
+  "lote": 10
+ },
+ "ccrma/webchuck-ide": {
+  "decision": "valido",
+  "motivo": "IDE web en producción de CCRMA, Stanford (chuck.stanford.edu/ide); rsync.",
+  "lote": 10
+ },
+ "consuldemocracy/installer": {
+  "decision": "excluido",
+  "motivo": "Instalador; el workflow prueba la instalación, no despliega una aplicación en uso.",
+  "lote": 10
+ },
+ "alkem-io/client-web": {
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow candidato despliega al sandbox (build-deploy-k8s-sandbox-hetzner.yml).",
+  "lote": 10
+ },
+ "boostorg/website-v2": {
+  "decision": "valido",
+  "motivo": "Sitio Django de Boost en producción (boost.org), 34 contribuidores; Helm.",
+  "lote": 10
+ },
+ "bouine-cache/bouine": {
+  "decision": "excluido",
+  "motivo": "El workflow candidato empaqueta el chart de Helm (prerelease); no despliega.",
+  "lote": 10
+ },
+ "2060-io/hologram.zone-website": {
+  "decision": "excluido",
+  "motivo": "Sitio de marketing, no una aplicación.",
+  "lote": 10
+ },
+ "dasch-swiss/dsp-repository": {
+  "decision": "valido",
+  "motivo": "Repositorio de datos de investigación en humanidades del servicio nacional suizo DaSCH, 18 contribuidores; Cloud Run.",
+  "lote": 10
+ },
+ "broadinstitute/PrimerCast": {
+  "decision": "valido",
+  "motivo": "Herramienta de diseño de cebadores del Broad Institute; Cloud Run.",
+  "lote": 10
+ },
+ "CKStudentCouncil/Legislation": {
+  "decision": "valido",
+  "motivo": "Sistema de normas y documentos en uso por el consejo estudiantil del CKHS (law.cksc.tw); Cloud Run.",
+  "lote": 10
+ },
+ "CodeForPhilly/benefit-decision-toolkit": {
+  "decision": "valido",
+  "motivo": "Herramienta cívica en producción bdtoolkit.org de Code for Philly; Cloud Run.",
+  "lote": 10
+ },
+ "brown-ccv/ccv-website": {
+  "decision": "excluido",
+  "motivo": "Sitio web de contenidos de un centro universitario, no una aplicación.",
+  "lote": 10
+ },
+ "BrightSoftwares/blogpost-tools": {
+  "decision": "excluido",
+  "motivo": "Herramientas de automatización de blogs; 99 de 100 ejecuciones fallidas.",
+  "lote": 10
+ },
+ "counsel-health/counsel-studio-example-apps": {
+  "decision": "excluido",
+  "motivo": "Aplicaciones de ejemplo (sample apps).",
+  "lote": 10
+ },
+ "Lumos-Programming/lumos-web": {
+  "decision": "valido",
+  "motivo": "Sitio y plataforma de miembros en uso del círculo Lumos (Universidad Nacional de Yokohama), 15 contribuidores; Cloud Run.",
+  "lote": 10
+ },
+ "b10cks/cms": {
+  "decision": "valido",
+  "motivo": "CMS de la empresa b10cks (b10cks Cloud); AWS ECS.",
+  "lote": 10
+ },
+ "CBIIT/nci-webtools-dceg-classification": {
+  "decision": "valido",
+  "motivo": "Herramienta SOCcer del NCI (soccer.nci.nih.gov); AWS ECS.",
+  "lote": 10
+ },
+ "cds-snc/cds-aws-lz": {
+  "decision": "excluido",
+  "motivo": "Infraestructura de cuentas de AWS (landing zone), no una aplicación.",
+  "lote": 10
+ },
+ "DataDog/stickerlandia": {
+  "decision": "excluido",
+  "motivo": "Aplicación de referencia de Datadog sin evidencia de uso en producción.",
+  "lote": 10
+ },
+ "domits1/Domits": {
+  "decision": "valido",
+  "motivo": "Plataforma de gestión hotelera Domits, 74 contribuidores; AWS Lambda.",
+  "lote": 10
+ },
+ "dreamwidth/dreamwidth": {
+  "decision": "valido",
+  "motivo": "Plataforma Dreamwidth en producción, 64 contribuidores; AWS ECS.",
+  "lote": 10
+ },
+ "AllenNeuralDynamics/aind-qc-portal": {
+  "decision": "valido",
+  "motivo": "Portal de control de calidad del Allen Institute (qc.allenneuraldynamics.org); AWS ECS.",
+  "lote": 10
+ },
+ "AllenNeuralDynamics/zombie": {
+  "decision": "valido",
+  "motivo": "Portal de datos del Allen Institute (data.allenneuraldynamics.org); AWS ECS.",
+  "lote": 10
+ },
+ "burningmantech/ranger-ims-go": {
+  "decision": "valido",
+  "motivo": "Sistema de gestión de incidentes en uso por los Black Rock Rangers (Burning Man); AWS ECS.",
+  "lote": 10
+ },
+ "aws-samples/aws-fault-injection-simulator-workshop-v2": {
+  "decision": "excluido",
+  "motivo": "Aplicación de ejemplo de un taller de AWS.",
+  "lote": 10
+ },
+ "CBIIT/nci-webtools-ccr-microarray": {
+  "decision": "valido",
+  "motivo": "Aplicación MAAP del NCI (maap.ccr.cancer.gov); AWS CDK.",
+  "lote": 10
+ },
+ "developmentseed/eoapi-template": {
+  "decision": "excluido",
+  "motivo": "Plantilla (template repository).",
+  "lote": 10
+ },
+ "Enterprise-CMCS/macpro-appian-connector": {
+  "decision": "valido",
+  "motivo": "Conector de datos de producción de CMS (gobierno de EE. UU.); AWS CDK.",
+  "lote": 10
+ },
+ "Health-Education-England/TIS-TCS": {
+  "decision": "valido",
+  "motivo": "TIS Core Services de Health Education England (NHS), 36 contribuidores; AWS ECS.",
+  "lote": 10
+ },
+ "mathematica-pub/frontend-shared-packages": {
+  "decision": "excluido",
+  "motivo": "Bibliotecas; lo desplegado es su app de demostración y documentación.",
+  "lote": 10
+ },
+ "ourresearch/parseland-lib": {
+  "decision": "valido",
+  "motivo": "Servicio de análisis de OurResearch desplegado en AWS ECS (environment production).",
+  "lote": 10
+ },
+ "PRX/github-toolkit": {
+  "decision": "valido",
+  "motivo": "GitHub App en uso por la organización PRX; SAM.",
+  "lote": 10
+ },
+ "bokeh/demo.bokeh.org": {
+  "decision": "excluido",
+  "motivo": "Galería de demostraciones (demo.bokeh.org).",
+  "lote": 10
+ },
+ "ChurchApps/Api": {
+  "decision": "valido",
+  "motivo": "API en producción de la plataforma de gestión de iglesias ChurchApps, 13 contribuidores; Serverless Framework.",
+  "lote": 10
+ },
+ "oslokommune/okdata-maskinporten-api": {
+  "decision": "valido",
+  "motivo": "API de la plataforma de datos del Ayuntamiento de Oslo; SAM.",
+  "lote": 10
+ },
+ "gemini-hlsw/scheduler": {
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): la organización despliega desde CI solo a development (ver lucuma-apps y lucuma-odb) y el 92 % de las ejecuciones se omiten.",
+  "lote": 11
+ },
+ "Helpful-Places/dtpr": {
+  "decision": "excluido",
+  "motivo": "Sistema de diseño y sitio de contenidos (taxonomía visual), no una aplicación.",
+  "lote": 11
+ },
+ "LiveSplit/LiveSplitOne": {
+  "decision": "excluido",
+  "motivo": "Herramienta que se ejecuta solo en el navegador; el despliegue publica un build estático sin backend.",
+  "lote": 11
+ },
+ "obbyworld/obby": {
+  "decision": "excluido",
+  "motivo": "Despliega solo a Cloudflare Pages (hosting estático): el paso «Deploy» usa wrangler-action con `pages deploy dist`. Detectado en la muestra de validación final (criterio 2).",
+  "lote": 11
+ },
+ "Kiln-AI/Kiln": {
+  "decision": "excluido",
+  "motivo": "Aplicación de escritorio y biblioteca; el workflow despliega un sitio auxiliar, no la aplicación.",
+  "lote": 11
+ },
+ "progwise/timebook": {
+  "decision": "valido",
+  "motivo": "Herramienta interna de horas y facturación de la empresa progwise, 13 contribuidores; DigitalOcean.",
+  "lote": 11
+ },
+ "streckeisen-dev/MyCVHub": {
+  "decision": "excluido",
+  "motivo": "Sin web ni evidencia de usuarios; 2 autores.",
+  "lote": 11
+ },
+ "totto2727-org/lapriere-website": {
+  "decision": "excluido",
+  "motivo": "Sitio de fans no oficial de un autor; proyecto personal.",
+  "lote": 11
+ },
+ "TeamDevDev/www.developerdevelopment.com": {
+  "decision": "excluido",
+  "motivo": "Sitio estático de materiales de curso universitario.",
+  "lote": 11
+ },
+ "MyersResearchGroup/SeqImprove": {
+  "decision": "excluido",
+  "motivo": "Herramienta académica de un grupo de investigación sin web ni evidencia de uso.",
+  "lote": 11
+ },
+ "MotoRepSystem/Proyecto_de_integrador_-aplicaci-n_web-": {
+  "decision": "excluido",
+  "motivo": "Proyecto integrador de curso.",
+  "lote": 11
+ },
+ "Explorer-Consulting/SchoolFeedBackWebAPI": {
+  "decision": "valido",
+  "motivo": "Sistema de encuestas escolares de la consultora Explorer Consulting, 14 contribuidores; Azure Functions.",
+  "lote": 11
+ },
+ "SuffolkLITLab/EfileProxyServer": {
+  "decision": "valido",
+  "motivo": "Proxy de presentación electrónica judicial en servicio (Suffolk LIT Lab); Fly.io.",
+  "lote": 11
+ },
+ "PREreview/stats": {
+  "decision": "valido",
+  "motivo": "Aplicación en producción stats.prereview.org de la ONG PREreview; Fly.io.",
+  "lote": 11
+ },
+ "govote-sh/govote": {
+  "decision": "valido",
+  "motivo": "Servicio público por SSH (govote.sh) de información electoral; Fly.io.",
+  "lote": 11
+ },
+ "ebbba-org/ansible-role-bigbluebutton": {
+  "decision": "excluido",
+  "motivo": "Rol de Ansible (herramienta); el workflow lo prueba, no despliega una aplicación.",
+  "lote": 11
+ },
+ "elan-ev/tobira": {
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow despliega instancias de prueba por rama, no producción.",
+  "lote": 11
+ },
+ "jellyfin/jellyfin-chromecast": {
+  "decision": "excluido",
+  "motivo": "Receptor web que se ejecuta en el dispositivo; el despliegue publica archivos estáticos.",
+  "lote": 11
+ },
+ "MythTV/mythtv": {
+  "decision": "excluido",
+  "motivo": "Aplicación de escritorio; Ansible prepara entornos de compilación en CI.",
+  "lote": 11
+ },
+ "otwcode/otwarchive": {
+  "decision": "valido",
+  "motivo": "Archive of Our Own (AO3), 313 contribuidores; despliegue por SSH.",
+  "lote": 11
+ },
+ "pandorabox-io/pandorabox.io": {
+  "decision": "valido",
+  "motivo": "Configuración del servidor de juego en servicio pandorabox.io; Ansible.",
+  "lote": 11
+ },
+ "roots/trellis": {
+  "decision": "excluido",
+  "motivo": "Herramienta (stack de Ansible para WordPress); el workflow la prueba.",
+  "lote": 11
+ },
+ "saltyorg/Saltbox": {
+  "decision": "excluido",
+  "motivo": "Herramienta de instalación con Ansible; el workflow la prueba.",
+  "lote": 11
+ },
+ "tough-dev-school/lms-frontend-v2": {
+  "decision": "valido",
+  "motivo": "LMS en producción de la escuela Tough Dev School, 11 contribuidores; SSH.",
+  "lote": 11
+ },
+ "trailofbits/algo": {
+  "decision": "excluido",
+  "motivo": "Herramienta (scripts de Ansible para VPN); el workflow la prueba.",
+  "lote": 11
+ },
+ "wazuh/wazuh-virtual-machines": {
+  "decision": "excluido",
+  "motivo": "Construye imágenes de máquinas virtuales (OVA/AMI), no despliega una aplicación.",
+  "lote": 11
+ },
+ "fielddaylab/fielddaysite": {
+  "decision": "excluido",
+  "motivo": "Sitio web de contenidos del laboratorio, no una aplicación.",
+  "lote": 11
+ },
+ "fribyte-code/fribyte.no": {
+  "decision": "excluido",
+  "motivo": "Sitio estático (Zola).",
+  "lote": 11
+ },
+ "groupdocs-redaction/GroupDocs.Redaction-Docs": {
+  "decision": "excluido",
+  "motivo": "Sitio de documentación estático.",
+  "lote": 11
+ },
+ "hello-ulises/ulises.us": {
+  "decision": "excluido",
+  "motivo": "Sitio web personal.",
+  "lote": 11
+ },
+ "HelmholtzAI-Consultants-Munich/oligo-designer-toolsuite-front-end": {
+  "decision": "valido",
+  "motivo": "Aplicación web ODT Cloud de Helmholtz AI en vista previa pública, 11 contribuidores; Ansible.",
+  "lote": 11
+ },
+ "HyperBDR/docs": {
+  "decision": "excluido",
+  "motivo": "Sitio de documentación estático (VuePress).",
+  "lote": 11
+ },
+ "inu-appcenter/inu-portal-server": {
+  "decision": "valido",
+  "motivo": "Portal de servicios INTIP para estudiantes de la Universidad Nacional de Incheon (servidor); SSH.",
+  "lote": 11
+ },
+ "NNTmux/newznab-tmux": {
+  "decision": "excluido",
+  "motivo": "Software que instalan terceros; el Ansible del workflow no despliega un servicio propio.",
+  "lote": 11
+ },
+ "oVirt/ovirt-hosted-engine-setup": {
+  "decision": "excluido",
+  "motivo": "Herramienta de instalación de oVirt.",
+  "lote": 11
+ },
+ "ral-facilities/datagateway": {
+  "decision": "excluido",
+  "motivo": "El Ansible del workflow monta el entorno de pruebas e2e en CI, no despliega.",
+  "lote": 11
+ },
+ "replicatedhq/ttl.sh": {
+  "decision": "valido",
+  "motivo": "Registro público de imágenes ttl.sh en servicio (Replicated); Ansible.",
+  "lote": 11
+ },
+ "sparkfabrik/archlinux-ansible-provisioner": {
+  "decision": "excluido",
+  "motivo": "Herramienta de aprovisionamiento de estaciones de trabajo.",
+  "lote": 11
+ },
+ "usegalaxy-eu/infrastructure-playbook": {
+  "decision": "valido",
+  "motivo": "Infraestructura en producción de UseGalaxy.eu, 110 contribuidores; Ansible.",
+  "lote": 11
+ },
+ "vektor-inc/vk-blocks": {
+  "decision": "excluido",
+  "motivo": "Plugin de WordPress (biblioteca).",
+  "lote": 11
+ },
+ "egovernments/Citizen-Complaint-Resolution-System": {
+  "decision": "valido",
+  "motivo": "Plataforma de reclamos ciudadanos CCRS sobre DIGIT (eGov Foundation), 28 contribuidores; Ansible.",
+  "lote": 11
+ },
+ "fielddaylab/wake": {
+  "decision": "excluido",
+  "motivo": "Juego educativo; el despliegue publica un build estático WebGL.",
+  "lote": 11
+ },
+ "groupdocs-watermark/GroupDocs.Watermark-Docs": {
+  "decision": "excluido",
+  "motivo": "Sitio de documentación estático.",
+  "lote": 11
+ },
+ "OpenSID/pantau": {
+  "decision": "valido",
+  "motivo": "PantauSID, servicio de monitoreo del uso de OpenSID en Indonesia, 22 contribuidores; SSH.",
+  "lote": 11
+ },
+ "OpenSID/rilis-premium": {
+  "decision": "excluido",
+  "motivo": "Repositorio de distribución de versiones premium, no una aplicación desplegada.",
+  "lote": 11
+ },
+ "pharmacosmos-dev/pharma-crm-backend": {
+  "decision": "valido",
+  "motivo": "Backend de Pharma Go para la gestión de farmacias de Pharmacosmos; SSH.",
+  "lote": 11
+ },
+ "projectsplit/SplitServer": {
+  "decision": "excluido",
+  "motivo": "Sin README ni descripción: no se puede confirmar que esté en uso.",
+  "lote": 11
+ },
+ "rism-digital/rism.info": {
+  "decision": "excluido",
+  "motivo": "Sin README; sitio web de contenidos.",
+  "lote": 11
+ },
+ "TheoreticalAstrophysicsGroup/TheoreticalAstrophysicsGroup.github.io": {
+  "decision": "excluido",
+  "motivo": "Sitio estático (Jekyll) de un grupo universitario.",
+  "lote": 11
+ },
+ "tornotron/echno-web": {
+  "decision": "valido",
+  "motivo": "Plataforma de gestión de obras Echno, 3 contribuidores, 1827 commits; Ansible.",
+  "lote": 11
+ },
+ "Open-Earth-Foundation/CityCatalyst": {
+  "decision": "valido",
+  "motivo": "Plataforma climática para ciudades en producción (citycatalyst.openearth.org), 25 contribuidores; Kubernetes.",
+  "lote": 12
+ },
+ "Team-Commonly/commonly": {
+  "decision": "valido",
+  "motivo": "Espacio de trabajo con agentes en producción (commonly.me), 1391 estrellas; Helm.",
+  "lote": 12
+ },
+ "NewWave4Org/NewWave4.org-frontend-new": {
+  "decision": "valido",
+  "motivo": "Sitio y panel de administración de la ONG NewWave4.org (new.newwave4.org), 10 contribuidores; Helm.",
+  "lote": 12
+ },
+ "PrivadoID/issuer-node": {
+  "decision": "excluido",
+  "motivo": "Software para que terceros lo instalen (self-hosted); el workflow no despliega un servicio propio en producción.",
+  "lote": 12
+ },
+ "RootstockCollective/dao-frontend": {
+  "decision": "valido",
+  "motivo": "Dapp en producción de Rootstock Collective (app.rootstockcollective.xyz), 19 contribuidores; Helm.",
+  "lote": 12
+ },
+ "bcgov/sso-realm-registry": {
+  "decision": "valido",
+  "motivo": "Registro de realms del servicio SSO del Gobierno de Columbia Británica; Helm.",
+  "lote": 12
+ },
+ "FINTLabs/fint-betaling-backend": {
+  "decision": "excluido",
+  "motivo": "Máximo de 5 por organización: de FINTLabs se eligen los 5 con más ejecuciones.",
+  "lote": 12
+ },
+ "FINTLabs/fint-kontroll-resource-catalog": {
+  "decision": "excluido",
+  "motivo": "Máximo de 5 por organización: de FINTLabs se eligen los 5 con más ejecuciones.",
+  "lote": 12
+ },
+ "FINTLabs/fint-kontroll-role-catalog": {
+  "decision": "excluido",
+  "motivo": "Máximo de 5 por organización: de FINTLabs se eligen los 5 con más ejecuciones.",
+  "lote": 12
+ },
+ "FINTLabs/fint-kunde-portal-frontend-v2": {
+  "decision": "valido",
+  "motivo": "Portal de clientes de FINT, plataforma de integración de los condados de Noruega; AKS.",
+  "lote": 12
+ },
+ "OpenHistoricalMap/ohm-deploy": {
+  "decision": "valido",
+  "motivo": "Despliegue a staging y producción de OpenHistoricalMap.org; Helm (el dataset solo cuenta producción).",
+  "lote": 12
+ },
+ "ServiceCanada/feedback-cron": {
+  "decision": "valido",
+  "motivo": "Proceso de comentarios de páginas de Canada.ca (Service Canada); AKS.",
+  "lote": 12
+ },
+ "Vacademy-io/vacademy_edtech_platform": {
+  "decision": "valido",
+  "motivo": "Plataforma LMS en producción (vacademy.io), 22 contribuidores; Kubernetes.",
+  "lote": 12
+ },
+ "FINTLabs/fint-adapter-felles-kodeverk": {
+  "decision": "excluido",
+  "motivo": "Máximo de 5 por organización: de FINTLabs se eligen los 5 con más ejecuciones.",
+  "lote": 12
+ },
+ "FINTLabs/fint-admin-portal-frontend-v2": {
+  "decision": "excluido",
+  "motivo": "Máximo de 5 por organización: de FINTLabs se eligen los 5 con más ejecuciones.",
+  "lote": 12
+ },
+ "FINTLabs/fint-kontroll-device-catalog": {
+  "decision": "excluido",
+  "motivo": "Máximo de 5 por organización: de FINTLabs se eligen los 5 con más ejecuciones.",
+  "lote": 12
+ },
+ "FINTLabs/fint-kontroll-user-catalog": {
+  "decision": "valido",
+  "motivo": "Catálogo de usuarios de FINT Kontroll (condados de Noruega); AKS.",
+  "lote": 12
+ },
+ "FINTLabs/fint-kontroll-user-factory": {
+  "decision": "excluido",
+  "motivo": "Máximo de 5 por organización: de FINTLabs se eligen los 5 con más ejecuciones.",
+  "lote": 12
+ },
+ "kubeshop/testkube-thirdparty-artifacts": {
+  "decision": "excluido",
+  "motivo": "Artefactos de instalación (imágenes y charts), no una aplicación desplegada.",
+  "lote": 12
+ },
+ "opszero/template-helm-django": {
+  "decision": "excluido",
+  "motivo": "Plantilla de despliegue de Django.",
+  "lote": 12
+ },
+ "FINTLabs/fint-flyt-frontend": {
+  "decision": "valido",
+  "motivo": "Frontend de FINT Flyt, plataforma de integración con archivos de los condados de Noruega; AKS.",
+  "lote": 12
+ },
+ "FINTLabs/fint-kontroll-assignment-catalog": {
+  "decision": "valido",
+  "motivo": "Catálogo de asignaciones de FINT Kontroll (condados de Noruega); AKS.",
+  "lote": 12
+ },
+ "bcgov/eao-nginx": {
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): según el README solo corre en el namespace dev de OpenShift.",
+  "lote": 12
+ },
+ "ilogs-mx/landing-page": {
+  "decision": "excluido",
+  "motivo": "Landing page estática (Astro).",
+  "lote": 12
+ },
+ "UMNET-perfSONAR/pssid-gui2": {
+  "decision": "valido",
+  "motivo": "Aplicación web de configuración de pSSID de la red de la Universidad de Michigan; Ansible.",
+  "lote": 12
+ },
+ "redhat-openshift-ecosystem/pullsar": {
+  "decision": "valido",
+  "motivo": "Aplicación de estadísticas de uso de operadores de OpenShift (Red Hat); Ansible.",
+  "lote": 12
+ },
+ "RunOnFlux/flux-domain-manager": {
+  "decision": "valido",
+  "motivo": "Servicio de dominios y balanceo en producción de la red Flux, 14 contribuidores; Ansible.",
+  "lote": 12
+ },
+ "TelesCoop/TelesCoop-site-vitrine": {
+  "decision": "excluido",
+  "motivo": "Sitio vitrina estático (Astro).",
+  "lote": 12
+ },
+ "xsnippet/xsnippet-infra": {
+  "decision": "valido",
+  "motivo": "Despliegue de producción de xsnippet.org (API y web); Ansible.",
+  "lote": 12
+ },
+ "OE-Japan/oe-japan-cms": {
+  "decision": "excluido",
+  "motivo": "Sitio estático (Gatsby).",
+  "lote": 12
+ },
+ "mozilla/probe-scraper": {
+  "decision": "valido",
+  "motivo": "Servicio de telemetría de Mozilla en producción, 77 contribuidores; Cloud Functions.",
+  "lote": 12
+ },
+ "gamedevpl/www.gamedev.pl": {
+  "decision": "valido",
+  "motivo": "Plataforma de juegos en producción (www.gamedev.pl), 33 contribuidores; Cloud Run.",
+  "lote": 12
+ },
+ "globe-swiss/phaenonet-functions": {
+  "decision": "valido",
+  "motivo": "Funciones de la plataforma de observación PhaenoNet de GLOBE Suiza; Cloud Functions.",
+  "lote": 12
+ },
+ "PJECZ/pjecz-hercules-flask": {
+  "decision": "valido",
+  "motivo": "Sistema web Hércules del Poder Judicial del Estado de Coahuila; App Engine.",
+  "lote": 12
+ },
+ "Peppy-bot/peppy": {
+  "decision": "excluido",
+  "motivo": "Framework de robótica; el despliegue es auxiliar, no la aplicación.",
+  "lote": 12
+ },
+ "thewca/worldcubeassociation.org": {
+  "decision": "valido",
+  "motivo": "Sitio en producción de la World Cube Association, 148 contribuidores; ECS.",
+  "lote": 12
+ },
+ "fairbanksio/f5news": {
+  "decision": "valido",
+  "motivo": "Agregador de noticias en producción (f5.news); Serverless Framework.",
+  "lote": 12
+ },
+ "TAK-NZ/utils-infra": {
+  "decision": "valido",
+  "motivo": "Servicios de utilidades en producción de la infraestructura TAK NZ; CDK.",
+  "lote": 12
+ },
+ "techmatters/hrm": {
+  "decision": "valido",
+  "motivo": "Backend HRM de Aselo, sistema para líneas de ayuda (Tech Matters), 22 contribuidores; Lambda.",
+  "lote": 12
+ },
+ "govuk-one-login/txma-audit": {
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow publica en las cuentas build/dev de GOV.UK One Login; la promoción a producción la hace AWS CodePipeline fuera de GitHub Actions.",
+  "lote": 12
+ },
+ "opensearch-project/oscar-ai-bot": {
+  "decision": "valido",
+  "motivo": "Asistente de operaciones en servicio del proyecto OpenSearch; CDK.",
+  "lote": 12
+ },
+ "OSU-Sustainability-Office/energy-dashboard": {
+  "decision": "valido",
+  "motivo": "Panel de energía en producción de la Universidad Estatal de Oregón; SAM.",
+  "lote": 12
+ },
+ "govuk-one-login/txma-ticf-integration": {
+  "decision": "excluido",
+  "motivo": "Criterio 2 (solo producción): el workflow publica en las cuentas build/dev de GOV.UK One Login; la promoción a producción la hace AWS CodePipeline fuera de GitHub Actions.",
+  "lote": 12
+ },
+ "PRX/Infrastructure": {
+  "decision": "valido",
+  "motivo": "Infraestructura de las aplicaciones y servicios de PRX en producción; SAM/CloudFormation.",
+  "lote": 12
+ },
+ "RockefellerArchiveCenter/digitized_image_notifications": {
+  "decision": "valido",
+  "motivo": "Servicio de notificaciones de digitalización del Rockefeller Archive Center; Lambda.",
+  "lote": 12
+ },
+ "oslokommune/okdata-token-service": {
+  "decision": "valido",
+  "motivo": "API de tokens de la plataforma de datos de la Municipalidad de Oslo; SAM.",
+  "lote": 12
+ },
+ "Tiameds-pvt-ltd/Lab-automation": {
+  "decision": "valido",
+  "motivo": "Sistema de automatización de laboratorios de la empresa Tiameds; ECS.",
+  "lote": 12
+ },
+ "VegaFederal/VegaWebAWS": {
+  "decision": "excluido",
+  "motivo": "Plantilla de proyecto AWS («trying to deploy website»).",
+  "lote": 12
+ },
+ "Aguafrommars/TheIdServer": {
+  "decision": "excluido",
+  "motivo": "Producto para que terceros lo instalen; el workflow despliega su instancia de demostración en Heroku.",
+  "lote": 13
+ },
+ "FHIR/genomics-operations": {
+  "decision": "valido",
+  "motivo": "Implementación de referencia pública de HL7 FHIR Genomics Operations en servicio; Heroku.",
+  "lote": 13
+ },
+ "forem/forem": {
+  "decision": "valido",
+  "motivo": "Forem, la plataforma de dev.to, 427 contribuidores; Heroku (el dataset solo cuenta producción).",
+  "lote": 13
+ },
+ "openforis/fra-platform": {
+  "decision": "valido",
+  "motivo": "Plataforma de la Evaluación de Recursos Forestales (FRA) de la FAO, 22 contribuidores; Heroku.",
+  "lote": 13
+ },
+ "ReseauEntourage/entourage-ror": {
+  "decision": "valido",
+  "motivo": "Backend de la red solidaria Entourage (ONG), 16 contribuidores; Heroku.",
+  "lote": 13
+ },
+ "kusitms-com/api.kusitms.com": {
+  "decision": "valido",
+  "motivo": "Backend del sitio oficial de la asociación KUSITMS (kusitms.com), 11 contribuidores; Heroku.",
+  "lote": 13
+ },
+ "puzzlenetwork/puzzle-swap": {
+  "decision": "valido",
+  "motivo": "Frontend del exchange descentralizado Puzzle Swap, 10 contribuidores; Heroku.",
+  "lote": 13
+ },
+ "defikarte/defikarte.ch": {
+  "decision": "valido",
+  "motivo": "Mapa de desfibriladores de Suiza en producción (defikarte.ch); Azure Functions.",
+  "lote": 13
+ },
+ "AI-READI/fairhub-pipeline": {
+  "decision": "valido",
+  "motivo": "Pipelines de datos del proyecto AI-READI (NIH); Azure Functions.",
+  "lote": 13
+ },
+ "bikebrigade/dispatch": {
+  "decision": "valido",
+  "motivo": "Software de despacho en producción de la ONG Bike Brigade (Toronto), 16 contribuidores; Fly.io.",
+  "lote": 13
+ },
+ "codeforboston/home-energy-analysis-tool": {
+  "decision": "valido",
+  "motivo": "Calculadora en uso por los asesores de HeatSmart Alliance, 44 contribuidores; Fly.io.",
+  "lote": 13
+ },
+ "cosmik-network/semble": {
+  "decision": "valido",
+  "motivo": "Red social de investigación en producción (semble.so); Fly.io.",
+  "lote": 13
+ },
+ "meerkat-events/meerkat": {
+  "decision": "valido",
+  "motivo": "Herramienta de preguntas para conferencias usada por la Ethereum Foundation (Devcon); Fly.io.",
+  "lote": 13
+ },
+ "Cog-Creators/Red-GitHubBot": {
+  "decision": "valido",
+  "motivo": "Bot de GitHub en servicio para el repositorio de Red-DiscordBot; Fly.io.",
+  "lote": 13
+ },
+ "basicmachines-co/docs.basicmemory.com": {
+  "decision": "excluido",
+  "motivo": "Sitio de documentación.",
+  "lote": 13
+ },
+ "bruits/sampo": {
+  "decision": "excluido",
+  "motivo": "Herramienta de línea de comandos (changelogs y versiones); el despliegue es auxiliar.",
+  "lote": 13
+ },
+ "carbonplan/offsets-db-api": {
+  "decision": "valido",
+  "motivo": "API pública OffsetsDB de CarbonPlan (ONG); Fly.io.",
+  "lote": 13
+ },
+ "kglw-dot-net/tapes": {
+  "decision": "valido",
+  "motivo": "Aplicación de streaming de conciertos en producción (Gizz Tapes); Fly.io (el dataset solo cuenta producción).",
+  "lote": 13
+ },
+ "ocftw/open-star-ter-village": {
+  "decision": "valido",
+  "motivo": "Juego en línea de Open Culture Foundation Taiwán (openstartervillage.ocf.tw), 13 contribuidores; Fly.io.",
+  "lote": 13
+ },
+ "remix-run/remix-website": {
+  "decision": "valido",
+  "motivo": "Sitio y aplicación remix.run (servidor Remix), 60 contribuidores; Fly.io.",
+  "lote": 13
+ },
+ "Ribbit-Network/api": {
+  "decision": "valido",
+  "motivo": "API pública de mediciones de CO2 de Ribbit Network; Fly.io.",
+  "lote": 13
+ },
+ "frontendnetwork/veganify": {
+  "decision": "valido",
+  "motivo": "Aplicación web en producción (veganify.app), 19 contribuidores; Kubernetes.",
+  "lote": 13
+ },
+ "linuxfoundation/insights": {
+  "decision": "valido",
+  "motivo": "LFX Insights de la Linux Foundation (insights.linuxfoundation.org); Kubernetes.",
+  "lote": 13
+ },
+ "milvus-io/milvus.io": {
+  "decision": "excluido",
+  "motivo": "Sitio web oficial de contenidos de Milvus, no una aplicación.",
+  "lote": 13
+ },
+ "dailybruin/flamingo": {
+  "decision": "valido",
+  "motivo": "Frontend de dailybruin.com (periódico estudiantil de UCLA), 35 contribuidores; Kubernetes.",
+  "lote": 13
+ },
+ "fjelltopp/adx_develop": {
+  "decision": "excluido",
+  "motivo": "Entorno de desarrollo del AIDS Data Repository, no la aplicación desplegada.",
+  "lote": 13
+ },
+ "somosgented/aura-design-system": {
+  "decision": "excluido",
+  "motivo": "Sistema de diseño (biblioteca de componentes y su documentación).",
+  "lote": 13
+ },
+ "HarpyTech/fintrackr": {
+  "decision": "excluido",
+  "motivo": "Proyecto de un solo autor reciente sin evidencia de usuarios.",
+  "lote": 13
+ },
+ "ReactiveCircus/kstreamlined-backend": {
+  "decision": "valido",
+  "motivo": "API GraphQL de las apps móviles KStreamlined; Cloud Run.",
+  "lote": 13
+ },
+ "flock-community/flock-eco-workday": {
+  "decision": "valido",
+  "motivo": "Aplicación de gestión de personal en uso en la empresa Flock, 19 contribuidores; Cloud Run.",
+  "lote": 13
+ },
+ "zenGate-Global/winter-backend-cardano": {
+  "decision": "valido",
+  "motivo": "Servicio del protocolo Winter (zenGate) sobre Cardano; Cloud Run.",
+  "lote": 13
  }
 }
