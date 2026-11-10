@@ -1,13 +1,13 @@
 # Filtrado de repositorios reales con despliegues reales
 
-Generado el 2026-11-09 por [`scripts/filtrar_repos_reales.py`](../scripts/filtrar_repos_reales.py) con la API de GitHub (solo lectura). **No se ha cargado nada en la plataforma ni en su base de datos.**
+Generado el 2026-11-10 por [`scripts/filtrar_repos_reales.py`](../scripts/filtrar_repos_reales.py) con la API de GitHub (solo lectura). **No se ha cargado nada en la plataforma ni en su base de datos.**
 
 **Mínimo alcanzado: 203 repositorios válidos** (meta 250, mínimo 200).
 
 ## Totales
 
 - Repositorios: 203
-- Ejecuciones terminadas en los últimos 6 meses (desde 2026-05-11): 32581
+- Ejecuciones terminadas en los últimos 6 meses (desde 2026-05-12): 32581
 - **Antes del tope** (hasta 100 ejecuciones más recientes por repositorio, regla de la fase 2; criterio 2): 6145 → y=0 (completado) 5469 (89.0 %) · y=1 (no completado) 676 (11.0 %). Excluidas por la regla: 7709.
 - **Dataset final, tope de 50 ejecuciones más recientes por repositorio** (para que ningún repo domine una clase): 4237 → y=0 (completado) 3832 (90.4 %) · y=1 (no completado) 405 (9.6 %). Excluidas por la regla: 4206.
 - Repositorios con ambas clases en el dataset final: 104; con 10 o más ejecuciones etiquetadas: 150.
@@ -77,15 +77,18 @@ Según `informes/fase2_variable_objetivo.md` (sección 4, «Excluidas»), una ej
 - **Ejecuciones manuales con entorno indeterminado.** La regla excluyó 246 ejecuciones. Diez repositorios se quedaron sin y=0 y salieron: FHIR/genomics-operations, Opetushallitus/tutu-kasittely, bcgov/dep-public, department-for-transport-BODS/publish-devolved-bus-registration-data, lAnubisl/LostFilmTorrentsFeed, pagopa/developer-portal-cms, remails-com/remails, rit-sse/WebsiteTheSSEquel, techmatters/hrm y zenGate-Global/winter-backend-cardano (226 → 216 válidos).
 - **Regla 7 (entorno real de cada ejecución).** Se re-evaluaron todas las ejecuciones etiquetadas de los 279 aprobados. Se mantuvieron 5562 y=0 y 726 y=1. Salieron: 1402 y=1 de ramas sin ningún despliegue completado a producción (sobre todo PR y ramas de trabajo), 1017 y=0 y 263 y=1 cuyo despliegue iba a un entorno no productivo (environment de GitHub o expresión evaluada: 447 + 47), de workflows no productivos (386 + 132) o de ramas no productivas (184 + 84), 157 y=0 en las que ningún paso desplegaba a producción (p. ej. ansible `--syntax-check`). De las manuales excluidas por la regla anterior, 234 siguen con entorno indeterminado al re-evaluarlas. La regla 7 solo restringe: 11 ejecuciones ambiguas de UMNET-perfSONAR/pssid-gui2 que pasaban a y=1 se dejaron excluidas. Doce repositorios se quedaron sin y=0 y salieron (216 → 204): AllenNeuralDynamics/zombie (`publish_dev.yml`), PRX/Infrastructure (`deploy-terra-stag.yml`), inu-appcenter/inu-portal-server (`cicd-dev.yml`), pongstylin/tactics y tornotron/echno-web (workflows de staging/test), bcgov/reserve-rec-admin (entorno `reserveRecAdminTest`), UTDNebula/api-tools (rama `develop`), naturebase-app/tnc-blue-carbon-cost-tool (rama `staging`), NewWave4Org/NewWave4.org-frontend-new y ministryofjustice/CFO-DataManagementSystem (environment no productivo), cbg-ethz/WisePulse y Cour-de-cassation/judilibre-search (ansible `--syntax-check`).
 - **Muestra de validación final.** Encontró un error: obbyworld/obby despliega solo a Cloudflare Pages con `cloudflare/wrangler-action` y el comando `pages deploy` en el input `command`, que el filtro de hosting estático no leía. Se excluyó por el criterio 2 (204 → 203) y el script ahora añade los inputs `command`/`args` de cada paso al texto que revisa ese filtro. Se buscó el mismo caso en los 204 workflows: solo obby lo tenía (google/neuroglancer ya excluía sus pasos de Firebase Hosting por el nombre).
+- **Tope por plataforma (criterio 4).** En el dataset final AWS tiene 52 de 203 repositorios (25,6 %), por debajo del 30 %; la siguiente es Google Cloud con 36 (17,7 %). Había más aprobados de AWS, y la selección dejó fuera los excedentes con ese motivo.
 
 ## Validación manual de etiquetas (métrica de calidad del dataset)
 
 Muestra aleatoria del dataset final (tope de 50) de 25 ejecuciones y=0 y 25 y=1 con semilla 7. Cada etiqueta se comprobó a mano con los jobs, los pasos, el log del paso de despliegue (y=0) o del paso fallido (y=1) y el YAML del workflow. Una etiqueta es correcta si la ejecución es un intento de despliegue **a producción** y el resultado (completado / no completado) es el que dice la etiqueta. Los logs de más de 90 días ya no están disponibles; en esos casos se usaron los pasos y el YAML.
 
-| Regla | y=0 correctas | y=1 correctas | Precisión total |
-|---|---:|---:|---:|
-| Regla 6 (antes de corregir) | 13/25 (52 %) | 11/25 (44 %) | **24/50 (48 %)** |
-| Regla 7 (dataset final) | 24/25 (96 %) | 25/25 (100 %) | **49/50 (98 %)** |
+| Regla | y=0 correctas | y=1 correctas | Precisión total | IC 95 % (Wilson) |
+|---|---:|---:|---:|---:|
+| Regla 6 (antes de corregir) | 13/25 (52 %) | 11/25 (44 %) | **24/50 (48 %)** | 34.8 – 61.5 % |
+| Regla 7 (dataset final) | 24/25 (96 %) | 25/25 (100 %) | **49/50 (98 %)** | 89.5 – 99.6 % |
+
+El intervalo de Wilson se usa porque la proporción está cerca de 1 y la muestra es pequeña: el intervalo normal (Wald) daría un límite superior por encima del 100 %. Con 49/50, la precisión real de las etiquetas del dataset está, con un 95 % de confianza, entre el 89,5 % y el 99,6 %. La muestra es estratificada (25 y=0 y 25 y=1), así que el total pondera igual ambas clases; el error encontrado es de la clase y=0.
 
 Errores con la regla 6 (antes de corregir):
 
@@ -117,13 +120,26 @@ La primera muestra mostró que la regla 6 no resolvía el entorno real de muchas
 1. **Ampliación de la búsqueda (lote 13): aprobada.** La estrategia 2 se amplió con acciones de despliegue de plataformas con menos repositorios (flyctl, App Engine, Cloud Functions, Container Apps, Azure Functions, DigitalOcean App Platform, Heroku, `kubectl set image` y `gcloud run deploy`). No cambia ningún criterio.
 2. **govuk-one-login (txma-audit y txma-ticf-integration): se mantienen excluidos.** Su workflow publica en las cuentas build/dev de GOV.UK One Login y la promoción a producción la hace AWS CodePipeline, fuera de GitHub Actions. El despliegue a producción no es observable en los datos, así que no se puede etiquetar (criterio 2).
 3. **Ejecuciones manuales con entorno indeterminado: se excluyen.** Una ejecución `workflow_dispatch` cuyo entorno de destino no se puede determinar se excluye (`excluida_entorno_indeterminado`). La regla está en `informes/fase2_variable_objetivo.md`, sección 4. Caso de origen: dimagi/open-chat-studio (input `dev`/`prod`), que en sus 100 últimas ejecuciones no tiene ninguna manual.
+4. **Dataset congelado (2026-11-10).** Los 203 repositorios y el tope de 50 ejecuciones por repositorio quedan fijos. No se hace curva de aprendizaje; `informes/orden_repos_curva.csv` se conserva solo como registro del orden de selección.
+
+## Base de datos de la plataforma (2026-11-10)
+
+- Respaldo con `pg_dump` (formato custom) antes de cualquier cambio, guardado fuera del repositorio (`tesis_respaldos/riesgo_despliegue_20261110_171702_antes_0009.dump`).
+- Migraciones 0009 (etiqueta `excluida_no_produccion`) y 0010 (nuevo patrón de paso de despliegue) aplicadas. El patrón de los workflows registrados se actualizó en 672 de 672 (todos tenían el patrón por defecto de la migración 0001; no había patrones personalizados).
+- Cruce de `riesgo_repositorio` (437) con los 203 repositorios del dataset, por nombre y por `github_id`: **0 en ambos**, 437 solo en la plataforma y 203 solo en el dataset (detalle en `informes/cruce_plataforma_dataset_v2.json`). Origen de los 437: 404 del dataset GHALogs v1.1 (alta 2026-10-20), 30 casos de prueba de `datos_prueba/casos_prueba_30.json` (2026-10-27), el repositorio de demostración y 2 altas manuales sin fuente (Azure-Samples/azure-search-openai-demo y openfoodfacts/openfoodfacts-server).
+
+### Decisiones del autor sobre la plataforma (se aplican cuando v2 esté entrenado y activo)
+
+1. **404 repositorios de GHALogs:** `est_registro='I'` (inactivos), sin borrarlos.
+2. **30 casos de prueba:** se marcan como repositorios de prueba y se excluyen de las métricas y los dashboards, igual que el repositorio de demostración.
+3. **Azure-Samples/azure-search-openai-demo y openfoodfacts/openfoodfacts-server:** `est_registro='I'`.
+4. **Repositorio de demostración** (ErickTerranova2004/demo-despliegue-riesgo): sin cambios.
+5. **Requisito técnico:** el modelo `Repositorio` aún no tiene `est_registro` ni un indicador de prueba (solo `es_demostracion`). Hará falta una migración que añada `est_registro` (A/I, por defecto 'A') y el indicador de prueba, y que las vistas que hoy excluyen la demostración excluyan también los de prueba e ignoren los inactivos. Antes de aplicarla, un respaldo nuevo con `pg_dump`.
 
 ## Decisiones pendientes
 
-1. **Cruce con la base de la plataforma.** PostgreSQL no estuvo accesible (puerto 5432: la contraseña del `.env` no es válida). Por eso los candidatos de la ampliación (lote 13) se compararon solo con los repos de `datos_prueba/casos_prueba_30.json` y el repositorio de demostración. Falta cruzar la lista final con la tabla de repositorios de la plataforma.
-2. **Plataforma AWS.** Hay más aprobados de AWS que el 30 %. La selección aplica el tope, así que los excedentes quedan fuera de la lista final con ese motivo.
-3. **Excepciones de rama de la regla 7.** Solo Explorer-Consulting/SchoolFeedBackWebAPI: la rama `develop` despliega al slot «Production» de Azure Functions. Con la regla 7, los demás repos cuya única rama de despliegue tiene nombre no productivo (dev, develop, staging…) salen del dataset. Si alguno despliega de verdad a producción desde esa rama, habría que añadirlo a `RAMAS_PRODUCCION_EXCEPCION`.
-4. **PostgreSQL (requiere al autor).** Pendientes en este orden: respaldo con `pg_dump`, aplicar las migraciones 0009 y 0010 y actualizar el patrón de los workflows ya registrados. Después, push de la rama.
+1. **Excepciones de rama de la regla 7.** Solo Explorer-Consulting/SchoolFeedBackWebAPI: la rama `develop` despliega al slot «Production» de Azure Functions. Con la regla 7, los demás repos cuya única rama de despliegue tiene nombre no productivo (dev, develop, staging…) salen del dataset. Si alguno despliega de verdad a producción desde esa rama, habría que añadirlo a `RAMAS_PRODUCCION_EXCEPCION`.
+2. **Push de la rama** `feature/100-repos-desplegados` (requiere al autor).
 
 ## Decisión metodológica: separación por repositorio
 

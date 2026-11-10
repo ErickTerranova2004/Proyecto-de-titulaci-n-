@@ -1268,6 +1268,9 @@ VERIFICACIONES = [
     "hosting estático no leía. Se excluyó por el criterio 2 (204 → 203) y el script ahora añade los inputs "
     "`command`/`args` de cada paso al texto que revisa ese filtro. Se buscó el mismo caso en los 204 "
     "workflows: solo obby lo tenía (google/neuroglancer ya excluía sus pasos de Firebase Hosting por el nombre).",
+    "- **Tope por plataforma (criterio 4).** En el dataset final AWS tiene 52 de 203 repositorios (25,6 %), "
+    "por debajo del 30 %; la siguiente es Google Cloud con 36 (17,7 %). Había más aprobados de AWS, y la "
+    "selección dejó fuera los excedentes con ese motivo.",
 ]
 # Decisiones del autor de la tesis (2026-11-09).
 DECISIONES = [
@@ -1282,24 +1285,56 @@ DECISIONES = [
     "entorno de destino no se puede determinar se excluye (`excluida_entorno_indeterminado`). La regla está en "
     "`informes/fase2_variable_objetivo.md`, sección 4. Caso de origen: dimagi/open-chat-studio (input `dev`/"
     "`prod`), que en sus 100 últimas ejecuciones no tiene ninguna manual.",
+    "**Dataset congelado (2026-11-10).** Los 203 repositorios y el tope de 50 ejecuciones por repositorio "
+    "quedan fijos. No se hace curva de aprendizaje; `informes/orden_repos_curva.csv` se conserva solo como "
+    "registro del orden de selección.",
 ]
 # Decisiones que siguen pendientes.
 PENDIENTES = [
-    "**Cruce con la base de la plataforma.** PostgreSQL no estuvo accesible (puerto 5432: la contraseña del "
-    "`.env` no es válida). Por eso los candidatos de la ampliación (lote 13) se compararon solo con los repos "
-    "de `datos_prueba/casos_prueba_30.json` y el repositorio de demostración. Falta cruzar la lista final con "
-    "la tabla de repositorios de la plataforma.",
-    "**Plataforma AWS.** Hay más aprobados de AWS que el 30 %. La selección aplica el tope, así que los "
-    "excedentes quedan fuera de la lista final con ese motivo.",
     "**Excepciones de rama de la regla 7.** Solo Explorer-Consulting/SchoolFeedBackWebAPI: la rama `develop` "
     "despliega al slot «Production» de Azure Functions. Con la regla 7, los demás repos cuya única rama de "
     "despliegue tiene nombre no productivo (dev, develop, staging…) salen del dataset. Si alguno despliega de "
     "verdad a producción desde esa rama, habría que añadirlo a `RAMAS_PRODUCCION_EXCEPCION`.",
-    "**PostgreSQL (requiere al autor).** Pendientes en este orden: respaldo con `pg_dump`, aplicar las "
-    "migraciones 0009 y 0010 y actualizar el patrón de los workflows ya registrados. Después, push de la rama.",
+    "**Push de la rama** `feature/100-repos-desplegados` (requiere al autor).",
+]
+# Base de datos de la plataforma (PostgreSQL 16, 2026-11-10).
+PLATAFORMA_HECHO = [
+    "Respaldo con `pg_dump` (formato custom) antes de cualquier cambio, guardado fuera del repositorio "
+    "(`tesis_respaldos/riesgo_despliegue_20261110_171702_antes_0009.dump`).",
+    "Migraciones 0009 (etiqueta `excluida_no_produccion`) y 0010 (nuevo patrón de paso de despliegue) "
+    "aplicadas. El patrón de los workflows registrados se actualizó en 672 de 672 (todos tenían el patrón por "
+    "defecto de la migración 0001; no había patrones personalizados).",
+    "Cruce de `riesgo_repositorio` (437) con los 203 repositorios del dataset, por nombre y por `github_id`: "
+    "**0 en ambos**, 437 solo en la plataforma y 203 solo en el dataset (detalle en "
+    "`informes/cruce_plataforma_dataset_v2.json`). Origen de los 437: 404 del dataset GHALogs v1.1 (alta "
+    "2026-10-20), 30 casos de prueba de `datos_prueba/casos_prueba_30.json` (2026-10-27), el repositorio de "
+    "demostración y 2 altas manuales sin fuente (Azure-Samples/azure-search-openai-demo y "
+    "openfoodfacts/openfoodfacts-server).",
+]
+# Decisiones del autor sobre la plataforma: se aplican cuando el modelo v2 esté
+# entrenado y activo, no antes.
+PLATAFORMA_DECISIONES = [
+    "**404 repositorios de GHALogs:** `est_registro='I'` (inactivos), sin borrarlos.",
+    "**30 casos de prueba:** se marcan como repositorios de prueba y se excluyen de las métricas y los "
+    "dashboards, igual que el repositorio de demostración.",
+    "**Azure-Samples/azure-search-openai-demo y openfoodfacts/openfoodfacts-server:** `est_registro='I'`.",
+    "**Repositorio de demostración** (ErickTerranova2004/demo-despliegue-riesgo): sin cambios.",
+    "**Requisito técnico:** el modelo `Repositorio` aún no tiene `est_registro` ni un indicador de prueba "
+    "(solo `es_demostracion`). Hará falta una migración que añada `est_registro` (A/I, por defecto 'A') y el "
+    "indicador de prueba, y que las vistas que hoy excluyen la demostración excluyan también los de prueba "
+    "e ignoren los inactivos. Antes de aplicarla, un respaldo nuevo con `pg_dump`.",
 ]
 VALIDACIONES = [("Regla 6 (antes de corregir)", RAIZ / "informes" / "validacion_etiquetas_regla6.json"),
                 ("Regla 7 (dataset final)", RAIZ / "informes" / "validacion_etiquetas_regla7.json")]
+
+
+def wilson(aciertos, n, z=1.959964):
+    """Intervalo de confianza del 95 % de Wilson para una proporción."""
+    p = aciertos / n
+    den = 1 + z * z / n
+    centro = (p + z * z / (2 * n)) / den
+    margen = z * ((p * (1 - p) / n + z * z / (4 * n * n)) ** 0.5) / den
+    return centro - margen, centro + margen
 
 
 def seccion_validacion():
@@ -1310,7 +1345,8 @@ def seccion_validacion():
          "fallido (y=1) y el YAML del workflow. Una etiqueta es correcta si la ejecución es un intento de "
          "despliegue **a producción** y el resultado (completado / no completado) es el que dice la etiqueta. "
          "Los logs de más de 90 días ya no están disponibles; en esos casos se usaron los pasos y el YAML.", "",
-         "| Regla | y=0 correctas | y=1 correctas | Precisión total |", "|---|---:|---:|---:|"]
+         "| Regla | y=0 correctas | y=1 correctas | Precisión total | IC 95 % (Wilson) |",
+         "|---|---:|---:|---:|---:|"]
     detalle = []
     for nombre, ruta in VALIDACIONES:
         if not ruta.exists():
@@ -1321,11 +1357,17 @@ def seccion_validacion():
         n0 = sum(c["y"] == 0 for c in casos)
         n1 = sum(c["y"] == 1 for c in casos)
         l.append(f"| {nombre} | {c0}/{n0} ({100 * c0 / n0:.0f} %) | {c1}/{n1} ({100 * c1 / n1:.0f} %) | "
-                 f"**{c0 + c1}/{n0 + n1} ({100 * (c0 + c1) / (n0 + n1):.0f} %)** |")
+                 f"**{c0 + c1}/{n0 + n1} ({100 * (c0 + c1) / (n0 + n1):.0f} %)** | "
+                 "{:.1f} – {:.1f} % |".format(*(100 * v for v in wilson(c0 + c1, n0 + n1))))
         errores = Counter(c["motivo"] for c in casos if not c["correcta"])
         if errores:
             detalle += ["", f"Errores con la {nombre.lower()}:", "",
                         *[f"- {m} ({n})" for m, n in errores.most_common()]]
+    l += ["", "El intervalo de Wilson se usa porque la proporción está cerca de 1 y la muestra es pequeña: "
+          "el intervalo normal (Wald) daría un límite superior por encima del 100 %. Con 49/50, la "
+          "precisión real de las etiquetas del dataset está, con un 95 % de confianza, entre el 89,5 % y "
+          "el 99,6 %. La muestra es estratificada (25 y=0 y 25 y=1), así que el total pondera igual ambas "
+          "clases; el error encontrado es de la clase y=0."]
     l += detalle
     l += ["", "La primera muestra mostró que la regla 6 no resolvía el entorno real de muchas ejecuciones "
           "(decidido por la rama, la release o la salida de otro job) y que la regla de la rama solo se "
@@ -1619,6 +1661,10 @@ def escribir_informe(elegidos, excluidos_lista, perfiles):
          *seccion_validacion(), "",
          "## Decisiones del autor (2026-11-09)", "",
          *[f"{i}. {t}" for i, t in enumerate(DECISIONES, 1)], "",
+         "## Base de datos de la plataforma (2026-11-10)", "",
+         *[f"- {t}" for t in PLATAFORMA_HECHO], "",
+         "### Decisiones del autor sobre la plataforma (se aplican cuando v2 esté entrenado y activo)", "",
+         *[f"{i}. {t}" for i, t in enumerate(PLATAFORMA_DECISIONES, 1)], "",
          "## Decisiones pendientes", "",
          *[f"{i}. {t}" for i, t in enumerate(PENDIENTES, 1)], "",
          "## Decisión metodológica: separación por repositorio", "",

@@ -10,3 +10,5 @@ lightgbm==4.7.0
 shap==0.53.0
 joblib
 google-genai==2.34.0
+xgboost==3.4.1
+matplotlib==3.11.2  # solo para las figuras del entrenamiento
