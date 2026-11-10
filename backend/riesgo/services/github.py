@@ -14,6 +14,8 @@ import requests
 from django.conf import settings
 from django.core.cache import cache
 
+from riesgo.services.features import PARAMS_CHECKS, PARAMS_PULLS
+
 logger = logging.getLogger(__name__)
 
 REPO = re.compile(r"^[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}$")
@@ -140,6 +142,17 @@ class GitHubClient:
             f"/repos/{repo}/actions/runs/{run_id}/attempts/{intento}/jobs",
             params={"per_page": 100}, ttl=3600)
         return datos.get("jobs", [])
+
+    def pulls_commit(self, repo, sha):
+        """Pull requests que contienen el commit."""
+        return self.get(f"/repos/{repo}/commits/{sha}/pulls",
+                        params=PARAMS_PULLS, ttl=300)
+
+    def checks_commit(self, repo, sha):
+        """Check runs del commit (todos los intentos, no solo el último)."""
+        datos = self.get(f"/repos/{repo}/commits/{sha}/check-runs",
+                         params=PARAMS_CHECKS, ttl=60)
+        return datos.get("check_runs", [])
 
     def ejecuciones_repositorio(self, repo, n=100):
         datos = self.get(f"/repos/{repo}/actions/runs",

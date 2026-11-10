@@ -60,6 +60,12 @@ class ClienteFalso:
     def ejecuciones_repositorio(self, repo, n=100):
         return RUNS
 
+    def pulls_commit(self, repo, sha):
+        return []
+
+    def checks_commit(self, repo, sha):
+        return []
+
     def jobs_intento(self, repo, run_id, intento):
         return self.JOBS
 

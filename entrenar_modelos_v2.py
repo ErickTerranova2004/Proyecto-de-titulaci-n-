@@ -71,13 +71,18 @@ SEMILLA = 42
 PLIEGUES = 5
 BOOTSTRAP = 1000
 CATEGORICAS = ["event"]
+# 33 numéricas + event. Respecto a v1.1: sin reejecutado_por_otro (no se
+# conoce antes del despliegue) y con el tamaño del cambio y los checks del
+# commit. Misma lista que scripts/construir_dataset_v2.py.
 NUMERICAS = [
     "msg_len", "msg_lineas", "msg_merge", "msg_revert", "msg_fix",
     "msg_feat", "msg_deps", "msg_docs", "msg_ci", "autor_bot",
-    "reejecutado_por_otro", "rama_principal", "rama_bot", "rama_tag",
-    "tiene_pr", "es_reintento", "hora_utc", "dia_semana", "fin_de_semana",
-    "retraso_commit_run_min", "wf_n_prev", "wf_tasa_fallo_prev",
-    "wf_ultimo_fallo", "wf_horas_desde_ultimo", "wf_duracion_media_prev_min",
+    "rama_principal", "rama_bot", "rama_tag", "tiene_pr", "es_reintento",
+    "hora_utc", "dia_semana", "fin_de_semana", "retraso_commit_run_min",
+    "archivos_modificados", "lineas_anadidas", "lineas_borradas",
+    "checks_n_prev", "checks_fallidos_prev", "checks_tasa_fallo_prev",
+    "wf_n_prev", "wf_tasa_fallo_prev", "wf_ultimo_fallo",
+    "wf_horas_desde_ultimo", "wf_duracion_media_prev_min",
     "repo_n_prev", "repo_tasa_fallo_prev", "repo_n_workflows_prev",
 ]
 COLUMNAS = CATEGORICAS + NUMERICAS
@@ -277,7 +282,9 @@ def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
           f"Niveles de riesgo por riesgo relativo a la tasa base ({meta['tasa_base_entrenamiento']:.3f}): "
           f"bajo < {meta['limites_riesgo']['medio']:.3f} ≤ medio < {meta['limites_riesgo']['alto']:.3f} ≤ alto.",
           "", "Tasa de y=1 observada por nivel (predicciones fuera de pliegue del modelo elegido):", ""]
-    l += tabla([[n, int(r["size"]), f"{100 * r['mean']:.1f} %"] for n, r in niveles.iterrows()],
+    l += tabla([[n, int(r["size"]) if r["size"] == r["size"] else 0,
+                 f"{100 * r['mean']:.1f} %" if r["mean"] == r["mean"] else "—"]
+                for n, r in niveles.iterrows()],
                ["Nivel", "Ejecuciones", "Tasa de y=1"])
     escala = ("probabilidad (del modelo con pesos balanceados, antes de calibrar)"
               if elegido == RF else "log-odds (margen de XGBoost, antes de calibrar)")
@@ -288,7 +295,22 @@ def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
     l += tabla([[k, float(v)] for k, v in importancia.head(15).items()],
                ["Variable", "Media de |SHAP|"], "{:.4f}")
     l += ["", "Figuras: `figuras/curvas_evaluacion_v2.png`, `figuras/shap_resumen_v2.png`. "
-          "Detalle por pliegue: `informes/fase5_v2_pliegues.csv`."]
+          "Detalle por pliegue: `informes/fase5_v2_pliegues.csv`.", "",
+          "## 5. Variables y limitaciones", "",
+          f"- {len(NUMERICAS)} variables numéricas y `event`, calculadas con la misma función en el "
+          "entrenamiento y en la plataforma (`variables_desde_datos`, "
+          "`backend/riesgo/services/features.py`), solo con información anterior al inicio del "
+          "despliegue (`backend/riesgo/tests/test_variables_v2.py`).",
+          "- Respecto a v1.1: se quita `reejecutado_por_otro` (no se conoce antes del despliegue); "
+          "`tiene_pr` y `es_reintento` se calculan igual en ambos lados; se añaden el tamaño del cambio "
+          "y los checks del commit.",
+          "- **Vulnerabilidades y cobertura no se pueden obtener** con un token de solo lectura en "
+          "repositorios de terceros: las alertas de seguridad exigen permisos de administración y la "
+          "cobertura no la publica GitHub. Las pruebas fallidas se aproximan con los checks del commit "
+          "y los bugs, solo de forma indirecta, con el mensaje del commit "
+          "(`informes/fase2_variable_objetivo.md`, sección 7).",
+          "- La etiqueta mide si el intento de despliegue a producción se completó, no incidentes "
+          "posteriores en producción."]
     ruta.write_text("\n".join(l) + "\n", encoding="utf-8")
 
 

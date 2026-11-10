@@ -1288,6 +1288,15 @@ DECISIONES = [
     "**Dataset congelado (2026-11-10).** Los 203 repositorios y el tope de 50 ejecuciones por repositorio "
     "quedan fijos. No se hace curva de aprendizaje; `informes/orden_repos_curva.csv` se conserva solo como "
     "registro del orden de selección.",
+    "**Variables del modelo v2 (2026-11-10).** Se quita `reejecutado_por_otro` (no se conoce antes del "
+    "despliegue). `tiene_pr` (el commit pertenece a un pull request creado antes del despliegue) y "
+    "`es_reintento` (intento posterior al primero o el mismo workflow ya terminó una ejecución con ese commit) "
+    "se calculan igual en el entrenamiento y en la plataforma. Se añaden el tamaño del cambio (archivos "
+    "modificados, líneas añadidas y borradas) y las pruebas fallidas, aproximadas con los checks del mismo "
+    "commit que terminaron antes del inicio del despliegue, sin los del propio workflow. **Vulnerabilidades y "
+    "cobertura no se pueden obtener** con un token de solo lectura en repositorios de terceros (alertas de "
+    "seguridad con permisos de administración; cobertura fuera de GitHub). Detalle en "
+    "`informes/fase2_variable_objetivo.md`, sección 7.",
 ]
 # Decisiones que siguen pendientes.
 PENDIENTES = [

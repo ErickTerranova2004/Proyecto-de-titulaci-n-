@@ -82,3 +82,18 @@ La API de jobs de GitHub no devuelve el `environment` del job ni el `uses`/`run`
 La etiqueta se llama **"despliegue no completado"**, nunca "fallo real de despliegue". Solo el subtipo `en_paso_de_despliegue` aporta evidencia directa de un fallo *durante* el despliegue. Guardar ese subtipo es lo que permitirá, con el tiempo, construir la etiqueta de fallo real que hoy no existe en los datos públicos.
 
 Diferencia con el entrenamiento: en GHALogs el paso fallido se **infería** (último paso registrado). En la plataforma se **observa** con la API de jobs. Por eso las etiquetas de la plataforma son más precisas que las del dataset de entrenamiento.
+
+## 7. Métricas de la propuesta que no se pueden obtener (2026-11-10)
+
+La propuesta enumera seis grupos de métricas de entrada: commits, archivos modificados, pruebas fallidas, bugs, vulnerabilidades y cobertura. Con un token de GitHub **de solo lectura** sobre **repositorios de terceros** (todos los del dataset), la cobertura de cada una es:
+
+| Métrica | Variables del modelo v2 | Fuente |
+|---|---|---|
+| Commits | `msg_*`, `autor_bot`, `retraso_commit_run_min`, `tiene_pr` | Commit y sus pull requests |
+| Archivos modificados | `archivos_modificados`, `lineas_anadidas`, `lineas_borradas` | `/commits/{sha}` (máximo 300 archivos listados; las líneas cuentan todo el cambio) |
+| Pruebas fallidas | `checks_n_prev`, `checks_fallidos_prev`, `checks_tasa_fallo_prev` | Checks del mismo commit terminados **antes** del inicio del despliegue, sin los del propio workflow de despliegue. Incluyen pruebas, compilación y análisis: es una aproximación, no un recuento de pruebas unitarias |
+| Bugs | Solo indirecta: `msg_fix` | Mensaje del commit |
+| **Vulnerabilidades** | **No disponible** | Las alertas de Dependabot, de code scanning y de secret scanning exigen permisos de administración o de seguridad sobre el repositorio, que no se tienen en repositorios de terceros |
+| **Cobertura** | **No disponible** | GitHub no la calcula; la publican servicios externos (Codecov, Coveralls) solo en algunos repositorios y con formatos distintos |
+
+Las dos últimas quedan fuera del modelo por una limitación de acceso a los datos, no por decisión de diseño. En una organización que use la plataforma con sus propios repositorios (token con permisos de seguridad y un servicio de cobertura) se podrían añadir con el mismo esquema: calcularlas con lo que existía antes del inicio del despliegue.

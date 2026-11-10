@@ -9,24 +9,19 @@ Entrada (congelada el 2026-11-10, no se modifica):
   y = 0 o y = 1.
 
 Salida: datos_procesados/dataset_riesgo_despliegue_v2.csv, una fila por
-ejecución etiquetada, con las 28 variables del modelo.
+ejecución etiquetada.
 
-Las variables se calculan con las mismas funciones que usa la plataforma
-(backend/riesgo/services/features.py) para que el entrenamiento y el uso
-calculen igual cada variable. Dos detalles para que no haya fuga de
-información del futuro:
-- El momento de cada fila es el inicio de la ejecución (run_started_at).
-- Una ejecución previa solo cuenta si ya había terminado en ese momento
-  (updated_at <= momento). En la plataforma, una ejecución en curso no cuenta
-  porque su estado aún no es `completed`.
-El historial del workflow usa las 4 ejecuciones previas más recientes y el
-del repositorio, las 100 ejecuciones más recientes con 5 por workflow, igual
-que la plataforma (github.py: ejecuciones_repositorio n=100).
+Las variables se calculan con la MISMA función que usa la plataforma,
+`variables_desde_datos` (backend/riesgo/services/features.py), con el inicio
+de cada ejecución como momento del despliegue. Esa función solo usa lo que ya
+había terminado o existía antes de ese momento (ejecuciones previas, checks
+del commit, pull requests). Las consultas a la API son las mismas que hace la
+plataforma (mismos parámetros, PARAMS_PULLS y PARAMS_CHECKS).
 
-Como en v1 y v1.1 (build_dataset.py), en el entrenamiento se calculan con
-datos reales tres variables que la plataforma fija antes del despliegue:
-es_reintento (run_attempt > 1), reejecutado_por_otro (actor distinto de
-triggering_actor) y tiene_pr (la ejecución tiene un pull request asociado).
+Llamadas por repositorio: listados de ejecuciones del workflow y del
+repositorio (paginados, con ventana de 7 a 180 días antes de la primera
+ejecución etiquetada). Por commit distinto: el commit (tamaño del cambio),
+sus pull requests y sus checks. Por reintento: los intentos anteriores.
 
 Solo lectura de la API de GitHub. Caché por repositorio en
 informes/cache_filtrado/variables_v2/ para poder reanudar.
@@ -47,33 +42,30 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "backend"))
 from riesgo.services.features import (  # noqa: E402
-    variables_commit, variables_repositorio, variables_workflow,
+    PARAMS_CHECKS, PARAMS_PULLS, variables_desde_datos,
 )
 
-_spec = importlib.util.spec_from_file_location(
-    "filtrar", RAIZ / "scripts" / "filtrar_repos_reales.py")
-filtrar = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(filtrar)
-
 ORDEN = RAIZ / "informes" / "orden_repos_curva.csv"
-CACHE_V2 = filtrar.CACHE / "variables_v2"
 SALIDA = RAIZ / "datos_procesados" / "dataset_riesgo_despliegue_v2.csv"
-TOPE = filtrar.TOPE_DATASET  # 50, congelado
-PREVIAS_REPO = 100  # github.py: ejecuciones_repositorio(n=100)
-PREVIAS_WORKFLOW = 4  # features.py: MAX_PREVIAS_WORKFLOW
+TOPE = 50  # filtrar_repos_reales.TOPE_DATASET, congelado
+PREVIAS_REPO = 100  # features.MAX_PREVIAS_REPO
+PREVIAS_WORKFLOW = 4  # features.MAX_PREVIAS_WORKFLOW
 VENTANAS_DIAS = (7, 30, 90, 180)
 MAX_RESULTADOS = 1000  # límite de la API con el filtro `created`
 
+# Campos de cada ejecución que usan las variables.
 CAMPOS_RUN = ("id", "run_attempt", "status", "conclusion", "event",
-              "head_branch", "workflow_id", "path", "run_started_at",
-              "created_at", "updated_at")
+              "head_branch", "head_sha", "workflow_id", "check_suite_id",
+              "run_started_at", "created_at", "updated_at")
 NUMERICAS = [
     "msg_len", "msg_lineas", "msg_merge", "msg_revert", "msg_fix",
     "msg_feat", "msg_deps", "msg_docs", "msg_ci", "autor_bot",
-    "reejecutado_por_otro", "rama_principal", "rama_bot", "rama_tag",
-    "tiene_pr", "es_reintento", "hora_utc", "dia_semana", "fin_de_semana",
-    "retraso_commit_run_min", "wf_n_prev", "wf_tasa_fallo_prev",
-    "wf_ultimo_fallo", "wf_horas_desde_ultimo", "wf_duracion_media_prev_min",
+    "rama_principal", "rama_bot", "rama_tag", "tiene_pr", "es_reintento",
+    "hora_utc", "dia_semana", "fin_de_semana", "retraso_commit_run_min",
+    "archivos_modificados", "lineas_anadidas", "lineas_borradas",
+    "checks_n_prev", "checks_fallidos_prev", "checks_tasa_fallo_prev",
+    "wf_n_prev", "wf_tasa_fallo_prev", "wf_ultimo_fallo",
+    "wf_horas_desde_ultimo", "wf_duracion_media_prev_min",
     "repo_n_prev", "repo_tasa_fallo_prev", "repo_n_workflows_prev",
 ]
 
@@ -87,20 +79,7 @@ def iso(momento):
 
 
 def resumir(run):
-    """Campos que usan las variables (sin el resto del objeto de la API)."""
-    datos = {k: run.get(k) for k in CAMPOS_RUN}
-    commit = run.get("head_commit") or {}
-    datos.update({
-        "actor": (run.get("actor") or {}).get("login"),
-        "triggering_actor": (run.get("triggering_actor") or {}).get("login"),
-        "n_pull_requests": len(run.get("pull_requests") or []),
-        "commit_message": commit.get("message") or "",
-        "commit_author": (commit.get("author") or {}).get("name") or "",
-        # head_commit.timestamp es la fecha del commit (equivale a
-        # commit.committer.date, que usa la plataforma).
-        "commit_timestamp": commit.get("timestamp"),
-    })
-    return datos
+    return {k: run.get(k) for k in CAMPOS_RUN}
 
 
 def listar(gh, ruta, desde, hasta):
@@ -138,14 +117,44 @@ def historial(gh, ruta, primer_momento, ultimo_momento, minimo):
     return sorted(unicos.values(), key=lambda r: r["run_started_at"] or "")
 
 
-def terminadas_antes(runs, momento, excluir):
-    """Ejecuciones que ya habían terminado en el momento (sin la propia)."""
-    return [r for r in runs if r["id"] != excluir and r["status"] == "completed"
-            and r["updated_at"] and fecha(r["updated_at"]) <= momento]
+def intentos_anteriores(gh, repo, run):
+    """Los intentos anteriores de un reintento (el listado solo devuelve el
+    último). En la plataforma esos intentos ya existían antes del reintento."""
+    return [resumir(gh.get(f"/repos/{repo}/actions/runs/{run['id']}/attempts/{n}") or {})
+            for n in range(1, run.get("run_attempt") or 1)]
 
 
-def filas_repo(gh, repo, plataforma, ruta_workflow, etiquetas, historial_runs):
-    cache = CACHE_V2 / (repo.replace("/", "__") + ".json")
+class DatosCommit:
+    """Commit, pull requests y checks de cada commit (una consulta por sha)."""
+
+    def __init__(self, gh, repo):
+        self.gh, self.repo, self.cache = gh, repo, {}
+
+    def __call__(self, sha):
+        if sha not in self.cache:
+            base = f"/repos/{self.repo}/commits/{sha}"
+            self.cache[sha] = (
+                self.gh.get(base) or {},
+                self.gh.get(f"{base}/pulls", PARAMS_PULLS) or [],
+                (self.gh.get(f"{base}/check-runs", PARAMS_CHECKS) or {}).get("check_runs", []))
+        return self.cache[sha]
+
+
+def variables_ejecucion(gh, repo, run, runs_wf, runs_repo, datos_commit):
+    """Variables de una ejecución histórica con el mismo código que la
+    plataforma, tomando su inicio como momento del despliegue."""
+    momento = fecha(run["run_started_at"])
+    anteriores = intentos_anteriores(gh, repo, run)
+    commit, pulls, checks = datos_commit(run["head_sha"])
+    mismo_commit = [r for r in runs_wf if r["head_sha"] == run["head_sha"]] + anteriores
+    return variables_desde_datos(
+        commit, run.get("head_branch") or "", run.get("event") or "", momento,
+        runs_wf + anteriores, runs_repo + anteriores, mismo_commit, pulls, checks,
+        intento=run.get("run_attempt") or 1, run_id=run["id"])
+
+
+def filas_repo(gh, repo, plataforma, ruta_workflow, etiquetas, historial_runs, cache_dir):
+    cache = cache_dir / (repo.replace("/", "__") + ".json")
     if cache.exists():
         return json.loads(cache.read_text(encoding="utf-8"))
     inicio = {r["id"]: fecha(r["inicio"]) for r in historial_runs}
@@ -159,36 +168,21 @@ def filas_repo(gh, repo, plataforma, ruta_workflow, etiquetas, historial_runs):
     runs_repo = historial(gh, f"/repos/{repo}/actions/runs",
                           min(momentos), max(momentos), PREVIAS_REPO)
     por_id = {r["id"]: r for r in runs_wf}
+    datos_commit = DatosCommit(gh, repo)
     filas = []
     for f in etiquetadas:
-        run = por_id.get(f["run"])
-        if run is None:  # fuera de la ventana listada: se pide directamente
-            run = resumir(gh.get(f"/repos/{repo}/actions/runs/{f['run']}") or {})
-        momento = fecha(run["run_started_at"]) or inicio[f["run"]]
-        rama, evento = run.get("head_branch") or "", run.get("event") or ""
-        variables = variables_commit(
-            run["commit_message"], run["commit_author"], rama, evento, momento,
-            fecha(run["commit_timestamp"]))
-        variables.update({
-            "es_reintento": int((run.get("run_attempt") or 1) > 1),
-            "reejecutado_por_otro": int((run.get("actor") or "")
-                                        != (run.get("triggering_actor") or "")),
-            "tiene_pr": int(run["n_pull_requests"] > 0),
-        })
-        previas_wf = terminadas_antes(runs_wf, momento, run["id"])
-        variables.update(variables_workflow(previas_wf, momento))
-        previas_repo = terminadas_antes(runs_repo, momento, run["id"])
-        previas_repo = sorted(previas_repo, key=lambda r: r["created_at"])[-PREVIAS_REPO:]
-        variables.update(variables_repositorio(previas_repo, momento))
+        run = por_id.get(f["run"]) or resumir(
+            gh.get(f"/repos/{repo}/actions/runs/{f['run']}") or {})
+        variables = variables_ejecucion(gh, repo, run, runs_wf, runs_repo, datos_commit)
         filas.append({
             "repositorio": repo, "plataforma": plataforma,
             "workflow_path": ruta_workflow, "run_id": run["id"],
             "run_attempt": run.get("run_attempt"),
-            "run_started_at": iso(momento), "y": f["y"],
+            "run_started_at": run["run_started_at"], "y": f["y"],
             "subtipo": f.get("subtipo") or "", **variables,
         })
-    CACHE_V2.mkdir(parents=True, exist_ok=True)
-    filtrar.guardar(cache, filas)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache.write_text(json.dumps(filas, ensure_ascii=False, default=str), encoding="utf-8")
     return filas
 
 
@@ -196,6 +190,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--repos", nargs="*", help="Solo estos repositorios")
     args = parser.parse_args()
+    spec = importlib.util.spec_from_file_location(
+        "filtrar", RAIZ / "scripts" / "filtrar_repos_reales.py")
+    filtrar = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(filtrar)
     orden = list(csv.DictReader(ORDEN.open(encoding="utf-8")))
     etiquetas = filtrar.leer(filtrar.ETIQUETAS, {})
     historial_runs = filtrar.leer(filtrar.HISTORIAL, {})
@@ -207,7 +205,8 @@ def main():
         if args.repos and repo not in args.repos:
             continue
         filas = filas_repo(gh, repo, fila["plataforma"], perfiles[repo]["ruta"],
-                           etiquetas[repo], historial_runs[repo])
+                           etiquetas[repo], historial_runs[repo],
+                           filtrar.CACHE / "variables_v2")
         todas += filas
         print(f"{i}/{len(orden)} {repo}: {len(filas)} filas", flush=True)
     if args.repos:
