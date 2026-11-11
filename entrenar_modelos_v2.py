@@ -306,10 +306,47 @@ def seccion_umbrales(meta):
         f"- **Umbral de clasificación** ({meta['umbral_f1']:.3f}): el que maximiza F1 en las "
         "predicciones internas fuera de pliegue del entrenamiento. Solo se usa para recall, precisión "
         "y F1 de este informe; la plataforma lo guarda en los metadatos pero no lo usa.",
-        "- **Recomendación «permitir / solicitar revisión».** La plataforma no la decide con un "
-        "umbral: muestra probabilidad, nivel y factores, y el líder técnico registra la decisión "
-        "(autorizar, posponer o solicitar revisión). Las recomendaciones de texto salen de los "
-        "factores, no de un umbral."]
+        "- **Recomendación automática «permitir / solicitar revisión»** (funcionalidad 6, "
+        "`predictor.recomendacion_de`): nivel alto → «Solicitar revisión previa»; nivel bajo o medio "
+        "→ «Permitir el despliegue». No usa un umbral propio: hereda el límite del nivel alto "
+        f"({lim['alto']:.3f}, el doble de la tasa base). Se guarda con la predicción y el líder "
+        "técnico la acepta o la cambia al registrar su decisión (autorizar, posponer o solicitar "
+        "revisión); la plataforma guarda si la aceptó. Con riesgo medio se permite porque el "
+        "nivel medio empieza en la tasa base: pedir revisión desde ahí la pediría para la mayoría "
+        "de los despliegues."]
+
+
+def seccion_trabajo_futuro(df, oof, elegido):
+    """Limitación en workflows sanos (ejecución anterior sin fallo)."""
+    y = df["y"].to_numpy()
+    sano = (df["wf_ultimo_fallo"].fillna(0) == 0).to_numpy()
+    y1 = int(y[sano].sum())
+    detectados = int(((oof[elegido]["pred"] == 1) & (y == 1) & sano).sum())
+    pr_auc = average_precision_score(y[sano], oof[elegido]["p"][sano])
+    return [
+        "## 8. Limitación en workflows sanos y trabajo futuro", "",
+        f"- **Limitación.** Cuando la ejecución anterior del workflow no falló ({int(sano.sum()):,} "
+        f"filas, {y1} con y=1, tasa {y[sano].mean():.3f}), {elegido} detecta **{detectados} de {y1}** "
+        f"fallos con su umbral (recall {detectados / y1:.3f}) y tiene PR-AUC {pr_auc:.3f}, unas "
+        f"{pr_auc / y[sano].mean():.0f} veces la prevalencia: ordena mejor que el azar, pero casi "
+        "nunca llega al nivel alto. En un workflow sano, el modelo apenas anticipa el fallo de un "
+        "cambio nuevo; la mayor parte de su señal viene del efecto «sigue roto» (sección 4).",
+        "- **Causa probable.** Con un token de solo lectura en repositorios de terceros, las "
+        "variables describen el historial del workflow, el mensaje y el tamaño del commit y sus "
+        "checks, pero poco la calidad o el riesgo del cambio en sí (sección 5).",
+        "- **Consecuencia en la plataforma.** Un nivel bajo o medio en un workflow sano no garantiza "
+        "que el despliegue salga bien; la recomendación «Permitir el despliegue» se apoya en ese "
+        "nivel y la decisión final es del líder técnico.",
+        "- **Trabajo futuro.** Integrar fuentes que aporten las señales del cambio que faltan:",
+        "  - **SonarQube:** calidad del código del commit o del pull request (estado del quality "
+        "gate, bugs, vulnerabilidades y code smells nuevos, cobertura de pruebas del código nuevo, "
+        "duplicación), es decir, las vulnerabilidades y la cobertura que hoy no se pueden obtener.",
+        "  - **Jira:** contexto del cambio (tipo de incidencia, prioridad, si es un hotfix, número de "
+        "incidencias incluidas en el despliegue, reaperturas e incidentes previos del componente).",
+        "  - Ambas requieren acceso a la organización, por eso no forman parte de v2 (los 198 "
+        "repositorios son públicos y de terceros). Un modelo con esas variables se evaluaría igual "
+        "(GroupKFold por repositorio, IC por bootstrap de repositorios) frente a v2 y a la regla "
+        "simple, con atención al recall en workflows sanos."]
 
 
 SECCION_V1_1 = [
@@ -443,6 +480,7 @@ def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
           "- La etiqueta mide si el intento de despliegue a producción se completó, no incidentes "
           "posteriores en producción.", ""]
     l += SECCION_V1_1 + [""] + seccion_umbrales(meta)
+    l += [""] + seccion_trabajo_futuro(df, oof, elegido)
     ruta.write_text("\n".join(l) + "\n", encoding="utf-8")
 
 

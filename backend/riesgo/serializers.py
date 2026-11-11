@@ -100,7 +100,8 @@ class DecisionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DecisionDespliegue
-        fields = ["id", "decision", "comentario", "usuario", "creada_en",
+        fields = ["id", "decision", "recomendacion", "acepta_recomendacion",
+                  "comentario", "usuario", "creada_en",
                   "fecha_limite", "vista_por_desarrollador_en", "cumplida_en",
                   "estado", "prediccion_respuesta", "respuesta_desarrollador"]
 
@@ -182,6 +183,9 @@ class PrediccionSerializer(serializers.ModelSerializer):
     # Repositorio de demostración: los dashboards no lo cuentan.
     demostracion = serializers.BooleanField(
         source="workflow.repositorio.es_demostracion", read_only=True)
+    # Repositorio de los casos de prueba: tampoco cuenta.
+    prueba = serializers.BooleanField(
+        source="workflow.repositorio.es_prueba", read_only=True)
     cambio = serializers.SerializerMethodField()
     ejecuciones_previas = serializers.SerializerMethodField()
     ejecucion_real = EjecucionSerializer(read_only=True)
@@ -190,8 +194,8 @@ class PrediccionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prediccion
         fields = ["id", "usuario", "repositorio", "workflow_path", "head_sha", "demostracion",
-                  "rama", "evento", "cambio", "variables", "probabilidad",
-                  "nivel", "factores", "recomendaciones", "analisis_ia",
+                  "prueba", "rama", "evento", "cambio", "variables",
+                  "probabilidad", "nivel", "recomendacion", "factores", "recomendaciones", "analisis_ia",
                   "version_modelo",
                   "ejecuciones_previas", "ejecucion_real", "decisiones",
                   "verificada_en", "datos_github_extraidos_en", "creada_en"]

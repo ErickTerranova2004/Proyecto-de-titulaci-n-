@@ -505,6 +505,8 @@ function SelectorRepositorios({ repositorios, asignados, alCambiar }) {
               <button type="button" onClick={() => alternar(r.id)}>
                 + {r.nombre_completo}
                 {r.es_demostracion && <span className="gestion-insignia">demo</span>}
+                {r.es_prueba && <span className="gestion-insignia">prueba</span>}
+                {r.est_registro === "I" && <span className="gestion-insignia">inactivo</span>}
               </button>
             </li>
           ))}

@@ -154,7 +154,8 @@ export default function Panel(props) {
 function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma, alAtender }) {
   const textos = PERFILES[perfil];
   const esAdmin = perfil === "administrador";
-  // Los análisis de repositorios de demostración no cuentan en el dashboard
+  // Los análisis de repositorios de demostración y de los casos de prueba no
+  // cuentan en el dashboard
   // (siguen en Historial y en el resultado de cada análisis).
   const [historial, setHistorial] = useState(null);
   const [demostraciones, setDemostraciones] = useState(0);
@@ -174,7 +175,7 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
     setCargando(true);
     Promise.all([api.historial(), api.repositoriosAsignados()])
       .then(([h, r]) => {
-        const reales = h.filter((p) => !p.demostracion);
+        const reales = h.filter((p) => !p.demostracion && !p.prueba);
         setHistorial(reales);
         setDemostraciones(h.length - reales.length);
         setRepos(r);
@@ -258,7 +259,7 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
           <strong>Base de datos histórica</strong>
           <span className="secundario">
             {historial.length} análisis registrados
-            {demostraciones > 0 && ` (sin contar ${demostraciones} de demostración)`}
+            {demostraciones > 0 && ` (sin contar ${demostraciones} de demostración o de prueba)`}
           </span>
         </li>
         <li><strong>Preparación de datos</strong><span className="secundario">{nVariables === null ? "—" : `${nVariables} variables por análisis`}</span></li>
@@ -724,9 +725,10 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
             </table>
           </div>
         )}
-        {supervision?.predicciones_demostracion > 0 && (
+        {(supervision?.predicciones_demostracion > 0 || supervision?.predicciones_prueba > 0) && (
           <p className="secundario nota-pie">
-            No incluye {supervision.predicciones_demostracion} predicciones de repositorios de demostración: no son validación del modelo.
+            No incluye {supervision.predicciones_demostracion} predicciones de repositorios de demostración ni{" "}
+            {supervision.predicciones_prueba ?? 0} de los casos de prueba: no son validación del modelo.
           </p>
         )}
         {supervision && supervision.evaluables === 0 && (

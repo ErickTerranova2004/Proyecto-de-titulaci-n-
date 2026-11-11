@@ -195,6 +195,8 @@ export default function Workflows() {
                         <td>
                           <strong>{w.repositorio}</strong>
                           {w.demostracion && <span className="gestion-insignia">demo</span>}
+                          {w.prueba && <span className="gestion-insignia">prueba</span>}
+                          {w.repositorio_activo === false && <span className="gestion-insignia">inactivo</span>}
                         </td>
                         <td>
                           <div className="gestion-archivo">
@@ -315,7 +317,7 @@ function DialogoWorkflow({ workflow, patronPorDefecto, alCerrar, alActualizar, a
     <Dialogo titulo="Gestionar workflow" alCerrar={alCerrar} ancho={720}>
       <form onSubmit={guardar}>
         <dl className="gestion-datos">
-          <dt>Repositorio</dt><dd>{actual.repositorio}{actual.demostracion && <span className="gestion-insignia">demo</span>}</dd>
+          <dt>Repositorio</dt><dd>{actual.repositorio}{actual.demostracion && <span className="gestion-insignia">demo</span>}{actual.prueba && <span className="gestion-insignia">prueba</span>}{actual.repositorio_activo === false && <span className="gestion-insignia">inactivo</span>}</dd>
           <dt>Archivo</dt><dd className="gestion-mono">{actual.path}</dd>
           <dt>Validado por</dt>
           <dd>{actual.validado_por ? <>{actual.validado_por} · <Fecha valor={actual.validado_en} /></> : "—"}</dd>

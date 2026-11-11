@@ -788,6 +788,38 @@ textarea {
     font-weight: 800;
 }
 
+/* Recomendación automática (nivel alto → revisión previa). */
+.recomendacion {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--radio-sm);
+    font-size: var(--texto-sm);
+    border: 1px solid var(--color-bajo);
+    color: var(--color-bajo);
+}
+
+.recomendacion--solicitar_revision {
+    border-color: var(--color-alto);
+    color: var(--color-alto);
+}
+
+.recomendacion__regla {
+    display: block;
+    margin-top: var(--esp-2);
+    font-size: var(--texto-xs);
+}
+
+.insignia-recomendada {
+    margin-left: var(--esp-2);
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: var(--texto-xs);
+    font-weight: 700;
+    background: var(--relleno-suave);
+    border: 1px solid var(--color-acento);
+    color: var(--color-acento);
+}
+
 .recuadro {
     padding: var(--esp-3);
     border: 1px solid var(--borde-suave);

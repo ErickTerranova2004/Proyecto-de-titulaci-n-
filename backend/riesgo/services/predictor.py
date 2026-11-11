@@ -117,6 +117,14 @@ def nivel_de(probabilidad, limites):
     return "bajo"
 
 
+def recomendacion_de(nivel):
+    """Recomendación automática: con riesgo alto, revisar antes de desplegar.
+
+    El líder técnico puede aceptarla o cambiarla al registrar su decisión.
+    """
+    return "solicitar_revision" if nivel == "alto" else "permitir"
+
+
 def probabilidades(lista_variables, version):
     """Probabilidad de varias filas en una sola llamada (sin SHAP)."""
     modelo, _, _ = _modelos(version)
@@ -159,4 +167,5 @@ def predecir(variables, version=None):
         if abs(c) > 1e-6
     ][:8]
     return {"probabilidad": probabilidad, "nivel": nivel,
+            "recomendacion": recomendacion_de(nivel),
             "factores": factores, "version": version}

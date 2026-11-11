@@ -3,6 +3,7 @@ import { api } from "../api.js";
 import {
   Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, hoyLocal, NIVELES, NivelRiesgo, porcentaje, useRoles,
 } from "./comunes.jsx";
+import { aceptaRecomendacion, decisionRecomendada, RECOMENDACIONES } from "../recomendacion.js";
 
 // Textos de presentación para los códigos de EjecucionWorkflow.etiqueta y
 // EjecucionWorkflow.subtipo_etiqueta (los códigos vienen de la API).
@@ -277,7 +278,10 @@ function CambiarFechaLimite({ prediccion, actual, alActualizar }) {
 
 function Decision({ prediccion, alActualizar }) {
   const { puedeDecidir } = useRoles();
-  const [decision, setDecision] = useState("");
+  // La recomendación de la plataforma viene marcada; el líder puede
+  // aceptarla o elegir otra decisión.
+  const recomendada = decisionRecomendada(prediccion.recomendacion);
+  const [decision, setDecision] = useState(recomendada);
   const [comentario, setComentario] = useState("");
   const [fechaLimite, setFechaLimite] = useState("");
   const [error, setError] = useState("");
@@ -290,7 +294,7 @@ function Decision({ prediccion, alActualizar }) {
     setEnviando(true);
     try {
       alActualizar(await api.decidir(prediccion.id, { decision, comentario, fecha_limite: fechaLimite || null }));
-      setDecision("");
+      setDecision(recomendada);
       setComentario("");
       setFechaLimite("");
     } catch (e) {
@@ -307,6 +311,15 @@ function Decision({ prediccion, alActualizar }) {
           {decisiones.map((d, i) => (
             <li key={d.id ?? d.creada_en}>
               <strong>{DECISIONES[d.decision] || d.decision}</strong> · {d.usuario} · <Fecha valor={d.creada_en} />
+              {d.acepta_recomendacion != null && (
+                <span className="secundario">
+                  {" "}
+                  ·{" "}
+                  {d.acepta_recomendacion
+                    ? "aceptó la recomendación"
+                    : `cambió la recomendación (${RECOMENDACIONES[d.recomendacion] ?? d.recomendacion})`}
+                </span>
+              )}
               {d.comentario && <p>{d.comentario}</p>}
               {i === 0 && <Seguimiento decision={d} />}
             </li>
@@ -319,6 +332,12 @@ function Decision({ prediccion, alActualizar }) {
         <form className="formulario" onSubmit={enviar}>
           <fieldset>
             <legend>Registrar decisión</legend>
+            {recomendada && (
+              <p className="secundario" id={`ayuda-recomendacion-${prediccion.id}`}>
+                La plataforma recomienda «{RECOMENDACIONES[prediccion.recomendacion]}» (nivel{" "}
+                {NIVELES[prediccion.nivel]?.toLowerCase()}); aparece marcada. Puede aceptarla o elegir otra decisión.
+              </p>
+            )}
             {Object.entries(DECISIONES).map(([codigo, texto]) => (
               <label key={codigo} className="opcion">
                 <input
@@ -330,8 +349,14 @@ function Decision({ prediccion, alActualizar }) {
                   required
                 />
                 {texto}
+                {codigo === recomendada && <span className="insignia-recomendada">Recomendada</span>}
               </label>
             ))}
+            {aceptaRecomendacion(prediccion.recomendacion, decision) === false && (
+              <p className="secundario" role="status">
+                Va a cambiar la recomendación de la plataforma. Explique el motivo en el comentario.
+              </p>
+            )}
             <div className="campo">
               <label htmlFor={`comentario-${prediccion.id}`}>Comentario (opcional)</label>
               <textarea
@@ -412,6 +437,22 @@ export default function Resultado({ prediccion, modelos }) {
             <output>{porcentaje(p.probabilidad)}</output>
           </dd>
         </div>
+        {p.recomendacion && (
+          <div>
+            <dt>Recomendación de la plataforma</dt>
+            <dd>
+              <strong className={`recomendacion recomendacion--${p.recomendacion}`}>
+                {RECOMENDACIONES[p.recomendacion]}
+              </strong>
+              <span className="secundario recomendacion__regla">
+                {p.recomendacion === "solicitar_revision"
+                  ? "Nivel alto: revisar el cambio antes de desplegar."
+                  : "Nivel bajo o medio: se puede desplegar."}{" "}
+                Decide el líder técnico.
+              </span>
+            </dd>
+          </div>
+        )}
       </dl>
 
       <div className="resultado__explicacion">

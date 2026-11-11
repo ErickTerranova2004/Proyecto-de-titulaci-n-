@@ -11,8 +11,8 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, mixins
 
-from riesgo.models import (AccesoRepositorio, EjecucionWorkflow,
-                           Prediccion, Repositorio,
+from riesgo.models import (AccesoRepositorio, DecisionDespliegue,
+                           EjecucionWorkflow, Prediccion, Repositorio,
                            VersionModelo, Workflow)
 from riesgo.permissions import (EsAdministrador, EsLiderOAdministrador,
                                 PuedePredecir, predicciones_visibles,
@@ -141,7 +141,9 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [PuedePredecir]
 
     def get_queryset(self):
-        visibles = repositorios_visibles(self.request.user)
+        # Los inactivos conservan su historial, pero no se ofrecen.
+        visibles = repositorios_visibles(self.request.user).filter(
+            est_registro="A")
         # ?todos=1: todos los repositorios visibles (asignados), aunque no
         # tengan workflows utilizables. Lo usan los paneles por rol.
         if self.request.query_params.get("todos") == "1":
@@ -220,6 +222,8 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
             repositorio.nombre_completo = nombre
             repositorio.propietario, _, repositorio.nombre = \
                 nombre.partition("/")
+            # Registrarlo de nuevo a mano lo vuelve a activar.
+            repositorio.est_registro = "A"
             repositorio.save()
             workflow, creado = Workflow.objects.get_or_create(
                 repositorio=repositorio, path=datos["workflow_path"])
@@ -307,6 +311,11 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         if not tiene_acceso(request.user, repositorio):
             return _error("No tiene acceso asignado a este repositorio.",
                           "sin_acceso", status.HTTP_403_FORBIDDEN)
+        if repositorio.est_registro != "A":
+            return _error("El repositorio está inactivo en la plataforma: se "
+                          "conserva su historial, pero no admite nuevos "
+                          "análisis.", "repositorio_inactivo",
+                          status.HTTP_400_BAD_REQUEST)
         workflow = Workflow.objects.filter(
             repositorio=repositorio, path=datos["workflow_path"]).first()
         if workflow is not None and not workflow.disponible_github:
@@ -368,6 +377,7 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 variables=_json_seguro(variables),
                 probabilidad=resultado["probabilidad"],
                 nivel=resultado["nivel"],
+                recomendacion=resultado["recomendacion"],
                 factores=resultado["factores"],
                 recomendaciones=recomendaciones,
                 analisis_ia=analisis,
@@ -453,8 +463,14 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         prediccion = self.get_object()
         solicitud = SolicitudDecisionSerializer(data=request.data)
         solicitud.is_valid(raise_exception=True)
-        decision = prediccion.decisiones.create(usuario=request.user,
-                                                **solicitud.validated_data)
+        datos = solicitud.validated_data
+        recomendada = DecisionDespliegue.SEGUN_RECOMENDACION.get(
+            prediccion.recomendacion)
+        decision = prediccion.decisiones.create(
+            usuario=request.user, recomendacion=prediccion.recomendacion,
+            acepta_recomendacion=(None if recomendada is None
+                                  else datos["decision"] == recomendada),
+            **datos)
         logger.info("Decisión %s sobre la predicción %s por %s",
                     decision.decision, prediccion.id, request.user.username)
         if decision.fecha_limite:
@@ -495,6 +511,7 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
         version = self.get_object()
         todas = Prediccion.objects.filter(version_modelo=version)
         # Las de repositorios de demostración no son validación del modelo.
+        # Ni las de demostración ni las de los casos de prueba.
         predicciones = todas.para_modelo()
         evaluables = [
             (p.nivel, p.probabilidad, p.ejecucion_real.y)
@@ -517,6 +534,7 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
             "predicciones": predicciones.count(),
             # Excluidas de todas las métricas anteriores.
             "predicciones_demostracion": todas.de_demostracion().count(),
+            "predicciones_prueba": todas.de_prueba().count(),
             "verificadas": predicciones.filter(
                 ejecucion_real__isnull=False).count(),
             "evaluables": len(evaluables),

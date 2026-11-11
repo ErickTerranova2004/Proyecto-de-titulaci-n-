@@ -84,7 +84,8 @@ def usuarios(request):
             "usuarios": [_serializar_usuario(u, request.user)
                          for u in _consulta_usuarios()],
             "repositorios": list(Repositorio.objects.values(
-                "id", "nombre_completo", "es_demostracion")),
+                "id", "nombre_completo", "es_demostracion", "es_prueba",
+                "est_registro")),
         })
 
     datos = request.data
@@ -231,6 +232,8 @@ def _serializar_workflow(w):
         "id": w.id,
         "repositorio": repo,
         "demostracion": w.repositorio.es_demostracion,
+        "prueba": w.repositorio.es_prueba,
+        "repositorio_activo": w.repositorio.est_registro == "A",
         "path": w.path,
         "nombre": w.nombre or w.path.rsplit("/", 1)[-1],
         "validado": w.despliegue_validado,

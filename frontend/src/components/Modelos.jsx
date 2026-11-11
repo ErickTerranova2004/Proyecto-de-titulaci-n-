@@ -152,9 +152,10 @@ function Supervision({ modelos }) {
       </div>
       {modelos.map((m) => {
         const n = datos[m.id]?.predicciones_demostracion;
-        return n ? (
+        const np = datos[m.id]?.predicciones_prueba;
+        return n || np ? (
           <p key={m.id} className="secundario nota-pie">
-            {datos[m.id].version}: no incluye {n} predicciones de repositorios de demostración (no son validación del modelo).
+            {datos[m.id].version}: no incluye {[n && `${n} predicciones de repositorios de demostración`, np && `${np} de los casos de prueba`].filter(Boolean).join(" ni ")} (no son validación del modelo).
           </p>
         ) : null;
       })}

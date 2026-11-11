@@ -31,6 +31,15 @@ class Repositorio(models.Model):
     # Repositorio creado para demostrar la plataforma (ejecuciones provocadas a
     # propósito). Sus resultados no son validación del modelo.
     es_demostracion = models.BooleanField(default=False)
+    # Repositorio de los casos de prueba de registro de workflows
+    # (datos_prueba/casos_prueba_30.json): igual que la demostración, queda
+    # fuera de las métricas y los dashboards.
+    es_prueba = models.BooleanField(default=False)
+    # A = activo; I = inactivo (se conserva con su historial, pero no se
+    # ofrece para nuevos análisis ni en los selectores).
+    ESTADOS = [("A", "Activo"), ("I", "Inactivo")]
+    est_registro = models.CharField(max_length=1, choices=ESTADOS,
+                                    default="A")
 
     class Meta:
         ordering = ["nombre_completo"]
@@ -122,18 +131,23 @@ class Commit(models.Model):
 class DatosModeloQuerySet(models.QuerySet):
     """Filas que pueden usarse para entrenar, evaluar o supervisar el modelo.
 
-    Los repositorios de demostración (Repositorio.es_demostracion) quedan
-    fuera: sirven para demostraciones en vivo, no como datos del modelo.
-    Toda exportación a entrenamiento, métrica o dashboard debe partir de
-    para_modelo()."""
+    Los repositorios de demostración (Repositorio.es_demostracion) y los de
+    los casos de prueba (Repositorio.es_prueba) quedan fuera: no son datos
+    del modelo. Toda exportación a entrenamiento, métrica o dashboard debe
+    partir de para_modelo()."""
 
     campo_repositorio = "workflow__repositorio"
 
     def para_modelo(self):
-        return self.exclude(**{f"{self.campo_repositorio}__es_demostracion": True})
+        r = self.campo_repositorio
+        return self.exclude(**{f"{r}__es_demostracion": True}).exclude(
+            **{f"{r}__es_prueba": True})
 
     def de_demostracion(self):
         return self.filter(**{f"{self.campo_repositorio}__es_demostracion": True})
+
+    def de_prueba(self):
+        return self.filter(**{f"{self.campo_repositorio}__es_prueba": True})
 
 
 class EjecucionWorkflow(models.Model):
@@ -218,6 +232,9 @@ class Prediccion(models.Model):
     objects = DatosModeloQuerySet.as_manager()
 
     NIVELES = [("bajo", "Bajo"), ("medio", "Medio"), ("alto", "Alto")]
+    # Recomendación automática según el nivel (predictor.recomendacion_de).
+    RECOMENDACIONES = [("permitir", "Permitir el despliegue"),
+                       ("solicitar_revision", "Solicitar revisión previa")]
 
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL,
                                 on_delete=models.PROTECT,
@@ -235,6 +252,9 @@ class Prediccion(models.Model):
     probabilidad = models.FloatField()
     nivel = models.CharField(max_length=10, choices=NIVELES)
     factores = models.JSONField()
+    # Vacía en las predicciones anteriores a la recomendación automática.
+    recomendacion = models.CharField(max_length=20, choices=RECOMENDACIONES,
+                                     blank=True)
     # Lista de {"codigo", "variable", "texto"}.
     recomendaciones = models.JSONField()
     # {"origen": "ia"|"reglas", "modelo", "resumen", "error"}; nulo en
@@ -289,7 +309,16 @@ class DecisionDespliegue(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL,
                                 on_delete=models.PROTECT,
                                 related_name="decisiones")
+    # Decisión que coincide con cada recomendación automática.
+    SEGUN_RECOMENDACION = {"permitir": "autorizar",
+                           "solicitar_revision": "solicitar_revision"}
+
     decision = models.CharField(max_length=20, choices=DECISIONES)
+    # Recomendación vigente al decidir y si el líder la aceptó (nulo si la
+    # predicción no tenía recomendación).
+    recomendacion = models.CharField(max_length=20, blank=True,
+                                     choices=Prediccion.RECOMENDACIONES)
+    acepta_recomendacion = models.BooleanField(null=True, blank=True)
     comentario = models.TextField(blank=True, max_length=1000)
     creada_en = models.DateTimeField(auto_now_add=True)
     # Asignación al desarrollador dueño de la predicción. Solo cuentan en la

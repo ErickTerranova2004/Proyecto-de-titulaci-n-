@@ -16,7 +16,7 @@ export function useRoles() {
 export const DECISIONES = {
   autorizar: "Autorizar el despliegue",
   posponer: "Posponer el despliegue",
-  solicitar_revision: "Solicitar revisión adicional",
+  solicitar_revision: "Solicitar revisión previa del cambio",
 };
 
 export const NIVELES = { bajo: "Bajo", medio: "Medio", alto: "Alto" };
