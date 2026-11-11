@@ -1123,7 +1123,8 @@ def contexto(rama, evento, base):
             "github.ref_type": "tag" if tag else "branch"}
 
 
-REGLA_DATASET = 8  # 7: entorno real; 8: sin pasos Build/Pre/Post de GitHub (2026-11-11)
+REGLA_DATASET = 9  # 7: entorno real; 8: sin pasos Build/Pre/Post de GitHub;
+# 9: «deployment(s)» no es el verbo y «using ssh key» no es auxiliar (2026-11-11)
 PASO_BUILD_DOCKER = re.compile(r"^Build \S+/\S+@\S+")
 
 
@@ -1220,8 +1221,9 @@ def regla7(args):
             if not jobs or all(not j.get("steps") for j in jobs if j.get("conclusion") != "skipped"):
                 # La ejecución se borró o sus pasos ya no se conservan (retención
                 # de GitHub): se mantiene la etiqueta calculada cuando sí estaban.
-                f.update({"regla": REGLA_DATASET, "regla8_sin_datos": "borrada o sin pasos",
-                          "y_regla7": f.get("y")})
+                previa_regla = f.get("regla") or 0
+                f.update({"regla": REGLA_DATASET, "regla8_sin_datos": "borrada o sin pasos"})
+                f.setdefault(f"y_regla{previa_regla}", f.get("y"))
                 cambios[("sin datos", "se mantiene")] += 1
                 continue
             entorno_rama = ENTORNO_POR_RAMA[repo].get(rama, "staging") if repo in ENTORNO_POR_RAMA else None
@@ -1263,9 +1265,9 @@ def regla7(args):
             if previa is None and f["etiqueta"] == "excluida_ambigua" and nueva["y"] is not None:
                 # La regla 7 solo restringe: una ejecución ambigua sigue excluida.
                 nueva.update({"etiqueta": "excluida_ambigua", "subtipo": "", "y": None})
-            if f.get("regla") == 7:  # primera pasada de la regla 8: guarda la y de la 7
-                nueva["y_regla6"] = f.get("y_regla6")
-                nueva["y_regla7"] = previa
+            if (f.get("regla") or 0) >= 7:  # conserva la y de cada regla anterior
+                nueva.update({k: v for k, v in f.items() if k.startswith("y_regla")})
+                nueva[f"y_regla{f['regla']}"] = previa
             else:
                 nueva["y_regla6"] = previa if f["etiqueta"] != "excluida_entorno_indeterminado" else f.get("y_previa")
             cambios[(previa, nueva["y"])] += 1
@@ -1354,6 +1356,16 @@ VERIFICACIONES = [
     "y quedan marcadas (`regla8_sin_datos`). Resultado: 203 → **198 repositorios válidos** (197 en el "
     "entrenamiento, 195 con filas en el tope de 50) y 4.123 ejecuciones (y=1 9,7 %). No se reabrió la "
     "búsqueda (decisión del autor).",
+    "- **Regla 9: «deployment» no es el verbo (2026-11-11).** El patrón `\\bdeploy` aceptaba el sustantivo "
+    "«deployment(s)». Ahora es `\\bdeploy(?!ments?\\b)`, y «using ssh key» ya no marca como auxiliar el paso "
+    "que despliega por SSH (mismo cambio en la plataforma, migración 0011, con pruebas). Búsqueda sin API con el "
+    "YAML de cada fila y=0: 21 filas en 2 repositorios con un paso «deployment» como única evidencia y 294 en 16 "
+    "con otro paso de despliegue además. Re-etiquetados con la API los 17 repositorios, cambiaron **6 filas** "
+    "(y=0 → excluida): wevm/frog (2, `workflow_dispatch` de una rama de CI que solo lee metadatos) y "
+    "alliance-genome/agr_curation (4, versiones candidatas que solo se desplegaron a beta). Las 19 de "
+    "allcll/allcll-frontend siguen siendo y=0, ahora por el paso de SSH. Las 11 filas de pull request que "
+    "quedan se revisaron a mano: todas correctas (ServiceCanada/feedback-cron y ImCa0/just-laws despliegan a "
+    "producción en sus PR, desde ramas del mismo repositorio). Dataset: **4.117 ejecuciones** (y=1 401, 9,7 %).",
     "- **Tope por plataforma (criterio 4).** En el dataset final AWS tiene 52 de 198 repositorios (26,3 %), "
     "por debajo del 30 %; la siguiente es Google Cloud con 36 (18,2 %). Había más aprobados de AWS, y la "
     "selección dejó fuera los excedentes con ese motivo.",

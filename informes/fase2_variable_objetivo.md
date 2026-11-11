@@ -105,3 +105,21 @@ Corrige dos errores encontrados al verificar el dataset v2. No cambia la definic
 - **Pasos que GitHub añade alrededor de una acción.** «Build owner/acción@v» construye la imagen de una acción de Docker al empezar el job y se ejecuta **aunque el paso real se omita** con `if:`; «Pre …» y «Post …» son la preparación y la limpieza de otro paso (el «Pre» también se ejecuta aunque el paso se omita). Ninguno cuenta como despliegue. Se aplica igual en la plataforma (`backend/riesgo/services/etiquetado.py`, `PATRON_PASO_DE_GITHUB`) y en el dataset.
 - **Fallos en pull requests.** Un fallo antes del despliegue solo cuenta si la ejecución habría desplegado (sección 4). En un pull request el despliegue suele estar limitado a push: si, con el YAML del commit de esa ejecución, todos los pasos de despliegue (o sus jobs) tienen un `if:` que los limita a push, a una rama o a una etiqueta, el fallo se excluye (`excluida_no_produccion`). Los pull requests cuyo despliegue sí se ejecutó (y=0) se mantienen.
 - **Datos que GitHub ya no conserva.** Al re-etiquetar, las ejecuciones borradas o cuyos pasos ya no se conservan mantienen la etiqueta calculada cuando los pasos existían (no pasan a «sin intento»).
+
+## 9. Regla 9: «deployment» no es el verbo (2026-11-11)
+
+El patrón de verbos (`PATRON_DESPLIEGUE`, `\bdeploy`) también aceptaba el sustantivo «deployment(s)», así que pasos que solo hablan de un despliegue contaban como despliegue. Cambios, iguales en la plataforma (migración `0011`, que actualizó los 672 workflows con el patrón por defecto) y en el dataset:
+
+- `\bdeploy(?!ments?\b)`: «Read deployment resource metadata», «Deployment Report» o «Generate deployment package» ya no cuentan; «Deploy», «Deploying», «Deployed» y «deploy-api» siguen contando.
+- «key» deja de marcar un paso como auxiliar cuando es el medio del despliegue («deploy - executing remote ssh commands using ssh key»). «Set GitHub Deploy Key» sigue siendo auxiliar.
+
+Búsqueda sin API (YAML del commit de cada fila y=0): 21 filas en 2 repositorios cuya única evidencia era un paso con «deployment», y 294 filas en 16 repositorios con un paso así junto a otro paso de despliegue. Al re-etiquetar los 17 repositorios con la API cambiaron **6 filas** del dataset (y=0 → excluida):
+
+| Repositorio | Filas | Motivo |
+|---|---:|---|
+| wevm/frog | 2 | `workflow_dispatch` en la rama `ci/cloudflare-sts-preflight`: el job `preflight` lee metadatos de Cloudflare; no despliega |
+| alliance-genome/agr_curation | 4 | Versiones candidatas (`-rc`): solo se ejecutó `deploy-to-beta`; `deploy-to-production` se omitió. Antes las marcaba y=0 «Generate deployment package» |
+
+Las 19 filas de allcll/allcll-frontend siguen siendo y=0 (despliegue por SSH a un servidor con `environment: production`), ahora por el paso correcto. Cinco filas de TIS-SYNC y TIS-TCS ya no conservan sus pasos y mantienen la etiqueta; su job tiene además el paso «Deploy Amazon ECS task definition».
+
+Revisión a mano de las 11 filas de pull request que quedan (2026-11-11): todas correctas. En ServiceCanada/feedback-cron (9) el workflow se ejecuta en `pull_request` a `main` sin `if:` y despliega con `Azure/k8s-deploy` al clúster `tbs-prod-aks`; en ImCa0/just-laws (2) el PR de la rama `codex` despliega con `easingthemes/ssh-deploy` al servidor nginx. Todos los PR vienen de ramas del mismo repositorio, no de forks.

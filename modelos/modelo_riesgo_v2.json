@@ -1,0 +1,82 @@
+{
+  "version": "v2",
+  "modelo": "Random Forest",
+  "motivo_seleccion": "La diferencia de PR-AUC XGBoost − Random Forest es -0.068 (IC 95 % -0.097 a -0.031); como XGBoost no es mejor con claridad, se elige Random Forest (regla fijada antes de evaluar).",
+  "fecha_entrenamiento": "2026-11-11T19:17:12.936454+00:00",
+  "dataset": "datos_procesados/dataset_riesgo_despliegue_v2.csv",
+  "dataset_sha256": "34a38c06a07c196a27c0cb98a02a30d802c99834aef94909490f66299a9a4429",
+  "variables_categoricas": [
+    "event"
+  ],
+  "variables_numericas": [
+    "msg_len",
+    "msg_lineas",
+    "msg_merge",
+    "msg_revert",
+    "msg_fix",
+    "msg_feat",
+    "msg_deps",
+    "msg_docs",
+    "msg_ci",
+    "autor_bot",
+    "rama_principal",
+    "rama_tag",
+    "tiene_pr",
+    "es_reintento",
+    "hora_utc",
+    "dia_semana",
+    "fin_de_semana",
+    "retraso_commit_run_min",
+    "archivos_modificados",
+    "lineas_anadidas",
+    "lineas_borradas",
+    "checks_n_prev",
+    "checks_fallidos_prev",
+    "checks_tasa_fallo_prev",
+    "wf_n_prev",
+    "wf_tasa_fallo_prev",
+    "wf_ultimo_fallo",
+    "wf_horas_desde_ultimo",
+    "wf_duracion_media_prev_min",
+    "repo_n_prev",
+    "repo_tasa_fallo_prev",
+    "repo_n_workflows_prev"
+  ],
+  "tasa_base_entrenamiento": 0.09740102016031091,
+  "limites_riesgo": {
+    "medio": 0.09740102016031091,
+    "alto": 0.19480204032062182
+  },
+  "umbral_f1": 0.3303423366535358,
+  "pesos_clase": "balanceados",
+  "escala_shap": "probabilidad",
+  "validacion": "GroupKFold 5 por repositorio (anidado)",
+  "metricas_validacion": {
+    "Base: siempre y=0": {
+      "PR-AUC": 0.08619178906196445,
+      "Recall y=1": 0.0,
+      "F1": 0.0,
+      "Brier": 0.088129524090423,
+      "Precisión": 0.0,
+      "ROC-AUC": 0.439231912146437
+    },
+    "Random Forest": {
+      "PR-AUC": 0.41520164957436545,
+      "Recall y=1": 0.5361596009975063,
+      "F1": 0.5263157894736842,
+      "Brier": 0.06733356514351756,
+      "Precisión": 0.5168269230769231,
+      "ROC-AUC": 0.8028931975765646
+    },
+    "XGBoost": {
+      "PR-AUC": 0.34765856240639637,
+      "Recall y=1": 0.45885286783042395,
+      "F1": 0.42840512223515714,
+      "Brier": 0.07414737701876753,
+      "Precisión": 0.4017467248908297,
+      "ROC-AUC": 0.7580809145059848
+    }
+  },
+  "filas_entrenamiento": 4117,
+  "repositorios": 195
+}

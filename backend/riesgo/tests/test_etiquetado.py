@@ -370,3 +370,42 @@ class SenalesPrioritariasTest(SimpleTestCase):
             ("Run aws-actions/amazon-ecs-deploy-task-definition@v2", "skipped",
              {"uses": "aws-actions/amazon-ecs-deploy-task-definition@v2"})])])
         self.assertEqual(r["etiqueta"], "excluida_sin_intento")
+
+
+class SustantivoDeploymentTest(SimpleTestCase):
+    """«deployment(s)» es un sustantivo: no es evidencia de despliegue
+    (wevm/frog y allcll/allcll-frontend, revisión del 2026-11-11)."""
+
+    def etiquetar(self, conclusion, jobs):
+        return etiquetar_ejecucion(conclusion, jobs, PATRON_DESPLIEGUE)
+
+    def test_paso_que_solo_menciona_deployment_no_es_despliegue(self):
+        # wevm/frog: job «preflight» que lee metadatos de Cloudflare.
+        for nombre in ("Read deployment resource metadata", "Deployment Report (Admin)",
+                       "Create deployments list"):
+            with self.subTest(nombre=nombre):
+                r = self.etiquetar("success", [job(1, "preflight", [(nombre, "success")])])
+                self.assertEqual(r["etiqueta"], "excluida_sin_intento")
+
+    def test_verbo_deploy_sigue_contando(self):
+        for nombre in ("Deploy to production", "Deploying app", "Deployed by bot",
+                       "deploy-api", "Despliegue a producción"):
+            with self.subTest(nombre=nombre):
+                r = self.etiquetar("success", [job(1, "release", [(nombre, "success")])])
+                self.assertEqual(r["etiqueta"], "despliegue_completado")
+
+    def test_despliegue_por_ssh_con_key_cuenta_y_el_informe_no(self):
+        # allcll/allcll-frontend: el despliegue real es el paso por SSH; el
+        # «Deployment Report» posterior no despliega.
+        pasos = [("deploy - executing remote ssh commands using ssh key", "success"),
+                 ("Deployment Report (Admin)", "success")]
+        r = self.etiquetar("success", [job(1, "admin-deploy", pasos)])
+        self.assertEqual(r["etiqueta"], "despliegue_completado")
+        r = self.etiquetar("success", [job(1, "admin-deploy", [
+            ("deploy - executing remote ssh commands using ssh key", "skipped"),
+            ("Deployment Report (Admin)", "success")])])
+        self.assertEqual(r["etiqueta"], "excluida_sin_intento")
+
+    def test_configurar_una_deploy_key_sigue_siendo_auxiliar(self):
+        r = self.etiquetar("success", [job(1, "deploy", [("Set GitHub Deploy Key", "success")])])
+        self.assertEqual(r["etiqueta"], "excluida_sin_intento")

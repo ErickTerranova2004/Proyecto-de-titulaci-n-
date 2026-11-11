@@ -69,10 +69,13 @@ PATRON_ACCION_DESPLIEGUE = (
     r"\bwrangler (deploy|publish)\b|kubectl (apply|set image|rollout restart)|"
     r"\bhelm (upgrade|install)\b|\bansible-playbook\b|\bterraform apply\b"
 )
-# Pasos auxiliares que mencionan un despliegue pero no despliegan.
+# Pasos auxiliares que mencionan un despliegue pero no despliegan. «key» es
+# auxiliar («Set GitHub Deploy Key»), salvo como medio del despliegue
+# («deploy - executing remote ssh commands using ssh key»).
 PATRON_AUXILIAR = (
     r"(?i)dry[- ]?run|\bplan\b|status|summary|notif|comment|version|\burl\b|"
-    r"set ?up|install|health|validate|check|\bwait|undeploy|\bkey\b|"
+    r"set ?up|install|health|validate|check|\bwait|undeploy|"
+    r"(?<!using )(?<!using ssh )\bkey\b|"
     r"_env\b|confirm|prepa|login|credential|cache|artifact|lint|"
     r"--help|\bwhoami\b|matrix"
 )

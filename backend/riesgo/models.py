@@ -10,9 +10,11 @@ ROLES = ("desarrollador", "lider_tecnico", "administrador")
 # Verbos de despliegue en el nombre del paso (señal de menor prioridad; ver
 # riesgo/services/etiquetado.py). No incluye nombres de herramientas: «Compute
 # App Engine version tag», «Install Vercel CLI» o «Select Cypress specs»
-# contaban como despliegue con el patrón anterior.
+# contaban como despliegue con el patrón anterior. «deployment(s)» es un
+# sustantivo, no el verbo: «Read deployment resource metadata» o «Deployment
+# Report» no despliegan (2026-11-11).
 PATRON_DESPLIEGUE = (
-    r"(?i)\bdeploy|despliegue|despleg|\brollout\b|\bpromote\b|"
+    r"(?i)\bdeploy(?!ments?\b)|despliegue|despleg|\brollout\b|\bpromote\b|"
     r"helm (upgrade|install)|kubectl (apply|set image|rollout)|"
     r"terraform apply|wrangler-action"
 )

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Entrena y evalúa el modelo v2 con el dataset congelado de 203 repositorios.
+"""Entrena y evalúa el modelo v2 con el dataset congelado de 198 repositorios.
 
 Diseño (fijado antes de ver resultados, según la propuesta de la tesis):
 - Modelos: Random Forest y XGBoost, con hiperparámetros fijos (sin búsqueda),
@@ -253,12 +253,13 @@ def tabla(filas, columnas, formato="{:.3f}"):
 def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
             importancia, niveles):
     y1 = int(df["y"].sum())
-    l = ["# Fase 5. Modelo de riesgo de despliegue v2 (dataset de 203 repositorios)", "",
+    l = ["# Fase 5. Modelo de riesgo de despliegue v2 (dataset de 198 repositorios)", "",
          f"- Datos: `{meta['dataset']}` (SHA-256 `{meta['dataset_sha256'][:12]}…`): "
          f"{len(df):,} ejecuciones de {df['repositorio'].nunique()} repositorios; "
          f"y=1 {y1} ({100 * y1 / len(df):.1f} %).",
-         "- Etiqueta: despliegue a producción no completado (`fase2_variable_objetivo.md`, regla 7). "
-         "Precisión de etiquetas medida a mano: 49/50 (IC 95 % Wilson 89,5–99,6 %).",
+         "- Etiqueta: despliegue a producción no completado (`fase2_variable_objetivo.md`, reglas 7 a 9). "
+         "Precisión de etiquetas medida a mano en una muestra aleatoria (semilla 2027): 47/49 "
+         "(IC 95 % Wilson 86,3–98,9 %).",
          "- Evaluación: GroupKFold de 5 pliegues por repositorio. Modelo, calibración y umbral se "
          "ajustan solo con los pliegues de entrenamiento (GroupKFold interno de 5).",
          "- Pesos de clase balanceados; probabilidades calibradas (sigmoide).", "",
