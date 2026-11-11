@@ -204,7 +204,9 @@ class ModeloV2ApiTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         test_api.ApiTest.setUpTestData.__func__(cls)
-        call_command("registrar_modelo", "--modelo", "v2", stdout=StringIO())
+        # v1.1 registrada y después v2 (la versión por defecto).
+        call_command("registrar_modelo", "--modelo", "v1.1", stdout=StringIO())
+        call_command("registrar_modelo", stdout=StringIO())
 
     _usuario = test_api.ApiTest._usuario
     cliente = test_api.ApiTest.cliente
@@ -213,6 +215,7 @@ class ModeloV2ApiTest(TestCase):
     def test_v2_vigente_y_v1_1_no(self):
         self.assertEqual(list(VersionModelo.objects.filter(activo=True)
                               .values_list("version", flat=True)), ["v2"])
+        self.assertFalse(VersionModelo.objects.get(version="v1.1").activo)
 
     def test_prediccion_con_v2(self):
         r = self.predecir(self.dev)

@@ -134,7 +134,7 @@ class ApiTest(TestCase):
         self.assertEqual(r.status_code, 201, r.content)
         cuerpo = r.json()
         self.assertIn(cuerpo["nivel"], ["bajo", "medio", "alto"])
-        self.assertEqual(cuerpo["version_modelo"], "v1.1")
+        self.assertEqual(cuerpo["version_modelo"], "v2")
         self.assertEqual(cuerpo["repositorio"], "acme/tienda")
         self.assertEqual(cuerpo["head_sha"], SHA)
         self.assertEqual(len(cuerpo["ejecuciones_previas"]), 3)

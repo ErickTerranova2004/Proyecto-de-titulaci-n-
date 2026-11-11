@@ -43,6 +43,21 @@ export function hoyLocal() {
 }
 
 // Muestra una fecha AAAA-MM-DD sin convertirla de zona horaria.
+// Validación prospectiva: la supervisión solo cuenta ejecuciones que
+// empezaron después de la más reciente del entrenamiento (fecha de corte).
+export function NotaCorte({ supervision }) {
+  if (!supervision?.fecha_corte) return null;
+  return (
+    <p className="nota-corte">
+      <strong>Evaluado con ejecuciones no vistas en el entrenamiento</strong>: solo cuentan las que empezaron después
+      del <Fecha valor={supervision.fecha_corte} /> (la más reciente del dataset de {supervision.version}).
+      {supervision.predicciones_lote > 0 && ` ${supervision.predicciones_lote} analizadas en lote.`}
+      {supervision.predicciones_anteriores_al_corte > 0 &&
+        ` No cuentan ${supervision.predicciones_anteriores_al_corte} predicciones de ejecuciones anteriores al corte.`}
+    </p>
+  );
+}
+
 export function FechaDia({ valor }) {
   if (!valor) return "—";
   const [a, m, d] = valor.split("-").map(Number);

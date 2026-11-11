@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
 import { cargarTarjetas } from "../cargaAdmin.js";
 import { MisAsignaciones } from "./Alarma.jsx";
-import { Alerta, Fecha, NIVELES, NivelRiesgo, porcentaje } from "./comunes.jsx";
+import { Alerta, Fecha, NIVELES, NivelRiesgo, NotaCorte, porcentaje } from "./comunes.jsx";
 import { BarrasApiladas, Dona, Embudo, Linea } from "./graficos.jsx";
 import Resultado, { ETIQUETAS } from "./Resultado.jsx";
 
@@ -698,6 +698,7 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
         </p>
         {!activo && <p className="secundario">No hay un modelo activo registrado.</p>}
         {activo && <EstadoTarjeta tarjeta={tarjetas.supervision} />}
+        <NotaCorte supervision={supervision} />
         {supervision && (
           <div className="tabla-contenedor">
             <table>

@@ -40,6 +40,7 @@ Uso:
 import argparse
 import hashlib
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -485,6 +486,10 @@ def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
 
 
 def main():
+    # La consola de Windows (cp1252) no puede imprimir «−» ni «≥».
+    for flujo in (sys.stdout, sys.stderr):
+        if hasattr(flujo, "reconfigure"):
+            flujo.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Entrena el modelo v2.")
     parser.add_argument("--data", default="datos_procesados/dataset_riesgo_despliegue_v2.csv")
     parser.add_argument("--model-dir", default="modelos")
@@ -539,6 +544,9 @@ def main():
         "fecha_entrenamiento": datetime.now(timezone.utc).isoformat(),
         "dataset": str(datos).replace("\\", "/"),
         "dataset_sha256": hashlib.sha256(datos.read_bytes()).hexdigest(),
+        # Inicio de la ejecución más reciente del entrenamiento: la
+        # supervisión en la plataforma solo cuenta ejecuciones posteriores.
+        "fecha_corte": str(df["run_started_at"].max()),
         "variables_categoricas": CATEGORICAS, "variables_numericas": NUMERICAS,
         "tasa_base_entrenamiento": tasa_base, "limites_riesgo": limites,
         "umbral_f1": umbral, "pesos_clase": "balanceados",

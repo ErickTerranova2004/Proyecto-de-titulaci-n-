@@ -268,6 +268,15 @@ class Prediccion(models.Model):
     verificada_en = models.DateTimeField(null=True, blank=True)
     datos_github_extraidos_en = models.DateTimeField()
     creada_en = models.DateTimeField(auto_now_add=True)
+    # «interactivo»: análisis pedido en la plataforma antes de desplegar.
+    # «lote»: análisis de una ejecución ya ocurrida (validación prospectiva
+    # de v2), con las variables calculadas en el momento en que empezó
+    # (momento_variables) y solo con lo que existía antes de ese momento.
+    ORIGENES = [("interactivo", "Análisis en la plataforma"),
+                ("lote", "Análisis en lote de una ejecución posterior")]
+    origen = models.CharField(max_length=12, choices=ORIGENES,
+                              default="interactivo")
+    momento_variables = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-creada_en"]
@@ -283,6 +292,14 @@ class Prediccion(models.Model):
                 errores["ejecucion_real"] = "La ejecución es de otro workflow."
             elif real.commit_id != self.commit_id:
                 errores["ejecucion_real"] = "La ejecución es de otro commit."
+            elif self.origen == "lote":
+                # La ejecución evaluada es la que empezó en el momento de
+                # las variables.
+                if (real.iniciada_en is None
+                        or real.iniciada_en != self.momento_variables):
+                    errores["ejecucion_real"] = (
+                        "En un análisis en lote, la ejecución debe ser la que "
+                        "empezó en el momento de las variables.")
             elif (real.iniciada_en is None or self.creada_en is None
                   or real.iniciada_en <= self.creada_en):
                 errores["ejecucion_real"] = ("La ejecución debe haber "

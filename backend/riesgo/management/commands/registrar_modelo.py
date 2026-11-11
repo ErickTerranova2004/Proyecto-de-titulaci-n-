@@ -13,8 +13,8 @@ class Command(BaseCommand):
             "entrenado a partir de su archivo JSON de metadatos.")
 
     def add_arguments(self, parser):
-        parser.add_argument("--modelo", default="v1.1",
-                            help="Versión del modelo, p. ej. v1 o v1.1")
+        parser.add_argument("--modelo", default="v2",
+                            help="Versión del modelo, p. ej. v2 o v1.1")
 
     def handle(self, *args, **opciones):
         for rol in ROLES:

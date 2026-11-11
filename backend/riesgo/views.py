@@ -4,7 +4,7 @@ import math
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import F, Max
+from django.db.models import F, Max, Q
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
@@ -510,9 +510,20 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
         """Comparación de las predicciones con los resultados reales."""
         version = self.get_object()
         todas = Prediccion.objects.filter(version_modelo=version)
-        # Las de repositorios de demostración no son validación del modelo.
-        # Ni las de demostración ni las de los casos de prueba.
+        # Ni las de demostración ni las de los casos de prueba: no son
+        # validación del modelo.
         predicciones = todas.para_modelo()
+        # Fecha de corte (metadatos.fecha_corte): solo cuentan ejecuciones
+        # que empezaron después de la más reciente del entrenamiento.
+        corte = fecha(version.metadatos.get("fecha_corte"))
+        excluidas_corte = 0
+        if corte is not None:
+            posteriores = predicciones.filter(
+                Q(origen="lote", momento_variables__gt=corte)
+                | Q(origen="interactivo", creada_en__gt=corte)).exclude(
+                ejecucion_real__iniciada_en__lte=corte)
+            excluidas_corte = predicciones.count() - posteriores.count()
+            predicciones = posteriores
         evaluables = [
             (p.nivel, p.probabilidad, p.ejecucion_real.y)
             for p in predicciones.filter(
@@ -535,6 +546,9 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
             # Excluidas de todas las métricas anteriores.
             "predicciones_demostracion": todas.de_demostracion().count(),
             "predicciones_prueba": todas.de_prueba().count(),
+            "fecha_corte": corte,
+            "predicciones_anteriores_al_corte": excluidas_corte,
+            "predicciones_lote": predicciones.filter(origen="lote").count(),
             "verificadas": predicciones.filter(
                 ejecucion_real__isnull=False).count(),
             "evaluables": len(evaluables),

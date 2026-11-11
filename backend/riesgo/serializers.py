@@ -195,7 +195,8 @@ class PrediccionSerializer(serializers.ModelSerializer):
         model = Prediccion
         fields = ["id", "usuario", "repositorio", "workflow_path", "head_sha", "demostracion",
                   "prueba", "rama", "evento", "cambio", "variables",
-                  "probabilidad", "nivel", "recomendacion", "factores", "recomendaciones", "analisis_ia",
+                  "probabilidad", "nivel", "recomendacion", "factores",
+                  "origen", "momento_variables", "recomendaciones", "analisis_ia",
                   "version_modelo",
                   "ejecuciones_previas", "ejecucion_real", "decisiones",
                   "verificada_en", "datos_github_extraidos_en", "creada_en"]
