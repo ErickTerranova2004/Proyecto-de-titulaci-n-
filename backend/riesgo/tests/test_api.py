@@ -69,6 +69,11 @@ class ClienteFalso:
     def jobs_intento(self, repo, run_id, intento):
         return self.JOBS
 
+    YAML = ""
+
+    def contenido_workflow(self, repo, workflow_path, ref):
+        return self.YAML
+
     def limite(self):
         return {"limit": 5000, "remaining": 4990, "reset": 1}
 

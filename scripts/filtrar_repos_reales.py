@@ -153,12 +153,23 @@ def guardar(ruta, datos):
     tmp.replace(ruta)
 
 
+_ETIQUETADO = None
+
+
+def modulo_etiquetado():
+    """backend/riesgo/services/etiquetado.py (sin Django), cargado una vez."""
+    global _ETIQUETADO
+    if _ETIQUETADO is None:
+        ruta = RAIZ / "backend" / "riesgo" / "services" / "etiquetado.py"
+        spec = importlib.util.spec_from_file_location("etiquetado", ruta)
+        _ETIQUETADO = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_ETIQUETADO)
+    return _ETIQUETADO
+
+
 def etiquetador():
     """Regla de la fase 2 tal como la aplica la plataforma."""
-    ruta = RAIZ / "backend" / "riesgo" / "services" / "etiquetado.py"
-    spec = importlib.util.spec_from_file_location("etiquetado", ruta)
-    modulo = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(modulo)
+    modulo = modulo_etiquetado()
     texto = (RAIZ / "backend" / "riesgo" / "models.py").read_text(encoding="utf-8")
     patron = "".join(re.findall(r'r"([^"]*)"', texto.split("PATRON_DESPLIEGUE = (", 1)[1].split(")\n", 1)[0]))
     global REGLA_PLATAFORMA
@@ -649,41 +660,8 @@ WORKFLOWS_YAML = CACHE / "workflows_yaml.json"
 
 
 def info_workflow(contenido):
-    """Del YAML: {clave o nombre del job: {"environment", "pasos": {nombre del
-    paso en la API: {"uses", "run"}}}}. El environment solo si es literal."""
-    try:
-        datos = yaml.safe_load(contenido) or {}
-    except yaml.YAMLError:
-        return {}
-    info = {}
-    for clave, job in (datos.get("jobs") or {}).items():
-        if not isinstance(job, dict):
-            continue
-        entorno = job.get("environment")
-        entorno = entorno.get("name") if isinstance(entorno, dict) else entorno
-        pasos = {}
-        for paso in job.get("steps") or []:
-            if not isinstance(paso, dict):
-                continue
-            uses, run = str(paso.get("uses") or ""), str(paso.get("run") or "")
-            con = paso.get("with") if isinstance(paso.get("with"), dict) else {}
-            # El comando de acciones como wrangler-action («pages deploy») va en un input.
-            entrada = " ".join(str(con[k]) for k in ("command", "args") if con.get(k))
-            # Nombre con que la API muestra el paso si el YAML no le da uno.
-            if paso.get("name"):
-                nombre = str(paso["name"])
-            elif uses:
-                nombre = f"Run {uses}"
-            elif run.strip():
-                nombre = f"Run {run.strip().splitlines()[0]}"
-            else:
-                continue
-            pasos[nombre] = {"uses": uses, "run": f"{run}\n{entrada}" if entrada else run}
-        dato = {"environment": str(entorno) if entorno and "${{" not in str(entorno) else "", "pasos": pasos}
-        info[str(clave)] = dato
-        if job.get("name") and "${{" not in str(job["name"]):
-            info[str(job["name"])] = dato
-    return info
+    """Misma función que la plataforma (backend/riesgo/services/etiquetado.py)."""
+    return modulo_etiquetado().info_workflow(contenido)
 
 
 def cache_yaml_vacia():
@@ -707,20 +685,8 @@ def yaml_de(gh, repo, ruta, cache, sha=None):
 
 
 def enriquecer(jobs, info, entorno_rama=None):
-    """Añade a los jobs de la API el environment y el uses/run de cada paso."""
-    for job in jobs:
-        nombre = job.get("name", "")
-        dato = info.get(nombre) or info.get(nombre.split(" (")[0]) or {}
-        entorno = entorno_rama or dato.get("environment")
-        if entorno:
-            job["environment"] = entorno
-        for paso in job.get("steps") or []:
-            pasos = dato.get("pasos", {})
-            extra = pasos.get(paso.get("name", "")) or next(
-                (v for k, v in pasos.items() if k and paso.get("name", "").startswith(k[:60])), None)
-            if extra:
-                paso.update(extra)
-    return jobs
+    """Misma función que la plataforma (backend/riesgo/services/etiquetado.py)."""
+    return modulo_etiquetado().enriquecer(jobs, info, entorno_rama)
 
 
 def produccion(args):

@@ -7,6 +7,7 @@
 - Errores tipificados para responder al usuario sin exponer detalles.
 """
 
+import base64
 import logging
 import re
 
@@ -128,6 +129,15 @@ class GitHubClient:
         datos = self.get(f"/repos/{repo}/actions/workflows/{archivo}/runs",
                          params=params, ttl=60 if head_sha else 300)
         return datos.get("workflow_runs", [])
+
+    def contenido_workflow(self, repo, workflow_path, ref):
+        """Texto del YAML del workflow en un commit (para el etiquetado)."""
+        datos = self.get(f"/repos/{repo}/contents/{workflow_path}",
+                         params={"ref": ref}, ttl=86400)
+        if datos.get("encoding") == "base64":
+            return base64.b64decode(datos.get("content") or "").decode(
+                "utf-8", errors="replace")
+        return datos.get("content") or ""
 
     def limite(self):
         """Estado del límite de la API (esta consulta no consume cuota)."""

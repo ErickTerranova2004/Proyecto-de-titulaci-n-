@@ -23,12 +23,12 @@ from django.utils import timezone as dj_timezone
 
 from riesgo.models import Prediccion
 from riesgo.services.analisis_ia import _por_reglas
-from riesgo.services.etiquetado import etiquetar_ejecucion
 from riesgo.services.features import (PARAMS_CHECKS, PARAMS_PULLS, fecha,
                                       variables_desde_datos)
 from riesgo.services.github import GitHubClient
 from riesgo.services.predictor import predecir
 from riesgo.services.trazabilidad import guardar_commit, guardar_ejecucion
+from riesgo.services.verificacion import etiquetar_run
 
 PREVIAS_WORKFLOW = 4  # features.MAX_PREVIAS_WORKFLOW
 PREVIAS_REPO = 100  # features.MAX_PREVIAS_REPO
@@ -198,8 +198,7 @@ def _analizar_run(gh, workflow, run, runs_wf, runs_repo, datos_commit,
     resultado = predecir(variables, version)
     analisis, recomendaciones = _por_reglas(variables, resultado["factores"])
     jobs = gh.jobs_intento(repo, run["id"], run.get("run_attempt") or 1)
-    etiqueta = etiquetar_ejecucion(run.get("conclusion"), jobs,
-                                   workflow.patron_paso_despliegue)
+    etiqueta = etiquetar_run(gh, workflow, run, jobs)
     ahora = dj_timezone.now()
     with transaction.atomic():
         commit = guardar_commit(workflow.repositorio, run["head_sha"],

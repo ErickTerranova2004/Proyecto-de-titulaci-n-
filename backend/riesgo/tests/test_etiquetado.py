@@ -409,3 +409,88 @@ class SustantivoDeploymentTest(SimpleTestCase):
     def test_configurar_una_deploy_key_sigue_siendo_auxiliar(self):
         r = self.etiquetar("success", [job(1, "deploy", [("Set GitHub Deploy Key", "success")])])
         self.assertEqual(r["etiqueta"], "excluida_sin_intento")
+
+
+# Caso real de bakaphp/kanvas-ecosystem-api (ec2-deploy.yaml, run
+# 43108216947): el paso que despliega solo se reconoce por su `uses`.
+YAML_KANVAS = """
+name: Deploy to EC2
+on: {push: {branches: [main]}}
+jobs:
+  deploy-to-ec2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Sync repo to remote VM (rsync --delete)
+        uses: burnett01/rsync-deployments@9.0.3
+        with:
+          switches: -avzr --delete
+  docker-command:
+    needs: deploy-to-ec2
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@v1
+        with:
+          script: docker compose up -d
+"""
+
+
+def jobs_kanvas(conclusion="success"):
+    return [
+        {"id": 1, "name": "deploy-to-ec2", "conclusion": conclusion,
+         "started_at": "2026-11-10T10:00:00Z", "steps": [
+             {"number": 1, "name": "Set up job", "conclusion": "success"},
+             {"number": 2, "name": "Build burnett01/rsync-deployments@9.0.3",
+              "conclusion": "success"},
+             {"number": 3, "name": "Checkout", "conclusion": "success"},
+             {"number": 4, "name": "Sync repo to remote VM (rsync --delete)",
+              "conclusion": conclusion},
+             {"number": 5, "name": "Post Checkout", "conclusion": "success"},
+             {"number": 6, "name": "Complete job", "conclusion": "success"}]},
+        {"id": 2, "name": "docker-command", "conclusion": "success",
+         "started_at": "2026-11-10T10:01:00Z", "steps": [
+             {"number": 1, "name": "Set up job", "conclusion": "success"},
+             {"number": 2, "name": "executing remote ssh commands using password",
+              "conclusion": "success"},
+             {"number": 3, "name": "Complete job", "conclusion": "success"}]},
+    ]
+
+
+class YamlDelWorkflowTest(SimpleTestCase):
+    """El YAML del commit completa los pasos (uses, run, environment)."""
+
+    def test_rsync_deployments_solo_se_reconoce_con_el_yaml(self):
+        from riesgo.models import PATRON_DESPLIEGUE
+        from riesgo.services.etiquetado import enriquecer, info_workflow
+        sin_yaml = etiquetar_ejecucion("success", jobs_kanvas(),
+                                       PATRON_DESPLIEGUE)
+        self.assertEqual(sin_yaml["etiqueta"], "excluida_sin_intento")
+        con_yaml = etiquetar_ejecucion(
+            "success", enriquecer(jobs_kanvas(), info_workflow(YAML_KANVAS)),
+            PATRON_DESPLIEGUE)
+        self.assertEqual(con_yaml["etiqueta"], "despliegue_completado")
+        # El paso «Build owner/acción@v» que añade GitHub sigue sin contar.
+        fallo = etiquetar_ejecucion(
+            "failure", enriquecer(jobs_kanvas("failure"),
+                                  info_workflow(YAML_KANVAS)),
+            PATRON_DESPLIEGUE)
+        self.assertEqual(fallo["etiqueta"], "despliegue_no_completado")
+        self.assertEqual(fallo["subtipo_etiqueta"], "en_paso_de_despliegue")
+
+    def test_environment_del_yaml_decide_el_entorno(self):
+        from riesgo.models import PATRON_DESPLIEGUE
+        from riesgo.services.etiquetado import enriquecer, info_workflow
+        yaml_staging = YAML_KANVAS.replace(
+            "  deploy-to-ec2:\n    runs-on: ubuntu-latest\n",
+            "  deploy-to-ec2:\n    runs-on: ubuntu-latest\n    environment: staging\n")
+        r = etiquetar_ejecucion(
+            "success", enriquecer(jobs_kanvas(), info_workflow(yaml_staging)),
+            PATRON_DESPLIEGUE)
+        self.assertEqual(r["etiqueta"], "excluida_no_produccion")
+
+    def test_yaml_invalido_o_vacio_no_aporta_nada(self):
+        from riesgo.services.etiquetado import info_workflow
+        self.assertEqual(info_workflow(""), {})
+        self.assertEqual(info_workflow("jobs: [no: valido"), {})

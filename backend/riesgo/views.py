@@ -28,7 +28,7 @@ from riesgo.serializers import (AsignacionSerializer, PrediccionSerializer,
                                 VersionModeloSerializer)
 from riesgo.services import analisis_ia, asignaciones, github, planificador
 from riesgo.services.sincronizacion import sincronizar_repositorio
-from riesgo.services.etiquetado import etiquetar_ejecucion
+from riesgo.services.verificacion import etiquetar_run
 from riesgo.services.features import calcular_variables, fecha
 from riesgo.services.predictor import SinModeloActivo, predecir
 from riesgo.services.trazabilidad import (RepositorioNoRegistrado,
@@ -119,8 +119,7 @@ def _ultima_ejecucion_commit(cliente, runs, workflow, repo, sha):
     run = terminadas[-1]
     intento = run.get("run_attempt") or 1
     jobs = cliente.jobs_intento(repo, run["id"], intento)
-    etiqueta = etiquetar_ejecucion(run.get("conclusion"), jobs,
-                                   workflow.patron_paso_despliegue)
+    etiqueta = etiquetar_run(cliente, workflow, run, jobs)
     return {"run_id": run["id"], "run_attempt": intento,
             "evento": run.get("event", ""), "rama": run.get("head_branch", ""),
             "conclusion": run.get("conclusion", ""),
@@ -424,11 +423,10 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             run = candidatas[0]
             jobs = cliente.jobs_intento(repo, run["id"],
                                         run.get("run_attempt") or 1)
+            etiqueta = etiquetar_run(cliente, workflow, run, jobs)
         except github.GitHubError as exc:
             return _error_github(exc)
 
-        etiqueta = etiquetar_ejecucion(run.get("conclusion"), jobs,
-                                       workflow.patron_paso_despliegue)
         with transaction.atomic():
             ejecucion = guardar_ejecucion(workflow, run)
             for campo, valor in etiqueta.items():

@@ -3,6 +3,7 @@ djangorestframework==3.18.3
 django-cors-headers
 psycopg[binary]
 requests
+PyYAML==6.0.3  # YAML del workflow para el etiquetado
 pandas==3.0.6
 numpy
 scikit-learn==1.9.1

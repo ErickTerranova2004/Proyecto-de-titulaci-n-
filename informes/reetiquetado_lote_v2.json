@@ -1,0 +1,7380 @@
+[
+ {
+  "prediccion": 201,
+  "repositorio": "allcll/allcll-frontend",
+  "run_id": 43045131140,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 202,
+  "repositorio": "alliance-genome/agr_curation",
+  "run_id": 42698017310,
+  "antes": {
+   "etiqueta": "excluida_ambigua",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": "build-deploy-maven-central-package / Publish package"
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "build-deploy-maven-central-package / Publish package",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_ambigua"
+  }
+ },
+ {
+  "prediccion": 203,
+  "repositorio": "b-partners/geo-jobs",
+  "run_id": 42657158541,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 204,
+  "repositorio": "b-partners/geo-jobs",
+  "run_id": 43014115796,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 205,
+  "repositorio": "b-partners/geo-jobs",
+  "run_id": 43019718871,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 206,
+  "repositorio": "b-partners/geo-jobs",
+  "run_id": 43022526834,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 207,
+  "repositorio": "b-partners/geo-jobs",
+  "run_id": 43023278110,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 208,
+  "repositorio": "b10cks/cms",
+  "run_id": 42771103219,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 209,
+  "repositorio": "b10cks/cms",
+  "run_id": 42771936317,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 210,
+  "repositorio": "b10cks/cms",
+  "run_id": 42836993956,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 211,
+  "repositorio": "b10cks/cms",
+  "run_id": 42847936335,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 212,
+  "repositorio": "b10cks/cms",
+  "run_id": 42907965146,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "posterior_mismo_job",
+   "despliegue_ejecutado": true,
+   "paso_fallido": "deploy / Smoke check delivery API"
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "deploy / Smoke check delivery API",
+   "subtipo_etiqueta": "posterior_mismo_job",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 213,
+  "repositorio": "b10cks/cms",
+  "run_id": 42910362407,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 214,
+  "repositorio": "b10cks/cms",
+  "run_id": 43036372850,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 215,
+  "repositorio": "b10cks/cms",
+  "run_id": 43060280466,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 216,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42662523083,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 217,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42677786114,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 218,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42687804247,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 219,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42714863866,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 220,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42730428678,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 221,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42732036383,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 222,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42737283709,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 223,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42757156393,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 224,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42777561348,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 225,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42831184042,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 226,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42844517780,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 227,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42859081581,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 228,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42883735018,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 229,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42900447362,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 230,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42921881499,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 231,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 42971360541,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 232,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 43014924959,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 233,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 43026588242,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 234,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 43034306686,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 235,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 43038378401,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 236,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 43068369087,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 237,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 43075369019,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 238,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 43088098091,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 239,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 43105729247,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 240,
+  "repositorio": "bakaphp/kanvas-ecosystem-api",
+  "run_id": 43108216947,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 241,
+  "repositorio": "bjorn-ali-goransson/built-in-saudi",
+  "run_id": 42656247309,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 242,
+  "repositorio": "bjorn-ali-goransson/built-in-saudi",
+  "run_id": 42779005446,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 243,
+  "repositorio": "boostorg/website-v2",
+  "run_id": 42837388830,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 244,
+  "repositorio": "boostorg/website-v2",
+  "run_id": 42887576816,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 245,
+  "repositorio": "boostorg/website-v2",
+  "run_id": 42901869458,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 246,
+  "repositorio": "boostorg/website-v2",
+  "run_id": 42905553568,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 247,
+  "repositorio": "boostorg/website-v2",
+  "run_id": 43079053362,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 248,
+  "repositorio": "boostorg/website-v2",
+  "run_id": 43081388780,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 249,
+  "repositorio": "broadinstitute/PrimerCast",
+  "run_id": 42874986506,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 250,
+  "repositorio": "broadinstitute/PrimerCast",
+  "run_id": 42875003429,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 251,
+  "repositorio": "broadinstitute/PrimerCast",
+  "run_id": 42875026521,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 252,
+  "repositorio": "broadinstitute/PrimerCast",
+  "run_id": 42877043635,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 253,
+  "repositorio": "broadinstitute/PrimerCast",
+  "run_id": 42877093352,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 254,
+  "repositorio": "broadinstitute/PrimerCast",
+  "run_id": 42877133729,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 255,
+  "repositorio": "broadinstitute/PrimerCast",
+  "run_id": 42877210664,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 256,
+  "repositorio": "burningmantech/ranger-ims-go",
+  "run_id": 42891347357,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 257,
+  "repositorio": "burningmantech/ranger-ims-go",
+  "run_id": 42893906750,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 258,
+  "repositorio": "CBIIT/nci-webtools-dceg-classification",
+  "run_id": 42695785170,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 259,
+  "repositorio": "cdklabs/aws-cdk-notices",
+  "run_id": 43037968479,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 260,
+  "repositorio": "chrismuha/pineneedledesigns.website",
+  "run_id": 42839215145,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 261,
+  "repositorio": "chrismuha/pineneedledesigns.website",
+  "run_id": 42869949169,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 262,
+  "repositorio": "chrismuha/pineneedledesigns.website",
+  "run_id": 43040075363,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 263,
+  "repositorio": "chrismuha/pineneedledesigns.website",
+  "run_id": 43041836455,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 264,
+  "repositorio": "chrismuha/pineneedledesigns.website",
+  "run_id": 43088596530,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 265,
+  "repositorio": "chrismuha/pineneedledesigns.website",
+  "run_id": 43090532146,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 266,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 42934153496,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "🎭 Playwright / 🌱 Seed Database"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "🎭 Playwright / 🌱 Seed Database",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 267,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 42934199843,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 268,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 42934207002,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 269,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 42938488495,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 270,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 42937517534,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 271,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 42941410766,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 272,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 42942131075,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 273,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 43021149841,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 274,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 43021152879,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 275,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 43021159536,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Rules Engine - Build (3.13) / Pull Built Wheel Artifact"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Rules Engine - Build (3.13) / Pull Built Wheel Artifact",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 276,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 43021163443,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "🎭 Playwright / 🎭 Playwright tests"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "🎭 Playwright / 🎭 Playwright tests",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 277,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 43021168396,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 278,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 43021173351,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 279,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 43021176705,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 280,
+  "repositorio": "codeforboston/home-energy-analysis-tool",
+  "run_id": 43021182789,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 281,
+  "repositorio": "con2/kompassi",
+  "run_id": 42976483327,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 282,
+  "repositorio": "con2/kompassi",
+  "run_id": 43023290856,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 283,
+  "repositorio": "con2/larpit-fi",
+  "run_id": 42830285882,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 284,
+  "repositorio": "con2/larpit-fi",
+  "run_id": 42831909670,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 285,
+  "repositorio": "con2/larpit-fi",
+  "run_id": 42833825984,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 286,
+  "repositorio": "ConservationInternational/resilienceatlas",
+  "run_id": 42877082180,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 287,
+  "repositorio": "ConservationInternational/resilienceatlas",
+  "run_id": 42895039715,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 288,
+  "repositorio": "ConservationInternational/resilienceatlas",
+  "run_id": 42898909706,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 289,
+  "repositorio": "ConservationInternational/resilienceatlas",
+  "run_id": 42898930370,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 290,
+  "repositorio": "cosmik-network/semble",
+  "run_id": 42726600154,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 291,
+  "repositorio": "cosmik-network/semble",
+  "run_id": 42728533982,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 292,
+  "repositorio": "cosmik-network/semble",
+  "run_id": 42745336984,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 293,
+  "repositorio": "cosmik-network/semble",
+  "run_id": 42882230714,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 294,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 42705984810,
+  "antes": {
+   "etiqueta": "excluida_sin_jobs",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_jobs"
+  }
+ },
+ {
+  "prediccion": 295,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 42707939716,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 296,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 42713443340,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "test / Run tests"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "test / Run tests",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 297,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 42719649150,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 298,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 42721759075,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 299,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 42788355713,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 300,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 42788398520,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 301,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 42788447898,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 302,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 42805553831,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 303,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 42916984835,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 304,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 43021012052,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 305,
+  "repositorio": "cultpodcasts/RedditPodcastPoster",
+  "run_id": 43103079755,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 306,
+  "repositorio": "data-mermaid/mermaid-api",
+  "run_id": 42660624608,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "call-test / test / Run tests"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "call-test / test / Run tests",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 307,
+  "repositorio": "data-mermaid/mermaid-api",
+  "run_id": 42707133950,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 308,
+  "repositorio": "data-mermaid/mermaid-api",
+  "run_id": 42879322522,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 309,
+  "repositorio": "data-mermaid/mermaid-api",
+  "run_id": 42881643219,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 310,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42683760533,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 311,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42705075900,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 312,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42730128576,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 313,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42784468514,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "en_paso_de_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "deploy / Deploy only runtime changes and verify production"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "deploy / Deploy only runtime changes and verify production",
+   "subtipo_etiqueta": "en_paso_de_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 314,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42795698717,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "en_paso_de_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "deploy / Deploy only runtime changes and verify production"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "deploy / Deploy only runtime changes and verify production",
+   "subtipo_etiqueta": "en_paso_de_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 315,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42801092246,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "en_paso_de_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "deploy / Deploy only runtime changes and verify production"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "deploy / Deploy only runtime changes and verify production",
+   "subtipo_etiqueta": "en_paso_de_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 316,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42828066314,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 317,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42848233276,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 318,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42861212666,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 319,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42869376475,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 320,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42873569149,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 321,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42900326510,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 322,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42906640301,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 323,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42909112883,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 324,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42910720825,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 325,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42911153135,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 326,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42941397603,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 327,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42971547226,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 328,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42974578202,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 329,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42978527380,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 330,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42983178114,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 331,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 42999632636,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 332,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 43005725872,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 333,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 43016220649,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 334,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 43021060159,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 335,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 43026935325,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 336,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 43061029597,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 337,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 43080702572,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 338,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 43081547690,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 339,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 43093956580,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 340,
+  "repositorio": "DataDrivenSustainabilitySolutions/off-key",
+  "run_id": 43099886300,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 341,
+  "repositorio": "devlead/BitbucketPipelinesShield",
+  "run_id": 42950437365,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 342,
+  "repositorio": "devlead/BitbucketPipelinesShield",
+  "run_id": 42950444427,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 343,
+  "repositorio": "digital-land/digital-land-lambda",
+  "run_id": 43071227403,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 344,
+  "repositorio": "dimagi/open-chat-studio",
+  "run_id": 42769127664,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 345,
+  "repositorio": "dimagi/open-chat-studio",
+  "run_id": 42782579495,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 346,
+  "repositorio": "dimagi/open-chat-studio",
+  "run_id": 42794675336,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 347,
+  "repositorio": "dimagi/open-chat-studio",
+  "run_id": 42829733308,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 348,
+  "repositorio": "dimagi/open-chat-studio",
+  "run_id": 42969899272,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 349,
+  "repositorio": "domits1/Domits",
+  "run_id": 42809731672,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 350,
+  "repositorio": "domits1/Domits",
+  "run_id": 42815015992,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 351,
+  "repositorio": "domits1/Domits",
+  "run_id": 42816305128,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 352,
+  "repositorio": "domits1/Domits",
+  "run_id": 42823126965,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 353,
+  "repositorio": "domits1/Domits",
+  "run_id": 42835975362,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 354,
+  "repositorio": "domits1/Domits",
+  "run_id": 42844807165,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 355,
+  "repositorio": "domits1/Domits",
+  "run_id": 42918595853,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 356,
+  "repositorio": "domits1/Domits",
+  "run_id": 42987528980,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 357,
+  "repositorio": "domits1/Domits",
+  "run_id": 42999431953,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 358,
+  "repositorio": "domits1/Domits",
+  "run_id": 43005306452,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 359,
+  "repositorio": "domits1/Domits",
+  "run_id": 43011926431,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 360,
+  "repositorio": "domits1/Domits",
+  "run_id": 43039144561,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 361,
+  "repositorio": "domits1/Domits",
+  "run_id": 43041828548,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 362,
+  "repositorio": "domits1/Domits",
+  "run_id": 43045193650,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 363,
+  "repositorio": "Enterprise-CMCS/macpro-appian-connector",
+  "run_id": 42851161219,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 364,
+  "repositorio": "estuary/flow",
+  "run_id": 42698233291,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 365,
+  "repositorio": "estuary/flow",
+  "run_id": 42714508872,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 366,
+  "repositorio": "estuary/flow",
+  "run_id": 42856575124,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 367,
+  "repositorio": "estuary/flow",
+  "run_id": 43089282384,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 368,
+  "repositorio": "estuary/ui",
+  "run_id": 42656636145,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 369,
+  "repositorio": "estuary/ui",
+  "run_id": 42689850247,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 370,
+  "repositorio": "estuary/ui",
+  "run_id": 42690026737,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 371,
+  "repositorio": "estuary/ui",
+  "run_id": 42698065974,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 372,
+  "repositorio": "estuary/ui",
+  "run_id": 42703875245,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 373,
+  "repositorio": "estuary/ui",
+  "run_id": 42755344127,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 374,
+  "repositorio": "estuary/ui",
+  "run_id": 42799625387,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 375,
+  "repositorio": "estuary/ui",
+  "run_id": 42840641482,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 376,
+  "repositorio": "estuary/ui",
+  "run_id": 42893387088,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 377,
+  "repositorio": "estuary/ui",
+  "run_id": 42900896614,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "GraphQL Schema Check / GraphQL Schema Check"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "GraphQL Schema Check / GraphQL Schema Check",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 378,
+  "repositorio": "estuary/ui",
+  "run_id": 42924885059,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 379,
+  "repositorio": "estuary/ui",
+  "run_id": 43042838502,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 380,
+  "repositorio": "estuary/ui",
+  "run_id": 43043885932,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 381,
+  "repositorio": "estuary/ui",
+  "run_id": 43044126664,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 382,
+  "repositorio": "estuary/ui",
+  "run_id": 43044641880,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 383,
+  "repositorio": "estuary/ui",
+  "run_id": 43044728902,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 384,
+  "repositorio": "estuary/ui",
+  "run_id": 43046110943,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 385,
+  "repositorio": "estuary/ui",
+  "run_id": 43048241910,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 386,
+  "repositorio": "estuary/ui",
+  "run_id": 43048537076,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 387,
+  "repositorio": "estuary/ui",
+  "run_id": 43048951935,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 388,
+  "repositorio": "estuary/ui",
+  "run_id": 43056091182,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 389,
+  "repositorio": "estuary/ui",
+  "run_id": 43069308995,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 390,
+  "repositorio": "estuary/ui",
+  "run_id": 43070522512,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 391,
+  "repositorio": "estuary/ui",
+  "run_id": 43072123277,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 392,
+  "repositorio": "estuary/ui",
+  "run_id": 43073344828,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 393,
+  "repositorio": "estuary/ui",
+  "run_id": 43077151771,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 394,
+  "repositorio": "estuary/ui",
+  "run_id": 43085950346,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 395,
+  "repositorio": "estuary/ui",
+  "run_id": 43086006518,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 396,
+  "repositorio": "estuary/ui",
+  "run_id": 43098766494,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 397,
+  "repositorio": "fairbanksio/f5news",
+  "run_id": 42754072610,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 398,
+  "repositorio": "fairbanksio/f5news",
+  "run_id": 42894936787,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 399,
+  "repositorio": "fairbanksio/f5news",
+  "run_id": 42905289691,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 400,
+  "repositorio": "fairbanksio/f5news",
+  "run_id": 43104088435,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 401,
+  "repositorio": "FINTLabs/fint-kontroll-assignment-catalog",
+  "run_id": 42660679985,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 402,
+  "repositorio": "FINTLabs/fint-kontroll-assignment-catalog",
+  "run_id": 42660728560,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 403,
+  "repositorio": "FINTLabs/fint-kontroll-assignment-catalog",
+  "run_id": 42662916589,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 404,
+  "repositorio": "FINTLabs/fint-kontroll-assignment-catalog",
+  "run_id": 42663015487,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 405,
+  "repositorio": "FINTLabs/fint-kontroll-assignment-catalog",
+  "run_id": 42796694605,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 406,
+  "repositorio": "FINTLabs/fint-kontroll-assignment-catalog",
+  "run_id": 43026905933,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 407,
+  "repositorio": "flock-community/flock-eco-workday",
+  "run_id": 42807245653,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 408,
+  "repositorio": "flock-community/flock-eco-workday",
+  "run_id": 42808569627,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 409,
+  "repositorio": "flock-community/flock-eco-workday",
+  "run_id": 42813645456,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 410,
+  "repositorio": "forem/forem",
+  "run_id": 42657164739,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 411,
+  "repositorio": "forem/forem",
+  "run_id": 42663102820,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 412,
+  "repositorio": "forem/forem",
+  "run_id": 42665586141,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 413,
+  "repositorio": "forem/forem",
+  "run_id": 42677671959,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 414,
+  "repositorio": "forem/forem",
+  "run_id": 42685697465,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 415,
+  "repositorio": "forem/forem",
+  "run_id": 42686203588,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 416,
+  "repositorio": "forem/forem",
+  "run_id": 42690297893,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 417,
+  "repositorio": "forem/forem",
+  "run_id": 42692189693,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 418,
+  "repositorio": "forem/forem",
+  "run_id": 42695584823,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 419,
+  "repositorio": "forem/forem",
+  "run_id": 42696033151,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 420,
+  "repositorio": "forem/forem",
+  "run_id": 42700546420,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 421,
+  "repositorio": "forem/forem",
+  "run_id": 42702012429,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 422,
+  "repositorio": "forem/forem",
+  "run_id": 42708250492,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 423,
+  "repositorio": "forem/forem",
+  "run_id": 42712535631,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 424,
+  "repositorio": "forem/forem",
+  "run_id": 42722313780,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 425,
+  "repositorio": "forem/forem",
+  "run_id": 42744294399,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 426,
+  "repositorio": "forem/forem",
+  "run_id": 42747494265,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 427,
+  "repositorio": "forem/forem",
+  "run_id": 42751763677,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 428,
+  "repositorio": "forem/forem",
+  "run_id": 42754119494,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 429,
+  "repositorio": "forem/forem",
+  "run_id": 42756892852,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 430,
+  "repositorio": "forem/forem",
+  "run_id": 42840521957,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 431,
+  "repositorio": "forem/forem",
+  "run_id": 42852613772,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 432,
+  "repositorio": "forem/forem",
+  "run_id": 42867325749,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 433,
+  "repositorio": "forem/forem",
+  "run_id": 42911629834,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 434,
+  "repositorio": "forem/forem",
+  "run_id": 42921279675,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 435,
+  "repositorio": "forem/forem",
+  "run_id": 43036464397,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 436,
+  "repositorio": "forem/forem",
+  "run_id": 43039075862,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 437,
+  "repositorio": "forem/forem",
+  "run_id": 43062498752,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 438,
+  "repositorio": "forem/forem",
+  "run_id": 43065261862,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 439,
+  "repositorio": "forem/forem",
+  "run_id": 43068781062,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 440,
+  "repositorio": "forem/forem",
+  "run_id": 43078089206,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 441,
+  "repositorio": "forem/forem",
+  "run_id": 43081144949,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 442,
+  "repositorio": "forem/forem",
+  "run_id": 43084961706,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 443,
+  "repositorio": "forem/forem",
+  "run_id": 43087096335,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 444,
+  "repositorio": "forem/forem",
+  "run_id": 43087986578,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 445,
+  "repositorio": "forem/forem",
+  "run_id": 43089599244,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 446,
+  "repositorio": "forem/forem",
+  "run_id": 43092957382,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 447,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 42698148088,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 448,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 42719549118,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 449,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 42720837238,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 450,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 42789360746,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 451,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 42834166773,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 452,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 42883676097,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 453,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 42885850094,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 454,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 43003384053,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 455,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 43010655361,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 456,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 43074206559,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 457,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 43080964260,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 458,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 43082415416,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 459,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 43105500685,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 460,
+  "repositorio": "gamedevpl/www.gamedev.pl",
+  "run_id": 43107482552,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 461,
+  "repositorio": "google/neuroglancer",
+  "run_id": 42902695810,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "client (macos-latest) / Run JavaScript benchmarks"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "client (macos-latest) / Run JavaScript benchmarks",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 462,
+  "repositorio": "google/neuroglancer",
+  "run_id": 42902835759,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "python-tests (3.11, ubuntu-latest) / Run python tests (include browser tests)"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "python-tests (3.11, ubuntu-latest) / Run python tests (include browser tests)",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 463,
+  "repositorio": "google/neuroglancer",
+  "run_id": 42912900636,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "example-project-test / Run npm run example-project-test -- --reporter=html"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "example-project-test / Run npm run example-project-test -- --reporter=html",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 464,
+  "repositorio": "google/neuroglancer",
+  "run_id": 43038871886,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 465,
+  "repositorio": "haskellweekly/haskellweekly",
+  "run_id": 42989102081,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 466,
+  "repositorio": "HelmholtzAI-Consultants-Munich/oligo-designer-toolsuite-front-end",
+  "run_id": 43025025201,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "deploy-ansible-playbook / Run Ansible playbook"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "deploy-ansible-playbook / Run Ansible playbook",
+   "subtipo_etiqueta": "en_paso_de_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 467,
+  "repositorio": "ImCa0/just-laws",
+  "run_id": 42739358201,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 468,
+  "repositorio": "jlab-sensing/ENTS-backend",
+  "run_id": 42685994919,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 469,
+  "repositorio": "jlab-sensing/ENTS-backend",
+  "run_id": 42692791172,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 470,
+  "repositorio": "jlab-sensing/ENTS-backend",
+  "run_id": 42694745824,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 471,
+  "repositorio": "jlab-sensing/ENTS-backend",
+  "run_id": 43108413238,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 472,
+  "repositorio": "linuxfoundation/insights",
+  "run_id": 42715866603,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 473,
+  "repositorio": "linuxfoundation/insights",
+  "run_id": 42800490331,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 474,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42665709875,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 475,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42665721620,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 476,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42665858052,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 477,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42674254210,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 478,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42674262201,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 479,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42674852612,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 480,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42674863313,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 481,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42675301833,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 482,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42851992648,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 483,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42852549512,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 484,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42852888245,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 485,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42855771458,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 486,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42856357527,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 487,
+  "repositorio": "Makespace/members-app",
+  "run_id": 42857197102,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 488,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43038182722,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 489,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43038195226,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 490,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43038576987,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "test / Run npx jest"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "test / Run npx jest",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 491,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43038586375,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 492,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43038830053,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 493,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43038841553,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 494,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43038949507,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 495,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43044043288,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 496,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43044056028,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 497,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43045376127,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 498,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43045413470,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 499,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43045505704,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 500,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43045515573,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 501,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43045536358,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 502,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43045551814,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 503,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43046599367,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 504,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43046616001,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 505,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43046696056,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 506,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43046708784,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 507,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43047783332,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 508,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43047795417,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 509,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43047839401,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 510,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43047852754,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 511,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43048253660,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 512,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43048263661,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 513,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43048513837,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 514,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43048525219,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 515,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43049022859,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 516,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43049617860,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 517,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43049630355,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 518,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43052039260,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 519,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43052050160,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 520,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43052216525,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 521,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43052229324,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 522,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43052541383,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 523,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43052553747,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 524,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43053719646,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 525,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43053731574,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 526,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43054634466,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 527,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43054647320,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 528,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43054752470,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 529,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43054769225,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 530,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43056144165,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 531,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43056155091,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 532,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43056652592,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 533,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43058396762,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 534,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43061282351,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 535,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43061295827,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 536,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43061391694,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 537,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43064282784,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 538,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43064293365,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 539,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43064441244,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 540,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43065658406,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 541,
+  "repositorio": "Makespace/members-app",
+  "run_id": 43066181794,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 542,
+  "repositorio": "meerkat-events/meerkat",
+  "run_id": 42760930581,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 543,
+  "repositorio": "ministryofjustice/laa-fee-calculator",
+  "run_id": 42659478595,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "test-viewer-api / Run viewer/api tests"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "test-viewer-api / Run viewer/api tests",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 544,
+  "repositorio": "moneyadviceservice/frontend",
+  "run_id": 42798573474,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 545,
+  "repositorio": "mozilla/probe-scraper",
+  "run_id": 42701565268,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "build_and_test / Check Repos"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "build_and_test / Check Repos",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 546,
+  "repositorio": "mozilla/probe-scraper",
+  "run_id": 42702023632,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "build_and_test / Check Repos"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "build_and_test / Check Repos",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 547,
+  "repositorio": "mozilla/probe-scraper",
+  "run_id": 42704400653,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 548,
+  "repositorio": "mozilla/probe-scraper",
+  "run_id": 42706527994,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 549,
+  "repositorio": "nothink-jp/suzumina.click",
+  "run_id": 43002220290,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 550,
+  "repositorio": "nothink-jp/suzumina.click",
+  "run_id": 43003458774,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 551,
+  "repositorio": "nulib/dc-api-v2",
+  "run_id": 42844120012,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 552,
+  "repositorio": "OpenConceptLab/oclmap",
+  "run_id": 42943039407,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 553,
+  "repositorio": "OpenHistoricalMap/ohm-deploy",
+  "run_id": 42675477809,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "deploy / Staging - helm deploy"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "deploy / Staging - helm deploy",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 554,
+  "repositorio": "OpenHistoricalMap/ohm-deploy",
+  "run_id": 42681473652,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 555,
+  "repositorio": "OpenHistoricalMap/ohm-deploy",
+  "run_id": 42696079349,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 556,
+  "repositorio": "OpenHistoricalMap/ohm-deploy",
+  "run_id": 42696853936,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 557,
+  "repositorio": "OpenHistoricalMap/ohm-deploy",
+  "run_id": 42707894787,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 558,
+  "repositorio": "OpenHistoricalMap/ohm-deploy",
+  "run_id": 42709890928,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 559,
+  "repositorio": "OpenHistoricalMap/ohm-deploy",
+  "run_id": 42745340977,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 560,
+  "repositorio": "OpenHistoricalMap/ohm-deploy",
+  "run_id": 42746339804,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 561,
+  "repositorio": "OpenHistoricalMap/ohm-deploy",
+  "run_id": 42746769206,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 562,
+  "repositorio": "OpenHistoricalMap/ohm-deploy",
+  "run_id": 42747213496,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 563,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42757318935,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 564,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42830364140,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 565,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42924169945,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 566,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42925153345,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 567,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42931123001,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 568,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42931988850,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 569,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42943330541,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 570,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42944121062,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 571,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42949804714,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 572,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42950563877,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 573,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42983909711,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 574,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 42984900568,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 575,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 43034168469,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 576,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 43035303848,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 577,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 43056235940,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 578,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 43057495658,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 579,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 43065548146,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Test gate / Ledger guard (a regression written into the ledger is still a regression)"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Test gate / Ledger guard (a regression written into the ledger is still a regression)",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 580,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 43066702379,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 581,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 43067829101,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 582,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 43102306779,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 583,
+  "repositorio": "ourresearch/parseland-lib",
+  "run_id": 43103430146,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 584,
+  "repositorio": "PA-NIHR-CRN/dte-study-api",
+  "run_id": 42805255202,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 585,
+  "repositorio": "PA-NIHR-CRN/dte-study-api",
+  "run_id": 42814637306,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 586,
+  "repositorio": "PA-NIHR-CRN/dte-study-api",
+  "run_id": 42817217393,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 587,
+  "repositorio": "PA-NIHR-CRN/dte-study-api",
+  "run_id": 42819670656,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 588,
+  "repositorio": "PA-NIHR-CRN/dte-study-api",
+  "run_id": 42821641841,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 589,
+  "repositorio": "PA-NIHR-CRN/dte-study-api",
+  "run_id": 42822776943,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 590,
+  "repositorio": "PA-NIHR-CRN/dte-study-api",
+  "run_id": 42823894231,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Deploy Dev / Pull, tag, and push image to Amazon ECR",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 591,
+  "repositorio": "PA-NIHR-CRN/dte-study-api",
+  "run_id": 42826815320,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 592,
+  "repositorio": "pharmacosmos-dev/pharma-crm-backend",
+  "run_id": 42770075834,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 593,
+  "repositorio": "pharmacosmos-dev/pharma-crm-backend",
+  "run_id": 42795990695,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 594,
+  "repositorio": "PREreview/stats",
+  "run_id": 42665746431,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Build dist / Build dist"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Build dist / Build dist",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 595,
+  "repositorio": "PREreview/stats",
+  "run_id": 42728501908,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Build dist / Build dist"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Build dist / Build dist",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 596,
+  "repositorio": "PREreview/stats",
+  "run_id": 42931705488,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Build dist / Build dist"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "Build dist / Build dist",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 597,
+  "repositorio": "ReactiveCircus/kstreamlined-backend",
+  "run_id": 42924833350,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 598,
+  "repositorio": "ScriptureHabit/scripture-habit",
+  "run_id": 42757379130,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 599,
+  "repositorio": "ScriptureHabit/scripture-habit",
+  "run_id": 42758661306,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 600,
+  "repositorio": "ScriptureHabit/scripture-habit",
+  "run_id": 42761050081,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 601,
+  "repositorio": "ScriptureHabit/scripture-habit",
+  "run_id": 42766863881,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 602,
+  "repositorio": "SecondRobotics/SecondWebsite",
+  "run_id": 42971224320,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 603,
+  "repositorio": "ServiceCanada/feedback-cron",
+  "run_id": 42844858178,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 604,
+  "repositorio": "ServiceCanada/feedback-cron",
+  "run_id": 42852150231,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 605,
+  "repositorio": "ServiceCanada/feedback-cron",
+  "run_id": 42855764942,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 606,
+  "repositorio": "ServiceCanada/feedback-viewer",
+  "run_id": 42843982199,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 607,
+  "repositorio": "ServiceCanada/feedback-viewer",
+  "run_id": 42851041778,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 608,
+  "repositorio": "ServiceCanada/feedback-viewer",
+  "run_id": 42855402873,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 609,
+  "repositorio": "sue445/regional-rb-calendar",
+  "run_id": 42890789153,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 610,
+  "repositorio": "sue445/regional-rb-calendar",
+  "run_id": 42890944432,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 611,
+  "repositorio": "SuffolkLITLab/LITEfile",
+  "run_id": 42756989681,
+  "antes": {
+   "etiqueta": "excluida_no_produccion",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_no_produccion"
+  }
+ },
+ {
+  "prediccion": 612,
+  "repositorio": "sugaroverflow/timetable",
+  "run_id": 42826956393,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 613,
+  "repositorio": "thewca/worldcubeassociation.org",
+  "run_id": 42829115079,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 614,
+  "repositorio": "thewca/worldcubeassociation.org",
+  "run_id": 42831988335,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 615,
+  "repositorio": "thewca/worldcubeassociation.org",
+  "run_id": 42955187839,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 616,
+  "repositorio": "Twisted-Artists-Guild/tag-web",
+  "run_id": 42943618051,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 617,
+  "repositorio": "Twisted-Artists-Guild/tag-web",
+  "run_id": 42966881777,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 618,
+  "repositorio": "Vauhtijuoksu/vauhtijuoksu-api",
+  "run_id": 42750597268,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "build / Build and test"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "build / Build and test",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 619,
+  "repositorio": "Vauhtijuoksu/vauhtijuoksu-api",
+  "run_id": 42900461231,
+  "antes": {
+   "etiqueta": "despliegue_no_completado",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "despliegue_ejecutado": false,
+   "paso_fallido": "build / Build and test"
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "build / Build and test",
+   "subtipo_etiqueta": "antes_del_despliegue",
+   "etiqueta": "despliegue_no_completado"
+  }
+ },
+ {
+  "prediccion": 620,
+  "repositorio": "vicharanashala/vibe",
+  "run_id": 42773314322,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 621,
+  "repositorio": "vicharanashala/vibe",
+  "run_id": 42799135855,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 622,
+  "repositorio": "wevm/frog",
+  "run_id": 42669711496,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 623,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 42874698244,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 624,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 42900882161,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 625,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 42901234006,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 626,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 42910083389,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 627,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 43044928078,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 628,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 43071883494,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 629,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 43072395385,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 630,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 43095327854,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 631,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 43107992672,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 632,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 43108515377,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ },
+ {
+  "prediccion": 633,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 43111268273,
+  "antes": {
+   "etiqueta": "excluida_sin_intento",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": false,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": false,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "excluida_sin_intento"
+  }
+ },
+ {
+  "prediccion": 634,
+  "repositorio": "wri/project-zeno-deploy",
+  "run_id": 43112097116,
+  "antes": {
+   "etiqueta": "despliegue_completado",
+   "subtipo_etiqueta": "",
+   "despliegue_ejecutado": true,
+   "paso_fallido": ""
+  },
+  "despues": {
+   "despliegue_ejecutado": true,
+   "paso_fallido": "",
+   "subtipo_etiqueta": "",
+   "etiqueta": "despliegue_completado"
+  }
+ }
+]

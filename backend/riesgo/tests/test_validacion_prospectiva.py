@@ -122,6 +122,9 @@ class GitHubFalso:
             "committer": {"date": "2026-11-01T00:00:00Z"}},
             "stats": {"additions": 1, "deletions": 1}, "files": [{}]}
 
+    def contenido_workflow(self, repo, workflow_path, ref):
+        return ""
+
     def jobs_intento(self, repo, run_id, intento):
         ok = "success" if run_id == 3 else "failure"
         return [{"id": 1, "name": "deploy", "conclusion": ok, "started_at": "x",
@@ -220,3 +223,37 @@ class RegistrarReposV2Test(TestCase):
         with self.assertRaises(CommandError):
             call_command("registrar_repos_v2", "--informe", str(self.archivo),
                          "--validado-por", "admin", stdout=StringIO())
+
+
+@override_settings(GEMINI_API_KEY="")
+class VerificarConYamlTest(TestCase):
+    """«Verificar resultado real» lee el YAML del workflow en el commit."""
+
+    @classmethod
+    def setUpTestData(cls):
+        test_api.ApiTest.setUpTestData.__func__(cls)
+
+    _usuario = test_api.ApiTest._usuario
+    cliente = test_api.ApiTest.cliente
+    predecir = test_api.ApiTest.predecir
+    run_real = test_api.ApiTest.run_real
+
+    def verificar(self, yaml_texto):
+        from unittest import mock
+        from riesgo.services import github
+        from riesgo.tests.test_etiquetado import jobs_kanvas
+        id_ = self.predecir(self.dev).json()["id"]
+        falso = type("Falso", (test_api.ClienteFalso,), {
+            "RUNS_REALES": [self.run_real(id_, 5, conclusion="success")],
+            "JOBS": jobs_kanvas(), "YAML": yaml_texto})
+        with mock.patch.object(github, "GitHubClient", falso):
+            r = self.cliente(self.dev).post(f"/api/predicciones/{id_}/verificar/")
+        self.assertEqual(r.status_code, 200, r.content)
+        return r.json()["ejecucion_real"]["etiqueta"]
+
+    def test_caso_kanvas_rsync_deployments(self):
+        from riesgo.tests.test_etiquetado import YAML_KANVAS
+        self.assertEqual(self.verificar(YAML_KANVAS), "despliegue_completado")
+
+    def test_sin_yaml_solo_cuentan_los_nombres(self):
+        self.assertEqual(self.verificar(""), "excluida_sin_intento")
