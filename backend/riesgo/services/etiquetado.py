@@ -26,7 +26,9 @@ Cómo se reconoce un paso de despliegue a producción, por orden de prioridad:
 4. Nombre del paso: verbo de despliegue (`patron`) que no sea un paso
    auxiliar (dry-run, versión, URL, instalación, setup, status…).
 Las variantes que no despliegan (dry-run, plan, `ansible-playbook
---syntax-check` o `--check`) no cuentan.
+--syntax-check` o `--check`) no cuentan, ni los pasos que GitHub añade
+alrededor de una acción sin ejecutarla («Build owner/acción@v» de las
+acciones de Docker, «Pre …» y «Post …»).
 Si falla un job que declara un entorno no productivo, la ejecución se
 excluye como no productiva.
 Un despliegue a hosting estático (Cloudflare Pages, Netlify, GitHub Pages,
@@ -76,6 +78,11 @@ PATRON_AUXILIAR = (
 )
 # Variantes que no despliegan (Ansible: comprobación de sintaxis o modo check).
 PATRON_NO_DESPLIEGA = r"(?i)dry[- ]?run|\bplan\b|--syntax-check|--check\b|--list-(hosts|tasks)"
+# Pasos que GitHub añade alrededor de una acción y que no la ejecutan:
+# «Build owner/acción@v» construye la imagen de una acción de Docker al
+# empezar el job (se ejecuta aunque el paso real se omita con `if:`), y
+# «Pre …» / «Post …» son la preparación y la limpieza de otro paso.
+PATRON_PASO_DE_GITHUB = r"^(Build \S+/\S+@\S+|Pre |Post )"
 # Hosting estático: no es el despliegue de una aplicación.
 PATRON_HOSTING_ESTATICO = (
     r"(?i)cloudflare pages|pages deploy|pages-action|netlify|github pages|"
@@ -107,6 +114,8 @@ def etiquetar_ejecucion(conclusion, jobs, patron,
         if job.get("conclusion") == "skipped":
             return False
         nombre = paso.get("name") or ""
+        if re.match(PATRON_PASO_DE_GITHUB, nombre):
+            return False
         codigo = f"{paso.get('uses') or ''}\n{paso.get('run') or ''}"
         # El nombre del job también cuenta («Deploy to Cloudflare Pages» con
         # un paso «Deploy» que usa wrangler-action).

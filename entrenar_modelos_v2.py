@@ -71,13 +71,14 @@ SEMILLA = 42
 PLIEGUES = 5
 BOOTSTRAP = 1000
 CATEGORICAS = ["event"]
-# 33 numéricas + event. Respecto a v1.1: sin reejecutado_por_otro (no se
-# conoce antes del despliegue) y con el tamaño del cambio y los checks del
+# 32 numéricas + event. Respecto a v1.1: sin reejecutado_por_otro (no se
+# conoce antes del despliegue) ni rama_bot (constante en el dataset) y con el
+# tamaño del cambio y los checks del
 # commit. Misma lista que scripts/construir_dataset_v2.py.
 NUMERICAS = [
     "msg_len", "msg_lineas", "msg_merge", "msg_revert", "msg_fix",
     "msg_feat", "msg_deps", "msg_docs", "msg_ci", "autor_bot",
-    "rama_principal", "rama_bot", "rama_tag", "tiene_pr", "es_reintento",
+    "rama_principal", "rama_tag", "tiene_pr", "es_reintento",
     "hora_utc", "dia_semana", "fin_de_semana", "retraso_commit_run_min",
     "archivos_modificados", "lineas_anadidas", "lineas_borradas",
     "checks_n_prev", "checks_fallidos_prev", "checks_tasa_fallo_prev",

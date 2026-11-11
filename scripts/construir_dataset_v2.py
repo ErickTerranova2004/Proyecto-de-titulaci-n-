@@ -60,7 +60,7 @@ CAMPOS_RUN = ("id", "run_attempt", "status", "conclusion", "event",
 NUMERICAS = [
     "msg_len", "msg_lineas", "msg_merge", "msg_revert", "msg_fix",
     "msg_feat", "msg_deps", "msg_docs", "msg_ci", "autor_bot",
-    "rama_principal", "rama_bot", "rama_tag", "tiene_pr", "es_reintento",
+    "rama_principal", "rama_tag", "tiene_pr", "es_reintento",
     "hora_utc", "dia_semana", "fin_de_semana", "retraso_commit_run_min",
     "archivos_modificados", "lineas_anadidas", "lineas_borradas",
     "checks_n_prev", "checks_fallidos_prev", "checks_tasa_fallo_prev",
@@ -155,12 +155,22 @@ def variables_ejecucion(gh, repo, run, runs_wf, runs_repo, datos_commit):
 
 def filas_repo(gh, repo, plataforma, ruta_workflow, etiquetas, historial_runs, cache_dir):
     cache = cache_dir / (repo.replace("/", "__") + ".json")
+    # Caché por ejecución: las variables no dependen de la etiqueta, así que
+    # al re-etiquetar solo se calculan las ejecuciones nuevas del top 50 y la
+    # y y el subtipo salen siempre de las etiquetas vigentes.
+    guardadas_cache = {}
     if cache.exists():
-        return json.loads(cache.read_text(encoding="utf-8"))
-    inicio = {r["id"]: fecha(r["inicio"]) for r in historial_runs}
+        for f in json.loads(cache.read_text(encoding="utf-8")):
+            f.setdefault("ejecucion_reconstruida", 0)  # cachés anteriores a la columna
+            guardadas_cache[f["run_id"]] = f
     etiquetadas = [f for f in etiquetas[:TOPE] if f.get("y") in (0, 1)]
     if not etiquetadas:
         return []
+    faltan = [f for f in etiquetadas if f["run"] not in guardadas_cache]
+    if not faltan:
+        return [dict(guardadas_cache[f["run"]], y=f["y"], subtipo=f.get("subtipo") or "")
+                for f in etiquetadas]
+    inicio = {r["id"]: fecha(r["inicio"]) for r in historial_runs}
     momentos = [inicio[f["run"]] for f in etiquetadas]
     archivo = ruta_workflow.rsplit("/", 1)[-1]
     runs_wf = historial(gh, f"/repos/{repo}/actions/workflows/{archivo}/runs",
@@ -170,19 +180,37 @@ def filas_repo(gh, repo, plataforma, ruta_workflow, etiquetas, historial_runs, c
     por_id = {r["id"]: r for r in runs_wf}
     datos_commit = DatosCommit(gh, repo)
     filas = []
+    guardadas = {r["id"]: r for r in historial_runs}
     for f in etiquetadas:
+        if f["run"] in guardadas_cache:
+            filas.append(dict(guardadas_cache[f["run"]], y=f["y"], subtipo=f.get("subtipo") or ""))
+            continue
         run = por_id.get(f["run"]) or resumir(
             gh.get(f"/repos/{repo}/actions/runs/{f['run']}") or {})
+        reconstruida = not run.get("run_started_at")
+        if reconstruida:
+            # La ejecución se borró de GitHub después de etiquetarla: se
+            # reconstruye con lo que se guardó al etiquetarla.
+            h = guardadas[f["run"]]
+            run = {"id": f["run"], "run_attempt": h["intento"], "status": "completed",
+                   "conclusion": h["conclusion"], "event": h["evento"],
+                   "head_branch": f.get("rama") or "", "head_sha": h["sha"],
+                   "workflow_id": None, "check_suite_id": None,
+                   "run_started_at": h["inicio"], "created_at": h["inicio"],
+                   "updated_at": None}
         variables = variables_ejecucion(gh, repo, run, runs_wf, runs_repo, datos_commit)
         filas.append({
             "repositorio": repo, "plataforma": plataforma,
             "workflow_path": ruta_workflow, "run_id": run["id"],
             "run_attempt": run.get("run_attempt"),
             "run_started_at": run["run_started_at"], "y": f["y"],
-            "subtipo": f.get("subtipo") or "", **variables,
+            "subtipo": f.get("subtipo") or "",
+            "ejecucion_reconstruida": int(reconstruida), **variables,
         })
     cache_dir.mkdir(parents=True, exist_ok=True)
-    cache.write_text(json.dumps(filas, ensure_ascii=False, default=str), encoding="utf-8")
+    todas = {**guardadas_cache, **{f["run_id"]: f for f in filas}}
+    cache.write_text(json.dumps(list(todas.values()), ensure_ascii=False, default=str),
+                     encoding="utf-8")
     return filas
 
 
@@ -213,7 +241,8 @@ def main():
         return
     SALIDA.parent.mkdir(parents=True, exist_ok=True)
     columnas = ["repositorio", "plataforma", "workflow_path", "run_id",
-                "run_attempt", "run_started_at", "y", "subtipo", "event"] + NUMERICAS
+                "run_attempt", "run_started_at", "y", "subtipo",
+                "ejecucion_reconstruida", "event"] + NUMERICAS
     with SALIDA.open("w", encoding="utf-8", newline="") as salida:
         escritor = csv.DictWriter(salida, fieldnames=columnas, extrasaction="ignore")
         escritor.writeheader()

@@ -1750,9 +1750,10 @@
   "lote": 7
  },
  "sillsdev/web-xforge": {
-  "decision": "valido",
-  "motivo": "Scripture Forge (scriptureforge.org), app de traducción colaborativa de SIL, 31 contribuidores; despliegue con Ansible.",
-  "lote": 8
+  "decision": "excluido",
+  "motivo": "El workflow del dataset (`e2e-tests.yml`) son pruebas de extremo a extremo: instala Ansible y ejecuta `dev-server.playbook.yml --limit localhost` en el runner (environment `e2e_tests`); no despliega a producción (criterio 2). Revisión dirigida de workflows con nombre e2e/test/local.",
+  "lote": 8,
+  "fecha_exclusion": "2026-11-11"
  },
  "bakaphp/kanvas-ecosystem-api": {
   "decision": "valido",
@@ -2330,9 +2331,10 @@
   "lote": 10
  },
  "ccrma/webchuck-ide": {
-  "decision": "valido",
-  "motivo": "IDE web en producción de CCRMA, Stanford (chuck.stanford.edu/ide); rsync.",
-  "lote": 10
+  "decision": "excluido",
+  "motivo": "El despliegue a producción está comentado en el workflow (`node.js.yml`) y solo despliega la rama `dev` (rsync); las y=0 venían del paso «Build burnett01/rsync-deployments», que no despliega (criterio 2). Detectado al verificar el dataset v2.",
+  "lote": 10,
+  "fecha_exclusion": "2026-11-11"
  },
  "consuldemocracy/installer": {
   "decision": "excluido",
@@ -2690,9 +2692,10 @@
   "lote": 11
  },
  "usegalaxy-eu/infrastructure-playbook": {
-  "decision": "valido",
-  "motivo": "Infraestructura en producción de UseGalaxy.eu, 110 contribuidores; Ansible.",
-  "lote": 11
+  "decision": "excluido",
+  "motivo": "El workflow del dataset (`tpv.yml`) ejecuta `ansible-playbook --connection=local` en el runner para probar la configuración TPV en pull requests; no despliega a producción (criterio 2). Detectado al verificar el dataset v2.",
+  "lote": 11,
+  "fecha_exclusion": "2026-11-11"
  },
  "vektor-inc/vk-blocks": {
   "decision": "excluido",
@@ -2700,9 +2703,10 @@
   "lote": 11
  },
  "egovernments/Citizen-Complaint-Resolution-System": {
-  "decision": "valido",
-  "motivo": "Plataforma de reclamos ciudadanos CCRS sobre DIGIT (eGov Foundation), 28 contribuidores; Ansible.",
-  "lote": 11
+  "decision": "excluido",
+  "motivo": "El workflow del dataset (`local-setup-ci.yaml`) es CI: ejecuta `ansible-playbook` contra `localhost` (`-c local`) para probar los playbooks; no despliega a producción (criterio 2). Detectado al verificar el dataset v2 (filas de pull_request con y=0).",
+  "lote": 11,
+  "fecha_exclusion": "2026-11-11"
  },
  "fielddaylab/wake": {
   "decision": "excluido",
@@ -2870,9 +2874,10 @@
   "lote": 12
  },
  "UMNET-perfSONAR/pssid-gui2": {
-  "decision": "valido",
-  "motivo": "Aplicación web de configuración de pSSID de la red de la Universidad de Michigan; Ansible.",
-  "lote": 12
+  "decision": "excluido",
+  "motivo": "El workflow del dataset (`ci.yml`) es CI (pruebas, validación de configuración y escaneo de CVE de las imágenes); no despliega. Las y=0 venían del paso «Build the images this deployment ships», que la regla tomaba por despliegue por la palabra «deployment» (criterio 2). Detectado en la muestra de validación dirigida (semilla 11).",
+  "lote": 12,
+  "fecha_exclusion": "2026-11-11"
  },
  "redhat-openshift-ecosystem/pullsar": {
   "decision": "valido",

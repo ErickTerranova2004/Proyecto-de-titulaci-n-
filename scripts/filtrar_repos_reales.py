@@ -59,7 +59,8 @@ MAX_PROPORCION_PLATAFORMA = 0.30
 RUNS_ETIQUETAR = 100
 TOPE_DATASET = 50
 SEMILLA = 42
-DESDE = (date.today() - timedelta(days=182)).isoformat()
+# Ventana de 6 meses fijada al congelar el dataset (antes se calculaba desde hoy).
+DESDE = "2026-05-11"
 EXCLUIR_ORGANIZACIONES = {"tesis-2026"}
 
 # (búsqueda de código, regex sobre `uses`/`run` del paso, proveedor, servicio)
@@ -1122,7 +1123,58 @@ def contexto(rama, evento, base):
             "github.ref_type": "tag" if tag else "branch"}
 
 
+REGLA_DATASET = 8  # 7: entorno real; 8: sin pasos Build/Pre/Post de GitHub (2026-11-11)
+PASO_BUILD_DOCKER = re.compile(r"^Build \S+/\S+@\S+")
+
+
+CONDICION_SOLO_PUSH = re.compile(r"push|github\.ref|ref_name|event_name|refs/(heads|tags)")
+
+
+def pr_puede_desplegar(contenido, patron):
+    """¿Una ejecución de pull request con este YAML llega a desplegar? No, si
+    todos los pasos de despliegue (o sus jobs) tienen un `if:` que los limita a
+    push, a una rama o a una etiqueta. Sin pasos reconocibles: sí (no se sabe)."""
+    try:
+        datos = yaml.safe_load(contenido) or {}
+    except yaml.YAMLError:
+        return True
+    accion = re.compile(REGLA_PLATAFORMA.PATRON_ACCION_DESPLIEGUE)
+    auxiliar = re.compile(REGLA_PLATAFORMA.PATRON_AUXILIAR)
+    condiciones = []
+    for job in (datos.get("jobs") or {}).values():
+        if not isinstance(job, dict):
+            continue
+        for paso in job.get("steps") or []:
+            if not isinstance(paso, dict):
+                continue
+            codigo = f"{paso.get('uses') or ''}\n{paso.get('run') or ''}"
+            nombre = str(paso.get("name") or "")
+            if accion.search(codigo) or (re.search(patron, nombre) and not auxiliar.search(nombre)):
+                condiciones.append(f"{job.get('if') or ''} {paso.get('if') or ''}")
+    return not condiciones or any(not CONDICION_SOLO_PUSH.search(c) for c in condiciones)
+
+
+def regla_pull_request(filas, gh, repo, ruta, historial, patron):
+    """Regla 8 para pull requests (fase 2: un fallo antes del despliegue solo
+    cuenta si esa ejecución habría desplegado). Un fallo antes del despliegue
+    en un pull request se excluye si, con el YAML de su commit, el despliegue
+    está limitado a push, a una rama o a una etiqueta."""
+    sha = {r["id"]: r.get("sha") for r in historial}
+    cambios = Counter()
+    for f in filas:
+        if not (f.get("y") == 1 and f.get("subtipo") == "antes_del_despliegue"
+                and f.get("evento") in EVENTOS_PR):
+            continue
+        contenido = gh.get(f"/repos/{repo}/contents/{ruta}", {"ref": sha.get(f["run"])}, crudo=True) or ""
+        if not pr_puede_desplegar(contenido, patron):
+            f.update({"etiqueta": "excluida_no_produccion", "subtipo": "", "y": None,
+                      "motivo_regla7": "pull request: el despliegue solo se ejecuta en push"})
+            cambios[(1, "pull_request")] += 1
+    return cambios
+
+
 def regla7(args):
+    """Re-etiqueta con la regla vigente del dataset (REGLA_DATASET)."""
     gh = GitHub()
     etiquetar_ejecucion, patron = etiquetador()
     no_produccion = re.compile(REGLA_PLATAFORMA.PATRON_NO_PRODUCCION)
@@ -1134,7 +1186,7 @@ def regla7(args):
     resumen = Counter()
     for i, repo in enumerate(aprobados, 1):
         filas = etiquetas.get(repo, [])
-        if not filas or all(f.get("regla") == 7 for f in filas
+        if not filas or all((f.get("regla") or 0) >= REGLA_DATASET for f in filas
                             if f.get("etiqueta") != "excluida_otro_resultado"):
             continue
         ruta = perfiles[repo]["ruta"]
@@ -1151,7 +1203,7 @@ def regla7(args):
         runs = {r["id"]: r for r in historial.get(repo, [])}
         cambios = Counter()
         for f in filas:
-            if f.get("regla") == 7 or not (f.get("y") in (0, 1) or f["etiqueta"] in (
+            if (f.get("regla") or 0) >= REGLA_DATASET or not (f.get("y") in (0, 1) or f["etiqueta"] in (
                     "excluida_ambigua", "excluida_entorno_indeterminado")):
                 continue
             run = runs[f["run"]]
@@ -1165,6 +1217,13 @@ def regla7(args):
             i7 = cache7["info"][huella]
             jobs = (gh.get(f"/repos/{repo}/actions/runs/{run['id']}/attempts/{run['intento']}/jobs",
                            {"per_page": 100}) or {}).get("jobs", [])
+            if not jobs or all(not j.get("steps") for j in jobs if j.get("conclusion") != "skipped"):
+                # La ejecución se borró o sus pasos ya no se conservan (retención
+                # de GitHub): se mantiene la etiqueta calculada cuando sí estaban.
+                f.update({"regla": REGLA_DATASET, "regla8_sin_datos": "borrada o sin pasos",
+                          "y_regla7": f.get("y")})
+                cambios[("sin datos", "se mantiene")] += 1
+                continue
             entorno_rama = ENTORNO_POR_RAMA[repo].get(rama, "staging") if repo in ENTORNO_POR_RAMA else None
             jobs = enriquecer(jobs, info, entorno_rama)
             ctx = contexto(rama, evento, base)
@@ -1182,7 +1241,9 @@ def regla7(args):
                     job["environment"] = no_prod[0]
             previa = f.get("y")
             nueva = etiquetar_fila(run, jobs, etiquetar_ejecucion, patron)
-            nueva.update({"yaml": huella, "rama": rama, "evento": evento, "regla": 7})
+            nueva.update({"yaml": huella, "rama": rama, "evento": evento, "regla": REGLA_DATASET,
+                          "accion_docker": any(PASO_BUILD_DOCKER.match(p.get("name") or "")
+                                               for j in jobs for p in j.get("steps") or [])})
             nombre_wf = f"{i7['nombre']} {ruta.rsplit('/', 1)[-1]}"
             if nueva["y"] is not None or nueva["etiqueta"] == "excluida_ambigua":
                 motivo = None
@@ -1202,18 +1263,23 @@ def regla7(args):
             if previa is None and f["etiqueta"] == "excluida_ambigua" and nueva["y"] is not None:
                 # La regla 7 solo restringe: una ejecución ambigua sigue excluida.
                 nueva.update({"etiqueta": "excluida_ambigua", "subtipo": "", "y": None})
-            nueva["y_regla6"] = previa if f["etiqueta"] != "excluida_entorno_indeterminado" else f.get("y_previa")
+            if f.get("regla") == 7:  # primera pasada de la regla 8: guarda la y de la 7
+                nueva["y_regla6"] = f.get("y_regla6")
+                nueva["y_regla7"] = previa
+            else:
+                nueva["y_regla6"] = previa if f["etiqueta"] != "excluida_entorno_indeterminado" else f.get("y_previa")
             cambios[(previa, nueva["y"])] += 1
             f.clear()
             f.update(nueva)
         # Regla de la rama (fase 2) para todos los repos.
         ramas_produccion = {f.get("rama") for f in filas if f.get("y") == 0}
         for f in filas:
-            if f.get("regla") == 7 and f.get("y") == 1 and f.get("subtipo") == "antes_del_despliegue" \
+            if (f.get("regla") or 0) >= 7 and f.get("y") == 1 and f.get("subtipo") == "antes_del_despliegue" \
                     and f.get("rama") not in ramas_produccion:
                 f.update({"etiqueta": "excluida_no_produccion", "subtipo": "", "y": None,
                           "motivo_regla7": "rama sin despliegues a producción"})
                 cambios[(1, "rama")] += 1
+        cambios.update(regla_pull_request(filas, gh, repo, ruta, historial.get(repo, []), patron))
         etiquetas[repo] = filas
         guardar(ETIQUETAS, etiquetas)
         resumen.update(cambios)
@@ -1268,8 +1334,28 @@ VERIFICACIONES = [
     "hosting estático no leía. Se excluyó por el criterio 2 (204 → 203) y el script ahora añade los inputs "
     "`command`/`args` de cada paso al texto que revisa ese filtro. Se buscó el mismo caso en los 204 "
     "workflows: solo obby lo tenía (google/neuroglancer ya excluía sus pasos de Firebase Hosting por el nombre).",
-    "- **Tope por plataforma (criterio 4).** En el dataset final AWS tiene 52 de 203 repositorios (25,6 %), "
-    "por debajo del 30 %; la siguiente es Google Cloud con 36 (17,7 %). Había más aprobados de AWS, y la "
+    "- **Regla 8 y exclusiones por el criterio 2 (2026-11-11).** Al verificar el dataset de variables v2 "
+    "aparecieron errores que la muestra de la regla 7 no vio. (1) **Cinco repositorios cuyo workflow no "
+    "despliega a producción**, excluidos: egovernments/Citizen-Complaint-Resolution-System "
+    "(`local-setup-ci.yaml`: `ansible-playbook` contra `localhost`), usegalaxy-eu/infrastructure-playbook "
+    "(`tpv.yml`: `ansible-playbook --connection=local`), ccrma/webchuck-ide (el despliegue a producción está "
+    "comentado; solo despliega la rama `dev`), sillsdev/web-xforge (`e2e-tests.yml`: pruebas de extremo a "
+    "extremo con un playbook contra `localhost`) y UMNET-perfSONAR/pssid-gui2 (`ci.yml`: pruebas y escaneo de "
+    "CVE; el paso «Build the images this deployment ships» no despliega). (2) **Pasos que GitHub añade "
+    "alrededor de una acción** («Build owner/acción@v» de las acciones de Docker, «Pre …», «Post …») ya no "
+    "cuentan como despliegue: se ejecutan aunque el paso real se omita con `if:`. Mismo cambio en la "
+    "plataforma (`backend/riesgo/services/etiquetado.py`) con pruebas. En el dataset solo cambió el subtipo "
+    "de 3 fallos de PROCOLLAB-github/procollab (`posterior_mismo_job` → `antes_del_despliegue`); los y=0 "
+    "falsos por un paso «Build» venían de webchuck-ide. (3) **Pull requests**: un fallo antes del despliegue "
+    "en un pull request se excluye si, con el YAML de su commit, el despliegue está limitado a push, a una "
+    "rama o a una etiqueta (3 filas: ekzhang/sshx y ImCa0/just-laws, pull requests desde ramas de fork "
+    "llamadas main/master). (4) **Retención de GitHub**: al re-etiquetar, 75 ejecuciones ya no tenían pasos "
+    "(56) o se habían borrado (19); conservan la etiqueta de la regla 7, calculada cuando los pasos existían, "
+    "y quedan marcadas (`regla8_sin_datos`). Resultado: 203 → **198 repositorios válidos** (197 en el "
+    "entrenamiento, 195 con filas en el tope de 50) y 4.123 ejecuciones (y=1 9,7 %). No se reabrió la "
+    "búsqueda (decisión del autor).",
+    "- **Tope por plataforma (criterio 4).** En el dataset final AWS tiene 52 de 198 repositorios (26,3 %), "
+    "por debajo del 30 %; la siguiente es Google Cloud con 36 (18,2 %). Había más aprobados de AWS, y la "
     "selección dejó fuera los excedentes con ese motivo.",
 ]
 # Decisiones del autor de la tesis (2026-11-09).
@@ -1288,6 +1374,11 @@ DECISIONES = [
     "**Dataset congelado (2026-11-10).** Los 203 repositorios y el tope de 50 ejecuciones por repositorio "
     "quedan fijos. No se hace curva de aprendizaje; `informes/orden_repos_curva.csv` se conserva solo como "
     "registro del orden de selección.",
+    "**Corrección de etiquetas antes de entrenar (2026-11-11, opción A).** Se excluyen por el criterio 2 los "
+    "repositorios que no despliegan a producción, se corrige el etiquetador (pasos «Build/Pre/Post» de "
+    "GitHub, también en la plataforma), se re-etiqueta con la API y se revisan a mano solo los repositorios "
+    "de mayor riesgo. **No se reabre la búsqueda**: se acepta el número de repositorios que quede (198, por "
+    "debajo del mínimo de 200). Se quita `rama_bot` del modelo v2 (constante en el dataset).",
     "**Variables del modelo v2 (2026-11-10).** Se quita `reejecutado_por_otro` (no se conoce antes del "
     "despliegue). `tiene_pr` (el commit pertenece a un pull request creado antes del despliegue) y "
     "`es_reintento` (intento posterior al primero o el mismo workflow ya terminó una ejecución con ese commit) "
@@ -1314,7 +1405,8 @@ PLATAFORMA_HECHO = [
     "aplicadas. El patrón de los workflows registrados se actualizó en 672 de 672 (todos tenían el patrón por "
     "defecto de la migración 0001; no había patrones personalizados).",
     "Cruce de `riesgo_repositorio` (437) con los 203 repositorios del dataset, por nombre y por `github_id`: "
-    "**0 en ambos**, 437 solo en la plataforma y 203 solo en el dataset (detalle en "
+    "**0 en ambos**, 437 solo en la plataforma y 203 solo en el dataset (los 198 actuales son un subconjunto: "
+    "tampoco tienen ninguno en común; detalle en "
     "`informes/cruce_plataforma_dataset_v2.json`). Origen de los 437: 404 del dataset GHALogs v1.1 (alta "
     "2026-10-20), 30 casos de prueba de `datos_prueba/casos_prueba_30.json` (2026-10-27), el repositorio de "
     "demostración y 2 altas manuales sin fuente (Azure-Samples/azure-search-openai-demo y "
@@ -1333,8 +1425,11 @@ PLATAFORMA_DECISIONES = [
     "indicador de prueba, y que las vistas que hoy excluyen la demostración excluyan también los de prueba "
     "e ignoren los inactivos. Antes de aplicarla, un respaldo nuevo con `pg_dump`.",
 ]
-VALIDACIONES = [("Regla 6 (antes de corregir)", RAIZ / "informes" / "validacion_etiquetas_regla6.json"),
-                ("Regla 7 (dataset final)", RAIZ / "informes" / "validacion_etiquetas_regla7.json")]
+VALIDACIONES = [("Regla 6 (semilla 7, antes de corregir)", RAIZ / "informes" / "validacion_etiquetas_regla6.json"),
+                ("Regla 7 (semilla 7)", RAIZ / "informes" / "validacion_etiquetas_regla7.json"),
+                ("Regla 8 (semilla 2027, nueva muestra aleatoria)",
+                 RAIZ / "informes" / "validacion_etiquetas_regla8_aleatoria.json")]
+VALIDACION_DIRIGIDA = RAIZ / "informes" / "validacion_etiquetas_regla8_dirigida.json"
 
 
 def wilson(aciertos, n, z=1.959964):
@@ -1349,7 +1444,8 @@ def wilson(aciertos, n, z=1.959964):
 def seccion_validacion():
     """Precisión de las etiquetas medida a mano sobre muestras de 25 y=0 y 25 y=1."""
     l = ["## Validación manual de etiquetas (métrica de calidad del dataset)", "",
-         "Muestra aleatoria del dataset final (tope de 50) de 25 ejecuciones y=0 y 25 y=1 con semilla 7. Cada "
+         "Muestras aleatorias del dataset final (tope de 50) de 25 ejecuciones y=0 y 25 y=1 (semillas 7 y "
+         "2027), más una muestra dirigida a los casos de riesgo (semilla 11). Cada "
          "etiqueta se comprobó a mano con los jobs, los pasos, el log del paso de despliegue (y=0) o del paso "
          "fallido (y=1) y el YAML del workflow. Una etiqueta es correcta si la ejecución es un intento de "
          "despliegue **a producción** y el resultado (completado / no completado) es el que dice la etiqueta. "
@@ -1360,7 +1456,9 @@ def seccion_validacion():
     for nombre, ruta in VALIDACIONES:
         if not ruta.exists():
             continue
-        casos = json.loads(ruta.read_text(encoding="utf-8"))["casos"]
+        # Los casos no verificables (ejecución borrada) no cuentan en el denominador.
+        casos = [c for c in json.loads(ruta.read_text(encoding="utf-8"))["casos"]
+                 if c["correcta"] is not None]
         c0 = sum(c["correcta"] for c in casos if c["y"] == 0)
         c1 = sum(c["correcta"] for c in casos if c["y"] == 1)
         n0 = sum(c["y"] == 0 for c in casos)
@@ -1370,13 +1468,37 @@ def seccion_validacion():
                  "{:.1f} – {:.1f} % |".format(*(100 * v for v in wilson(c0 + c1, n0 + n1))))
         errores = Counter(c["motivo"] for c in casos if not c["correcta"])
         if errores:
-            detalle += ["", f"Errores con la {nombre.lower()}:", "",
+            detalle += ["", f"Errores con la {nombre[0].lower() + nombre[1:]}:", "",
                         *[f"- {m} ({n})" for m, n in errores.most_common()]]
+    if VALIDACION_DIRIGIDA.exists():
+        casos = json.loads(VALIDACION_DIRIGIDA.read_text(encoding="utf-8"))["casos"]
+        grupos = {"pull_request": "Filas de pull_request (todas las del dataset: 20)",
+                  "docker": "Filas con despliegue por acción de Docker (25 de 332)"}
+        detalle += ["", "### Muestra dirigida (semilla 11, regla 8)", "",
+                    "Busca los dos errores que la muestra aleatoria no detectó: ejecuciones de pull request y "
+                    "ejecuciones cuyo job usa una acción de Docker (paso «Build owner/acción@v»). No es "
+                    "representativa del dataset: mide la precisión en esos subconjuntos de riesgo.", "",
+                    "| Grupo | Correctas | Precisión | IC 95 % (Wilson) |", "|---|---:|---:|---:|"]
+        for g, texto in grupos.items():
+            sub = [c for c in casos if c["grupo"] == g]
+            k = sum(c["correcta"] for c in sub)
+            detalle.append(f"| {texto} | {k}/{len(sub)} | {100 * k / len(sub):.0f} % | "
+                           "{:.1f} – {:.1f} % |".format(*(100 * v for v in wilson(k, len(sub)))))
+        k = sum(c["correcta"] for c in casos)
+        detalle.append(f"| **Total** | {k}/{len(casos)} | {100 * k / len(casos):.0f} % | "
+                       "{:.1f} – {:.1f} % |".format(*(100 * v for v in wilson(k, len(casos)))))
+        errores = Counter(c["motivo"] for c in casos if not c["correcta"])
+        detalle += ["", "Errores de la muestra dirigida:", "",
+                    *[f"- {m} ({n})" for m, n in errores.most_common()]]
     l += ["", "El intervalo de Wilson se usa porque la proporción está cerca de 1 y la muestra es pequeña: "
-          "el intervalo normal (Wald) daría un límite superior por encima del 100 %. Con 49/50, la "
-          "precisión real de las etiquetas del dataset está, con un 95 % de confianza, entre el 89,5 % y "
-          "el 99,6 %. La muestra es estratificada (25 y=0 y 25 y=1), así que el total pondera igual ambas "
-          "clases; el error encontrado es de la clase y=0."]
+          "el intervalo normal (Wald) daría un límite superior por encima del 100 %. Las muestras aleatorias "
+          "son estratificadas (25 y=0 y 25 y=1), así que el total pondera igual ambas clases. En la muestra "
+          "de la regla 8 un caso no se pudo verificar (la ejecución se borró de GitHub) y no cuenta en el "
+          "denominador; contándolo como error, la precisión sería 47/50 (94 %).",
+          "", "**Las precisiones miden el dataset tal como estaba al tomar cada muestra.** Los errores "
+          "encontrados se corrigieron después (exclusión del repositorio o regla nueva), pero la estimación "
+          "no se recalcula como si fueran aciertos: el valor que describe la calidad del dataset final es el "
+          "de la última muestra aleatoria (semilla 2027)."]
     l += detalle
     l += ["", "La primera muestra mostró que la regla 6 no resolvía el entorno real de muchas ejecuciones "
           "(decidido por la rama, la release o la salida de otro job) y que la regla de la rama solo se "
@@ -1386,8 +1508,13 @@ def seccion_validacion():
           "estático) se corrigió excluyendo el repositorio. Además, un caso con la y correcta tiene el subtipo "
           "equivocado: en burningmantech/ranger-ims-go el paso que falla despliega el entorno `training` "
           "después de desplegar producción (debería ser `posterior_mismo_job`); el subtipo no se usa como "
-          "variable objetivo. El detalle de cada caso está en "
-          "`informes/validacion_etiquetas_regla6.json` y `informes/validacion_etiquetas_regla7.json`."]
+          "variable objetivo.", "",
+          "Al construir las variables del dataset v2 se encontraron errores que esa muestra no vio "
+          "(repositorios de CI que no despliegan y pasos «Build owner/acción@v» contados como despliegue). "
+          "La **regla 8** los corrige (ver «Verificaciones») y se validó con una muestra aleatoria nueva "
+          "(semilla 2027) y una muestra dirigida (semilla 11). El detalle de cada caso está en "
+          "`informes/validacion_etiquetas_regla6.json`, `…regla7.json`, `…regla8_aleatoria.json` y "
+          "`…regla8_dirigida.json`."]
     return l
 
 

@@ -97,3 +97,11 @@ La propuesta enumera seis grupos de métricas de entrada: commits, archivos modi
 | **Cobertura** | **No disponible** | GitHub no la calcula; la publican servicios externos (Codecov, Coveralls) solo en algunos repositorios y con formatos distintos |
 
 Las dos últimas quedan fuera del modelo por una limitación de acceso a los datos, no por decisión de diseño. En una organización que use la plataforma con sus propios repositorios (token con permisos de seguridad y un servicio de cobertura) se podrían añadir con el mismo esquema: calcularlas con lo que existía antes del inicio del despliegue.
+
+## 8. Regla 8: pasos que no despliegan y pull requests (2026-11-11)
+
+Corrige dos errores encontrados al verificar el dataset v2. No cambia la definición de la etiqueta; aplica la regla de la sección 4 con más precisión.
+
+- **Pasos que GitHub añade alrededor de una acción.** «Build owner/acción@v» construye la imagen de una acción de Docker al empezar el job y se ejecuta **aunque el paso real se omita** con `if:`; «Pre …» y «Post …» son la preparación y la limpieza de otro paso (el «Pre» también se ejecuta aunque el paso se omita). Ninguno cuenta como despliegue. Se aplica igual en la plataforma (`backend/riesgo/services/etiquetado.py`, `PATRON_PASO_DE_GITHUB`) y en el dataset.
+- **Fallos en pull requests.** Un fallo antes del despliegue solo cuenta si la ejecución habría desplegado (sección 4). En un pull request el despliegue suele estar limitado a push: si, con el YAML del commit de esa ejecución, todos los pasos de despliegue (o sus jobs) tienen un `if:` que los limita a push, a una rama o a una etiqueta, el fallo se excluye (`excluida_no_produccion`). Los pull requests cuyo despliegue sí se ejecutó (y=0) se mantienen.
+- **Datos que GitHub ya no conserva.** Al re-etiquetar, las ejecuciones borradas o cuyos pasos ya no se conservan mantienen la etiqueta calculada cuando los pasos existían (no pasan a «sin intento»).

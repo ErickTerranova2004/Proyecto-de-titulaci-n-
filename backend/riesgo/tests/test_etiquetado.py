@@ -328,3 +328,45 @@ class SenalesPrioritariasTest(SimpleTestCase):
                      "failure", entorno="DEV"),
             job_yaml(3, "Deploy Prod", [], "skipped", entorno="PROD")])
         self.assertEqual(r["etiqueta"], "excluida_no_produccion")
+
+    def test_paso_build_de_accion_docker_con_despliegue_omitido_por_if(self):
+        # ccrma/webchuck-ide: en un pull_request el paso rsync tiene
+        # `if: github.event_name == 'push'` y se omite, pero GitHub construye
+        # antes la imagen de la acción («Build burnett01/rsync-deployments@…»).
+        r = self.etiquetar("success", [job_yaml(1, "build", [
+            ("Build burnett01/rsync-deployments@6.0.0", "success", {}),
+            ("Run npm run build", "success", {"run": "npm run build"}),
+            ("Deploy to dev", "skipped",
+             {"uses": "burnett01/rsync-deployments@6.0.0"})])])
+        self.assertEqual(r["etiqueta"], "excluida_sin_intento")
+        self.assertFalse(r["despliegue_ejecutado"])
+
+    def test_paso_build_no_convierte_en_ambiguo_un_fallo_previo(self):
+        # Fallan las pruebas y el despliegue se omite; el «Build» de la
+        # acción terminó bien pero no desplegó nada: es antes_del_despliegue.
+        r = self.etiquetar("failure", [
+            job_yaml(1, "test", [("Run tests", "failure", {"run": "npm test"})],
+                     "failure"),
+            job_yaml(2, "deploy", [
+                ("Build digitalocean/app_action/deploy@v2", "success", {}),
+                ("Deploy to DigitalOcean", "skipped",
+                 {"uses": "digitalocean/app_action/deploy@v2"})],
+                     inicio="2026-10-15T10:05")])
+        self.assertEqual((r["etiqueta"], r["subtipo_etiqueta"]),
+                         ("despliegue_no_completado", "antes_del_despliegue"))
+
+    def test_despliegue_real_con_accion_docker_sigue_contando(self):
+        r = self.etiquetar("success", [job_yaml(1, "deploy", [
+            ("Build burnett01/rsync-deployments@9.0.2", "success", {}),
+            ("Sync repo to remote VM", "success",
+             {"uses": "burnett01/rsync-deployments@9.0.2"})])])
+        self.assertEqual(r["etiqueta"], "despliegue_completado")
+
+    def test_paso_pre_de_una_accion_omitida_no_es_despliegue(self):
+        # GitHub ejecuta «Pre …» al empezar el job aunque el paso real se
+        # omita con `if:`.
+        r = self.etiquetar("success", [job_yaml(1, "deploy", [
+            ("Pre Run aws-actions/amazon-ecs-deploy-task-definition@v2", "success", {}),
+            ("Run aws-actions/amazon-ecs-deploy-task-definition@v2", "skipped",
+             {"uses": "aws-actions/amazon-ecs-deploy-task-definition@v2"})])])
+        self.assertEqual(r["etiqueta"], "excluida_sin_intento")
