@@ -3,7 +3,9 @@
 
 Diseño (fijado antes de ver resultados, según la propuesta de la tesis):
 - Modelos: Random Forest y XGBoost, con hiperparámetros fijos (sin búsqueda),
-  y la línea base «predecir siempre y=0».
+  y dos líneas base: «predecir siempre y=0» y la regla simple «riesgo alto
+  si la ejecución anterior del workflow falló» (añadida tras ver los
+  resultados, solo como referencia; no participa en la selección).
 - Clases desbalanceadas (~10 % de y=1): pesos balanceados.
   Random Forest con class_weight="balanced"; XGBoost con
   scale_pos_weight = n(y=0) / n(y=1) del conjunto con que se entrena.
@@ -88,6 +90,12 @@ NUMERICAS = [
 ]
 COLUMNAS = CATEGORICAS + NUMERICAS
 RF, XGB, BASE = "Random Forest", "XGBoost", "Base: siempre y=0"
+# Línea base de regla simple (añadida el 2026-11-11, después de ver los
+# resultados): riesgo alto si la ejecución anterior del workflow falló. Su
+# probabilidad es la tasa de y=1 de cada grupo en los pliegues de
+# entrenamiento; sin ejecución anterior (nulo) cuenta como 0.
+REGLA = "Regla: wf_ultimo_fallo=1"
+MODELOS = (BASE, REGLA, RF, XGB)
 METRICAS = ["PR-AUC", "Recall y=1", "F1", "Brier", "Precisión", "ROC-AUC"]
 
 
@@ -159,6 +167,7 @@ def bootstrap_repos(df, oof, n=BOOTSTRAP):
     y = df["y"].to_numpy()
     replicas = {m: {k: [] for k in METRICAS} for m in oof}
     diferencias = {"PR-AUC": [], "Brier": []}
+    frente_regla = {"PR-AUC": [], "Brier": []}
     for _ in range(n):
         idx = np.concatenate([indices[r] for r in rng.choice(repos, len(repos))])
         if y[idx].min() == y[idx].max():
@@ -170,22 +179,28 @@ def bootstrap_repos(df, oof, n=BOOTSTRAP):
                 replicas[m][k].append(v[k])
         for k in diferencias:
             diferencias[k].append(valores[XGB][k] - valores[RF][k])
+            frente_regla[k].append(valores[RF][k] - valores[REGLA][k])
     ic = {m: {k: np.percentile(v, [2.5, 97.5]) for k, v in r.items()}
           for m, r in replicas.items()}
     ic_dif = {k: np.percentile(v, [2.5, 97.5]) for k, v in diferencias.items()}
-    return ic, ic_dif
+    ic_regla = {k: np.percentile(v, [2.5, 97.5]) for k, v in frente_regla.items()}
+    return ic, ic_dif, ic_regla
 
 
 def evaluar(df):
     X, y, grupos = df[COLUMNAS], df["y"].to_numpy(), df["repositorio"].to_numpy()
     oof = {m: {"p": np.zeros(len(df)), "pred": np.zeros(len(df), dtype=int)}
-           for m in (BASE, RF, XGB)}
+           for m in MODELOS}
+    ultimo_fallo = (df["wf_ultimo_fallo"].fillna(0) == 1).to_numpy()
     por_pliegue = []
     externos = GroupKFold(n_splits=PLIEGUES).split(X, y, grupos)
     for k, (tr, te) in enumerate(externos, 1):
         print(f"Pliegue externo {k}/{PLIEGUES}", flush=True)
         # Línea base: clase 0 siempre; probabilidad = tasa de y=1 del entrenamiento.
         oof[BASE]["p"][te] = y[tr].mean()
+        tasas = {g: y[tr][ultimo_fallo[tr] == g].mean() for g in (False, True)}
+        oof[REGLA]["p"][te] = np.where(ultimo_fallo[te], tasas[True], tasas[False])
+        oof[REGLA]["pred"][te] = ultimo_fallo[te].astype(int)
         for nombre in (RF, XGB):
             calibrado, umbral = ajustar(nombre, X.iloc[tr], y[tr], grupos[tr])
             p = calibrado.predict_proba(X.iloc[te])[:, 1]
@@ -221,6 +236,111 @@ def importancia_shap(base, X):
     return valores, importancia
 
 
+def seccion_regla(df, total, ic_regla, oof, elegido):
+    """Comparación con la regla simple «riesgo alto si wf_ultimo_fallo=1»."""
+    y = df["y"].to_numpy()
+    sin_fallo = (df["wf_ultimo_fallo"].fillna(0) == 0).to_numpy()
+    d = total.loc[RF, "PR-AUC"] - total.loc[REGLA, "PR-AUC"]
+    db = total.loc[RF, "Brier"] - total.loc[REGLA, "Brier"]
+    supera = ic_regla["PR-AUC"][0] > 0
+    p_sub, y_sub = oof[elegido]["p"][sin_fallo], y[sin_fallo]
+    y1_sin = int(y_sub.sum())
+    detectados = int(((oof[elegido]["pred"] == 1) & (y == 1) & sin_fallo).sum())
+    conclusion = ("Random Forest supera a la regla: el IC de la diferencia de PR-AUC no incluye 0."
+                  if supera else "El IC de la diferencia de PR-AUC incluye 0: Random Forest no "
+                  "supera con claridad a la regla.")
+    return [
+        "### Comparación con la regla simple «riesgo alto si la ejecución anterior falló»", "",
+        "Línea base añadida después de ver los resultados, solo como referencia (no cambia la "
+        "selección): predice y=1 si `wf_ultimo_fallo=1` y usa como probabilidad la tasa de y=1 de "
+        "cada grupo en los pliegues de entrenamiento (sin ejecución anterior cuenta como 0). Mismos "
+        "pliegues, métricas e IC que los modelos.", "",
+        f"- Random Forest − regla: PR-AUC **{d:+.3f}** (IC 95 % {ic_regla['PR-AUC'][0]:+.3f} a "
+        f"{ic_regla['PR-AUC'][1]:+.3f}); Brier {db:+.4f} (IC 95 % {ic_regla['Brier'][0]:+.4f} a "
+        f"{ic_regla['Brier'][1]:+.4f}; negativo = mejor Random Forest).",
+        f"- {conclusion}",
+        f"- Recall de la regla {total.loc[REGLA, 'Recall y=1']:.3f} y precisión "
+        f"{total.loc[REGLA, 'Precisión']:.3f}, frente a {total.loc[RF, 'Recall y=1']:.3f} y "
+        f"{total.loc[RF, 'Precisión']:.3f} de Random Forest.",
+        f"- Donde la regla no puede ayudar (ejecución anterior sin fallo o sin ejecución anterior: "
+        f"{int(sin_fallo.sum()):,} filas, {y1_sin} con y=1, tasa {y_sub.mean():.3f}), Random Forest "
+        f"tiene PR-AUC {average_precision_score(y_sub, p_sub):.3f} y detecta {detectados} de esos "
+        f"{y1_sin} y=1 con su umbral.", ""]
+
+
+def seccion_shap(df):
+    """Cómo se presentan los factores SHAP y el efecto «sigue roto»."""
+    y = df["y"].to_numpy()
+    uf = df["wf_ultimo_fallo"].fillna(0).to_numpy() == 1
+    y1 = int(y.sum())
+    return [
+        "**Cómo se presentan los factores.** Los valores SHAP describen cómo usa el modelo cada "
+        "variable en una predicción: son **asociaciones aprendidas de datos históricos, no causas**. "
+        "Que `tiene_pr=1` baje el riesgo no significa que abrir un pull request evite el fallo; puede "
+        "reflejar equipos con revisión y CI más maduros. Igual con la actividad del repositorio "
+        "(`repo_n_prev`, `repo_n_workflows_prev`), que puede funcionar como huella del repositorio. "
+        "La plataforma los presenta como factores asociados y el planificador avisa de que una "
+        "estimación más baja no garantiza que el despliegue salga bien.", "",
+        "**Efecto «sigue roto» de `wf_ultimo_fallo`.** Es la variable más importante: si la ejecución "
+        f"anterior del workflow falló, la tasa de y=1 es {y[uf].mean():.1%} ({int(uf.sum())} filas); si "
+        f"no, {y[~uf].mean():.1%}. {int(y[uf].sum())} de los {y1} y=1 ({y[uf].sum() / y1:.0%}) vienen "
+        "justo después de un fallo. Los fallos llegan en rachas: mientras la causa (credenciales "
+        "caducadas, dependencia rota, infraestructura caída) no se arregla, el siguiente intento "
+        "también falla. Parte de lo que predice el modelo es, por tanto, «el workflow sigue roto», no "
+        "el riesgo del cambio nuevo. Es útil (avisa de que reintentar sin arreglar la causa "
+        "probablemente falle), pero es la parte más fácil de predecir; el valor añadido del modelo "
+        "sobre esa señal se mide en la comparación con la regla simple (sección 2).", ""]
+
+
+def seccion_umbrales(meta):
+    tasa = meta["tasa_base_entrenamiento"]
+    lim = meta["limites_riesgo"]
+    return [
+        "## 7. Umbrales", "",
+        f"- **Niveles de riesgo** (los que muestra la plataforma, `predictor.nivel_de`): bajo si la "
+        f"probabilidad calibrada es < {lim['medio']:.3f}; medio si está entre {lim['medio']:.3f} y "
+        f"{lim['alto']:.3f}; alto si es ≥ {lim['alto']:.3f}. Se fijan por **riesgo relativo** a la tasa "
+        f"base del entrenamiento ({tasa:.3f}): medio desde la tasa base y alto desde el doble. Es la "
+        "misma regla de v1 y v1.1, fijada antes de entrenar; no se ajustó con los resultados. Los "
+        "límites cambian con cada versión porque cambia la tasa base (v1.1: 0,145 y 0,291).",
+        f"- **Umbral de clasificación** ({meta['umbral_f1']:.3f}): el que maximiza F1 en las "
+        "predicciones internas fuera de pliegue del entrenamiento. Solo se usa para recall, precisión "
+        "y F1 de este informe; la plataforma lo guarda en los metadatos pero no lo usa.",
+        "- **Recomendación «permitir / solicitar revisión».** La plataforma no la decide con un "
+        "umbral: muestra probabilidad, nivel y factores, y el líder técnico registra la decisión "
+        "(autorizar, posponer o solicitar revisión). Las recomendaciones de texto salen de los "
+        "factores, no de un umbral."]
+
+
+SECCION_V1_1 = [
+    "## 6. Por qué el PR-AUC de v2 no es comparable con el de v1.1", "",
+    "El PR-AUC de v2 es más bajo que el de v1.1 (0,677 en prueba temporal; 0,613 con GroupKFold), "
+    "pero **no indica un modelo peor**: miden cosas distintas.", "",
+    "- **Dataset distinto.** v1.1 usa GHALogs (2.392 ejecuciones de 348 repositorios, etiqueta "
+    "inferida del último paso registrado, 15,8 % de y=1). v2 usa 198 repositorios con despliegues a "
+    "producción validados a mano, etiquetas observadas con la API de jobs y reglas 7 a 9 (9,7 % de "
+    "y=1). El PR-AUC depende de la prevalencia: la línea base vale 0,13–0,20 en v1.1 y 0,09 en v2.",
+    "- **Validación por repositorio.** La cifra principal de v1.1 viene de una partición temporal: "
+    "el mismo repositorio está en entrenamiento y en prueba, y el modelo ya conoce su historial. v2 "
+    "se evalúa solo con repositorios no vistos (GroupKFold anidado), que es como se usará con "
+    "repositorios nuevos en la plataforma.",
+    "- **Fuga en la calibración.** En v1.1 las predicciones de validación se calibraban con "
+    "`CalibratedClassifierCV(cv=5)`, con pliegues estratificados que no separaban repositorios: el "
+    "calibrador veía ejecuciones de los mismos repositorios que se evaluaban. En v2 modelo, "
+    "calibración y umbral se ajustan solo con los pliegues de entrenamiento, con GroupKFold interno "
+    "por repositorio.",
+    "- **Información posterior al despliegue.** v1.1 usaba `reejecutado_por_otro` (solo se sabe "
+    "después, si alguien reejecuta) y `tiene_pr` contaba pull requests existentes al extraer los "
+    "datos, aunque se hubieran creado después de la ejecución; `es_reintento` se calculaba distinto "
+    "en el entrenamiento y en la plataforma. v2 quita la primera y calcula todas con la misma función "
+    "que la plataforma, solo con lo que existía antes del inicio del despliegue "
+    "(`backend/riesgo/tests/test_variables_v2.py`).",
+    "",
+    "Por esas tres razones las cifras de v1.1 eran optimistas; las de v2 estiman mejor el rendimiento "
+    "en repositorios nuevos.",
+]
+
+
 def figuras(df, oof, elegido, carpeta):
     y = df["y"].to_numpy()
     fig, ejes = plt.subplots(1, 2, figsize=(11, 4.6))
@@ -251,7 +371,7 @@ def tabla(filas, columnas, formato="{:.3f}"):
 
 
 def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
-            importancia, niveles):
+            importancia, niveles, ic_regla, oof, valores):
     y1 = int(df["y"].sum())
     l = ["# Fase 5. Modelo de riesgo de despliegue v2 (dataset de 198 repositorios)", "",
          f"- Datos: `{meta['dataset']}` (SHA-256 `{meta['dataset_sha256'][:12]}…`): "
@@ -265,7 +385,7 @@ def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
          "- Pesos de clase balanceados; probabilidades calibradas (sigmoide).", "",
          "## 1. Resultados (predicciones fuera de pliegue)", ""]
     filas = []
-    for m in (BASE, RF, XGB):
+    for m in MODELOS:
         filas.append([m] + [f"{total.loc[m, k]:.3f} ({ic[m][k][0]:.3f}–{ic[m][k][1]:.3f})"
                             for k in METRICAS])
     l += tabla(filas, ["Modelo"] + [f"{k} (IC 95 %)" for k in METRICAS])
@@ -274,12 +394,13 @@ def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
           "su PR-AUC es la prevalencia.", "", "### Variación entre pliegues (media ± desviación)", ""]
     resumen = por_pliegue.groupby("modelo")[METRICAS].agg(["mean", "std"])
     l += tabla([[m] + [f"{resumen.loc[m, (k, 'mean')]:.3f} ± {resumen.loc[m, (k, 'std')]:.3f}"
-                       for k in METRICAS] for m in (BASE, RF, XGB)], ["Modelo"] + METRICAS)
+                       for k in METRICAS] for m in MODELOS], ["Modelo"] + METRICAS)
     l += ["", "## 2. Selección", "",
           f"Diferencia XGBoost − Random Forest: PR-AUC IC 95 % {ic_dif['PR-AUC'][0]:+.3f} a "
           f"{ic_dif['PR-AUC'][1]:+.3f}; Brier IC 95 % {ic_dif['Brier'][0]:+.4f} a {ic_dif['Brier'][1]:+.4f}.",
-          "", f"**Modelo elegido: {elegido}.** {motivo}", "",
-          "## 3. Modelo final", "",
+          "", f"**Modelo elegido: {elegido}.** {motivo}", ""]
+    l += seccion_regla(df, total, ic_regla, oof, elegido)
+    l += ["## 3. Modelo final", "",
           f"Entrenado con todo el dataset. Umbral F1 (fuera de pliegue): {meta['umbral_f1']:.3f}. "
           f"Niveles de riesgo por riesgo relativo a la tasa base ({meta['tasa_base_entrenamiento']:.3f}): "
           f"bajo < {meta['limites_riesgo']['medio']:.3f} ≤ medio < {meta['limites_riesgo']['alto']:.3f} ≤ alto.",
@@ -294,8 +415,16 @@ def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
           f"TreeExplainer exacto sobre el modelo base. Escala de los valores: {escala}. La "
           "calibración sigmoide es monótona: no cambia el signo ni el orden de las contribuciones. "
           "Media del valor SHAP absoluto (asociación aprendida, no causalidad):", ""]
-    l += tabla([[k, float(v)] for k, v in importancia.head(15).items()],
-               ["Variable", "Media de |SHAP|"], "{:.4f}")
+    nombres = list(valores.feature_names)
+    direccion = {}
+    for k in importancia.head(15).index:
+        x = pd.Series(valores.data[:, nombres.index(k)], dtype=float)
+        s = pd.Series(valores.values[:, nombres.index(k)])
+        rho = x.corr(s, method="spearman")
+        direccion[k] = "—" if rho != rho else ("↑ sube el riesgo" if rho > 0 else "↓ baja el riesgo")
+    l += tabla([[k, float(v), direccion[k]] for k, v in importancia.head(15).items()],
+               ["Variable", "Media de |SHAP|", "Al aumentar la variable"], "{:.4f}")
+    l += [""] + seccion_shap(df)
     l += ["", "Figuras: `figuras/curvas_evaluacion_v2.png`, `figuras/shap_resumen_v2.png`. "
           "Detalle por pliegue: `informes/fase5_v2_pliegues.csv`.", "",
           "## 5. Variables y limitaciones", "",
@@ -312,7 +441,8 @@ def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
           "y los bugs, solo de forma indirecta, con el mensaje del commit "
           "(`informes/fase2_variable_objetivo.md`, sección 7).",
           "- La etiqueta mide si el intento de despliegue a producción se completó, no incidentes "
-          "posteriores en producción."]
+          "posteriores en producción.", ""]
+    l += SECCION_V1_1 + [""] + seccion_umbrales(meta)
     ruta.write_text("\n".join(l) + "\n", encoding="utf-8")
 
 
@@ -332,7 +462,7 @@ def main():
     oof, por_pliegue = evaluar(df)
     y = df["y"].to_numpy()
     total = pd.DataFrame({m: metricas(y, o["p"], o["pred"]) for m, o in oof.items()}).T
-    ic, ic_dif = bootstrap_repos(df, oof)
+    ic, ic_dif, ic_regla = bootstrap_repos(df, oof)
     elegido, motivo = elegir(total, ic_dif)
     print(f"Modelo elegido: {elegido}. {motivo}")
 
@@ -385,7 +515,7 @@ def main():
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     por_pliegue.to_csv("informes/fase5_v2_pliegues.csv", index=False)
     informe(Path(args.report), df, total, por_pliegue, ic, ic_dif, elegido, motivo,
-            meta, importancia, niveles)
+            meta, importancia, niveles, ic_regla, oof, valores)
     print(f"Informe: {args.report}")
 
 

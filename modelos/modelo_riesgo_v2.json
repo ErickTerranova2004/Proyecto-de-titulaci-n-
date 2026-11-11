@@ -2,7 +2,7 @@
   "version": "v2",
   "modelo": "Random Forest",
   "motivo_seleccion": "La diferencia de PR-AUC XGBoost − Random Forest es -0.068 (IC 95 % -0.097 a -0.031); como XGBoost no es mejor con claridad, se elige Random Forest (regla fijada antes de evaluar).",
-  "fecha_entrenamiento": "2026-11-11T19:17:12.936454+00:00",
+  "fecha_entrenamiento": "2026-11-11T20:04:14.017050+00:00",
   "dataset": "datos_procesados/dataset_riesgo_despliegue_v2.csv",
   "dataset_sha256": "34a38c06a07c196a27c0cb98a02a30d802c99834aef94909490f66299a9a4429",
   "variables_categoricas": [
@@ -59,6 +59,14 @@
       "Brier": 0.088129524090423,
       "Precisión": 0.0,
       "ROC-AUC": 0.439231912146437
+    },
+    "Regla: wf_ultimo_fallo=1": {
+      "PR-AUC": 0.288823646380135,
+      "Recall y=1": 0.5211970074812967,
+      "F1": 0.4958481613285884,
+      "Brier": 0.07121923831476147,
+      "Precisión": 0.47285067873303166,
+      "ROC-AUC": 0.7167445353247666
     },
     "Random Forest": {
       "PR-AUC": 0.41520164957436545,
