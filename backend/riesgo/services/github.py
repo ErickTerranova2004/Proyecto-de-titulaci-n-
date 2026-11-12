@@ -69,14 +69,12 @@ class GitHubClient:
             cabeceras["Authorization"] = f"Bearer {self.token}"
         return cabeceras
 
-    def get(self, ruta, params=None, ttl=300):
-        clave = f"gh:{ruta}:{sorted((params or {}).items())}"
-        guardado = cache.get(clave)
-        if guardado is not None:
-            return guardado
+    def _pedir(self, ruta, params=None, cabeceras=None):
+        """Petición con los errores tipificados (304 se devuelve tal cual)."""
         try:
             respuesta = self.sesion.get(f"{self.base_url}{ruta}",
-                                        headers=self._cabeceras(),
+                                        headers={**self._cabeceras(),
+                                                 **(cabeceras or {})},
                                         params=params, timeout=20)
         except requests.RequestException as exc:
             logger.warning("Error de red con GitHub en %s: %s", ruta,
@@ -94,9 +92,28 @@ class GitHubClient:
                            respuesta.status_code, ruta)
             raise GitHubError(f"GitHub respondió {respuesta.status_code}",
                               respuesta.status_code)
-        datos = respuesta.json()
+        return respuesta
+
+    def get(self, ruta, params=None, ttl=300):
+        clave = f"gh:{ruta}:{sorted((params or {}).items())}"
+        guardado = cache.get(clave)
+        if guardado is not None:
+            return guardado
+        datos = self._pedir(ruta, params).json()
         cache.set(clave, datos, ttl)
         return datos
+
+    def get_condicional(self, ruta, params=None, etag=""):
+        """Petición condicional (If-None-Match), sin caché local.
+
+        Devuelve (datos, etag); datos es None si GitHub responde 304 (nada ha
+        cambiado), que no cuenta en el límite de la API.
+        """
+        respuesta = self._pedir(ruta, params,
+                                {"If-None-Match": etag} if etag else None)
+        if respuesta.status_code == 304:
+            return None, etag
+        return respuesta.json(), respuesta.headers.get("ETag", "")
 
     def repositorio(self, repo):
         # Un repositorio renombrado redirige (301) al nombre actual.

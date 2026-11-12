@@ -21,3 +21,6 @@ frontend/dist/
 
 # Caché de la API de GitHub del filtrado de repositorios (se regenera)
 informes/cache_filtrado/
+
+# Logs del análisis en lote programado (scripts/analizar_lote.cmd)
+logs/

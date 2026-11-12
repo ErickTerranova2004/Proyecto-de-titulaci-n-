@@ -356,3 +356,25 @@ class DecisionDespliegue(models.Model):
 
     def __str__(self):
         return f"{self.prediccion_id}: {self.decision}"
+
+
+class SeguimientoLote(models.Model):
+    """Estado del análisis en lote de un workflow entre pasadas.
+
+    Cada pasada lista solo las ejecuciones creadas desde `listado_hasta`
+    menos 48 h (no desde la fecha de corte) y consulta una a una las que
+    quedaron `pendientes` (sin terminar) en la pasada anterior. `etag` es el
+    de la primera página del listado: si GitHub responde 304 no ha cambiado
+    nada y la consulta no gasta cuota.
+    """
+
+    workflow = models.OneToOneField(Workflow, on_delete=models.CASCADE,
+                                    related_name="seguimiento_lote")
+    listado_hasta = models.DateTimeField()
+    pendientes = models.JSONField(default=list)
+    etag = models.CharField(max_length=200, blank=True)
+    etag_params = models.CharField(max_length=200, blank=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"lote {self.workflow_id} hasta {self.listado_hasta:%Y-%m-%d %H:%M}"

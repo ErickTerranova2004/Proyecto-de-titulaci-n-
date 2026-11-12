@@ -28,7 +28,7 @@ from riesgo.serializers import (AsignacionSerializer, PrediccionSerializer,
                                 VersionModeloSerializer)
 from riesgo.services import analisis_ia, asignaciones, github, planificador
 from riesgo.services.sincronizacion import sincronizar_repositorio
-from riesgo.services.verificacion import etiquetar_run
+from riesgo.services.verificacion import enlazar_resultado, etiquetar_run
 from riesgo.services.features import calcular_variables, fecha
 from riesgo.services.predictor import SinModeloActivo, predecir
 from riesgo.services.trazabilidad import (RepositorioNoRegistrado,
@@ -83,8 +83,10 @@ MOTIVOS_PENDIENTE = {
 
 def _verificacion_pendiente(runs, workflow, repo, sha, creada_en):
     """Motivo exacto por el que aún no hay ejecución real que enlazar."""
+    # Las omitidas (skipped) no son intentos de despliegue: no cuentan.
     del_commit = [r for r in runs
                   if r.get("head_sha") == sha
+                  and r.get("conclusion") != "skipped"
                   and (r.get("path") or workflow.path).split("@")[0]
                   == workflow.path]
     if not del_commit:
@@ -403,41 +405,15 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         sha = prediccion.commit.sha
         cliente = github.GitHubClient()
         try:
-            runs = cliente.ejecuciones_workflow(repo, workflow.path,
-                                                head_sha=sha)
-            candidatas = sorted(
-                (r for r in runs
-                 if r.get("head_sha") == sha
-                 and r.get("status") == "completed"
-                 and (r.get("path") or workflow.path).split("@")[0]
-                 == workflow.path
-                 and fecha(r.get("run_started_at"))
-                 and fecha(r["run_started_at"]) > prediccion.creada_en),
-                key=lambda r: r["run_started_at"])
-            if not candidatas:
+            enlazada, runs = enlazar_resultado(cliente, prediccion)
+            if not enlazada:
                 pendiente = _verificacion_pendiente(
                     runs, workflow, repo, sha, prediccion.creada_en)
                 pendiente["ejecucion_github"] = _ultima_ejecucion_commit(
                     cliente, runs, workflow, repo, sha)
                 return Response(pendiente)
-            run = candidatas[0]
-            jobs = cliente.jobs_intento(repo, run["id"],
-                                        run.get("run_attempt") or 1)
-            etiqueta = etiquetar_run(cliente, workflow, run, jobs)
         except github.GitHubError as exc:
             return _error_github(exc)
-
-        with transaction.atomic():
-            ejecucion = guardar_ejecucion(workflow, run)
-            for campo, valor in etiqueta.items():
-                setattr(ejecucion, campo, valor)
-            ejecucion.etiquetada_en = timezone.now()
-            ejecucion.save()
-            prediccion.ejecucion_real = ejecucion
-            prediccion.verificada_en = timezone.now()
-            prediccion.clean()
-            prediccion.save(update_fields=["ejecucion_real",
-                                           "verificada_en"])
         return Response(PrediccionSerializer(prediccion).data)
 
     @action(detail=True, methods=["post"])

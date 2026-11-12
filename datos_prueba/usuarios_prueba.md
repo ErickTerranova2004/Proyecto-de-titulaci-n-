@@ -31,6 +31,37 @@ venv\Scripts\python.exe manage.py analizar_lote --usuario analisis_lote
 repetir: solo analiza las ejecuciones posteriores a la fecha de corte que
 hayan terminado desde la vez anterior (`--contar` solo las cuenta).
 
+## Análisis en lote programado (cada 4 h)
+
+Cada pasada (1) enlaza el resultado real de los análisis interactivos
+pendientes de los últimos 30 días (repos reales y demo), aunque nadie tenga la
+pestaña abierta, y (2) analiza las ejecuciones nuevas de los 198 workflows,
+listando solo desde la pasada anterior menos 48 h (con ETag: un 304 no gasta
+cuota). Se salta las ejecuciones ya enlazadas a un análisis interactivo del
+mismo modelo, para no contar dos veces un despliegue en la supervisión.
+
+- Script: `scripts\analizar_lote.cmd` (se puede ejecutar a mano); lo lanza
+  oculto `scripts\analizar_lote_oculto.vbs`.
+- Tarea: `tesis\analizar_lote` del Programador de tareas, cada 4 h desde las
+  00:00, también con batería; si el equipo estaba apagado, se ejecuta al
+  encenderlo. Necesita la sesión iniciada y PostgreSQL encendido.
+- Log diario: `logs\lote_AAAAMMDD.log`; cada pasada termina con
+  `=== Codigo de salida N (fecha)` (0 = bien).
+
+```powershell
+# ¿Corrió? Última ejecución, resultado (0 = bien) y la siguiente
+Get-ScheduledTaskInfo -TaskPath "\tesis\" -TaskName analizar_lote
+Get-Content logs\lote_$(Get-Date -Format yyyyMMdd).log -Tail 15 -Encoding UTF8
+
+# Lanzar una pasada ahora
+Start-ScheduledTask -TaskPath "\tesis\" -TaskName analizar_lote
+
+# Desactivar / volver a activar / eliminar
+Disable-ScheduledTask -TaskPath "\tesis\" -TaskName analizar_lote
+Enable-ScheduledTask  -TaskPath "\tesis\" -TaskName analizar_lote
+Unregister-ScheduledTask -TaskPath "\tesis\" -TaskName analizar_lote -Confirm:$false
+```
+
 ## Levantar la plataforma
 
 Requisitos: PostgreSQL encendido, `backend\.env` configurado, `backend\venv`
