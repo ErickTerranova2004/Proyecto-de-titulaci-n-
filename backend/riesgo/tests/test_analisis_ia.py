@@ -90,6 +90,16 @@ class AnalisisIATest(SimpleTestCase):
         self.assertEqual(analisis["error"], "ServerError")
         self.assertTrue(recomendaciones[0]["codigo"].startswith("R"))
 
+    def test_tiempo_agotado_usa_reglas(self):
+        # Gemini tardó más de IA_TIMEOUT: antes daba Error 500 al analizar.
+        import httpx
+        with mock.patch.object(analisis_ia.genai, "Client",
+                               _cliente(error=httpx.ReadTimeout("timed out"))):
+            analisis, recomendaciones = _analizar()
+        self.assertEqual(analisis["origen"], "reglas")
+        self.assertEqual(analisis["error"], "ReadTimeout")
+        self.assertTrue(recomendaciones[0]["codigo"].startswith("R"))
+
     def test_respuesta_bloqueada_usa_reglas(self):
         respuesta = SimpleNamespace(
             model_version="x", parsed=None,

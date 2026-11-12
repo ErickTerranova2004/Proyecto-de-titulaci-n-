@@ -10,6 +10,7 @@ import json
 import logging
 import math
 
+import httpx
 from django.conf import settings
 from google import genai
 from google.genai import errors, types
@@ -129,7 +130,8 @@ def analizar(variables, resultado, contexto, repositorio, workflow_path,
                 response_mime_type="application/json",
                 response_schema=Analisis),
         )
-    except (errors.APIError, OSError) as exc:
+    # httpx.HTTPError: tiempo agotado o conexión cortada (no es OSError).
+    except (errors.APIError, httpx.HTTPError, OSError) as exc:
         logger.warning("Gemini no disponible, se usan reglas: %s", exc)
         return _por_reglas(variables, resultado["factores"],
                            type(exc).__name__)
