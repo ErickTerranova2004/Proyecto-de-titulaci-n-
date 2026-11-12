@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
 import { NOMBRES_ROL } from "../roles.js";
+import { candidatosTraspaso, motivoNoEliminar, tieneHistorial } from "../traspaso.js";
 import { Alerta, Fecha } from "./comunes.jsx";
 import { Aviso, Dialogo, Filtros, Indicador } from "./gestion.jsx";
 
@@ -212,16 +213,25 @@ export default function Usuarios() {
         <DialogoUsuario
           usuario={editando}
           repositorios={datos.repositorios}
+          usuarios={usuarios}
           alCerrar={() => setEditando(null)}
           alGuardar={(u) => {
             reemplazar(u);
             setEditando(null);
             avisar(`Cambios de ${u.usuario} guardados.`);
           }}
-          alEliminar={(u) => {
-            setDatos((d) => ({ ...d, usuarios: d.usuarios.filter((x) => x.id !== u.id) }));
+          alEliminar={(u, traspaso) => {
             setEditando(null);
-            avisar(`Usuario ${u.usuario} eliminado.`);
+            if (traspaso) {
+              avisar(
+                `Usuario ${u.usuario} eliminado: ${traspaso.analisis} análisis y ${traspaso.decisiones} ` +
+                  `decisiones pasaron a ${traspaso.traspasado_a}.`,
+              );
+              cargar(); // la cuenta que recibe el historial también cambia
+            } else {
+              setDatos((d) => ({ ...d, usuarios: d.usuarios.filter((x) => x.id !== u.id) }));
+              avisar(`Usuario ${u.usuario} eliminado.`);
+            }
           }}
         />
       )}
@@ -281,32 +291,26 @@ function DialogoNuevo({ alCerrar, alCrear }) {
   );
 }
 
-// Motivo por el que la cuenta no se puede eliminar, o null si se puede. La
-// regla real está en views_gestion._eliminar_usuario.
-function motivoNoEliminar(usuario) {
-  if (usuario.es_actual) return "No puede eliminar su propia cuenta.";
-  if (usuario.superusuario) return "El superusuario no se puede eliminar.";
-  if (usuario.analisis || usuario.decisiones) {
-    return (
-      `Tiene ${usuario.analisis} análisis y ${usuario.decisiones} decisiones registradas: para conservar la ` +
-      "trazabilidad no se puede eliminar. Desmarque «Cuenta activa» para quitarle el acceso."
-    );
-  }
-  return null;
-}
-
-function ZonaEliminar({ usuario, alEliminar }) {
+function ZonaEliminar({ usuario, usuarios, alEliminar }) {
   const [confirmando, setConfirmando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
   const [error, setError] = useState("");
-  const motivo = motivoNoEliminar(usuario);
+  const historial = tieneHistorial(usuario);
+  const candidatos = historial ? candidatosTraspaso(usuario, usuarios) : [];
+  const [destino, setDestino] = useState("");
+  const motivo =
+    motivoNoEliminar(usuario) ||
+    (historial && !candidatos.length
+      ? "Tiene historial y no hay ninguna cuenta activa con su mismo rol ni administradora que pueda recibirlo."
+      : null);
+  const nombreDestino = candidatos.find((c) => String(c.id) === destino)?.usuario;
 
   async function eliminar() {
     setEliminando(true);
     setError("");
     try {
-      await api.eliminarUsuario(usuario.id);
-      alEliminar(usuario);
+      const traspaso = await api.eliminarUsuario(usuario.id, historial ? destino : undefined);
+      alEliminar(usuario, historial ? traspaso : null);
     } catch (err) {
       setError(err.message);
       setEliminando(false);
@@ -318,13 +322,45 @@ function ZonaEliminar({ usuario, alEliminar }) {
     <div className="gestion-eliminar">
       {confirmando ? (
         <>
-          <p>
-            ¿Eliminar definitivamente la cuenta <strong>{usuario.usuario}</strong>? Se borrarán también sus accesos a
-            repositorios. Esta acción no se puede deshacer.
-          </p>
+          {historial ? (
+            <>
+              <p>
+                <strong>{usuario.usuario}</strong> tiene {usuario.analisis} análisis y {usuario.decisiones} decisiones.
+                Para conservar la trazabilidad, pasarán a otra cuenta junto con sus repositorios; después se
+                eliminará la cuenta. Esta acción no se puede deshacer.
+              </p>
+              <div className="campo">
+                <label htmlFor="campo-traspaso">Traspasar su historial a</label>
+                <select id="campo-traspaso" value={destino} onChange={(e) => setDestino(e.target.value)}>
+                  <option value="">Seleccione una cuenta</option>
+                  {candidatos.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.usuario} · {NOMBRES_ROL[c.rol] || c.rol}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          ) : (
+            <p>
+              ¿Eliminar definitivamente la cuenta <strong>{usuario.usuario}</strong>? Se borrarán también sus accesos a
+              repositorios. Esta acción no se puede deshacer.
+            </p>
+          )}
           <div className="gestion-dialogo__acciones gestion-dialogo__acciones--inicio">
-            <button type="button" className="boton boton--peligro" onClick={eliminar} disabled={eliminando}>
-              {eliminando ? "Eliminando…" : "Sí, eliminar"}
+            <button
+              type="button"
+              className="boton boton--peligro"
+              onClick={eliminar}
+              disabled={eliminando || (historial && !destino)}
+            >
+              {eliminando
+                ? "Eliminando…"
+                : historial
+                  ? nombreDestino
+                    ? `Traspasar a ${nombreDestino} y eliminar`
+                    : "Traspasar y eliminar"
+                  : "Sí, eliminar"}
             </button>
             <button type="button" className="boton boton--secundario" onClick={() => setConfirmando(false)}>
               No, conservarla
@@ -350,7 +386,7 @@ function ZonaEliminar({ usuario, alEliminar }) {
   );
 }
 
-function DialogoUsuario({ usuario, repositorios, alCerrar, alGuardar, alEliminar }) {
+function DialogoUsuario({ usuario, repositorios, usuarios, alCerrar, alGuardar, alEliminar }) {
   const [rol, setRol] = useState(usuario.rol || "");
   const [activo, setActivo] = useState(usuario.activo);
   const [correo, setCorreo] = useState(usuario.correo);
@@ -451,7 +487,7 @@ function DialogoUsuario({ usuario, repositorios, alCerrar, alGuardar, alEliminar
           <button className="boton" disabled={guardando}>{guardando ? "Guardando…" : "Guardar cambios"}</button>
         </div>
       </form>
-      <ZonaEliminar usuario={usuario} alEliminar={alEliminar} />
+      <ZonaEliminar usuario={usuario} usuarios={usuarios} alEliminar={alEliminar} />
     </Dialogo>
   );
 }

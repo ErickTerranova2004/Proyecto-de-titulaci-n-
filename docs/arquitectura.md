@@ -193,6 +193,10 @@ Las métricas del cambio (`archivos_modificados`, `adiciones`, `eliminaciones`) 
 
 Las FK hacia `REPOSITORIO`, `WORKFLOW`, `COMMIT`, `VERSION_MODELO` y `EJECUCION_WORKFLOW` usan `PROTECT`: no se puede borrar un elemento referenciado por una predicción, para conservar la trazabilidad. `ACCESO_REPOSITORIO` usa `CASCADE`, porque si se borra el usuario o el repositorio desaparece el acceso. `DECISION_DESPLIEGUE` usa `CASCADE` hacia la predicción y `PROTECT` hacia el usuario que decidió.
 
+**Cuentas de usuario.** Una cuenta sin análisis ni decisiones se elimina directamente desde «Usuarios y accesos». Una cuenta con historial también se puede eliminar, pero antes el administrador elige a qué cuenta se traspasa: otra cuenta activa con el mismo rol o una administradora (`views_gestion.destino_traspaso_valido`). Sus análisis, decisiones, workflows validados, accesos asignados y repositorios pasan a esa cuenta en una transacción y después se borra (`DELETE /api/gestion/usuarios/{id}/?transferir_a={id}`); sin destino, la API responde 409. Las columnas de auditoría conservan quién creó cada registro. No se puede eliminar la propia cuenta ni el superusuario.
+
+**Último acceso.** `POST /api/auth/token/` (`riesgo/sesion.py`) emite la señal `user_logged_in` de Django, que actualiza `auth_user.last_login`: es el «Último acceso» de cada usuario.
+
 ### Nombres en la base de datos (diagrama ER)
 
 Desde la migración `0017_nombres_er` las tablas y columnas propias usan los nombres del diagrama entidad-relación (`docs/modelo_er.png`; versión actualizada desde el esquema: `docs/modelo_er_actualizado.png`) mediante `Meta.db_table` y `db_column`; los nombres en Python (modelos, campos, API y frontend) no cambiaron. Prefijos de tabla: `mae_` (maestras o catálogos), `trx_` (transaccionales) e `int_` (intermedias N:M). Prefijos de columna: `id_` (claves), `cod_` (códigos externos), `nom_`, `des_`, `tip_`, `est_`, `es_` (booleanos), `num_`, `val_`, `fec_`, `jsn_` (JSON), `rut_` (rutas) y `hsh_` (resúmenes).

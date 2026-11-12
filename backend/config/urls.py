@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 
 from riesgo import views, views_gestion
+from riesgo.sesion import iniciar_sesion
 
 router = DefaultRouter()
 router.register("predicciones", views.PrediccionViewSet,
@@ -16,7 +16,8 @@ router.register("asignaciones", views.AsignacionViewSet,
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/auth/token/", obtain_auth_token),
+    # Registra el último acceso (last_login) en cada inicio de sesión.
+    path("api/auth/token/", iniciar_sesion),
     path("api/yo/", views.yo),
     path("api/integraciones/", views.integraciones),
     path("api/resumen-admin/", views.resumen_admin),

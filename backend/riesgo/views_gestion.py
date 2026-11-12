@@ -18,7 +18,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from riesgo.models import (PATRON_DESPLIEGUE, ROLES, AccesoRepositorio,
-                           Repositorio, Workflow)
+                           DecisionDespliegue, Prediccion, Repositorio,
+                           Workflow)
 from riesgo.permissions import EsAdministrador, rol_principal
 from riesgo.services import github
 from riesgo.views import _error, _error_github
@@ -52,7 +53,7 @@ def _serializar_usuario(u, actual):
              for a in u.accesos.all()),
             key=lambda r: r["nombre"].lower()),
         "es_actual": u.id == actual.id,
-        # Con historial no se puede eliminar (trazabilidad): solo desactivar.
+        # Con historial solo se elimina traspasándolo a otra cuenta.
         "analisis": u.n_analisis,
         "decisiones": u.n_decisiones,
     }
@@ -115,8 +116,53 @@ def usuarios(request):
         status=status.HTTP_201_CREATED)
 
 
-def _eliminar_usuario(usuario, es_yo):
-    """Elimina una cuenta sin historial; con historial solo se desactiva."""
+def destino_traspaso_valido(usuario, destino):
+    """Motivo por el que `destino` no puede recibir el historial, o None.
+
+    Debe ser otra cuenta activa con el mismo rol o administradora (así las
+    decisiones siguen siendo de un líder o de un administrador)."""
+    if destino.pk == usuario.pk:
+        return "No puede traspasar el historial a la misma cuenta."
+    if not destino.is_active:
+        return f"{destino.username} está desactivado."
+    rol, rol_destino = rol_principal(usuario), rol_principal(destino)
+    if rol_destino != "administrador" and rol_destino != rol:
+        return (f"{destino.username} no tiene el mismo rol que "
+                f"{usuario.username} ni es administrador.")
+    return None
+
+
+def traspasar_historial(usuario, destino):
+    """Análisis, decisiones, validaciones, asignaciones y accesos de
+    `usuario` pasan a `destino` (los registros de auditoría conservan quién
+    los creó)."""
+    resumen = {
+        "analisis": Prediccion.objects.filter(usuario=usuario).update(
+            usuario=destino),
+        "decisiones": DecisionDespliegue.objects.filter(
+            usuario=usuario).update(usuario=destino),
+        "workflows_validados": Workflow.objects.filter(
+            validado_por=usuario).update(validado_por=destino),
+        "accesos_asignados": AccesoRepositorio.objects.filter(
+            asignado_por=usuario).update(asignado_por=destino),
+        "repositorios": 0,
+    }
+    # El administrador ve todos los repositorios: no necesita accesos.
+    if rol_principal(destino) != "administrador":
+        actuales = set(destino.accesos.values_list("repositorio_id", flat=True))
+        nuevos = [AccesoRepositorio(usuario=destino, repositorio_id=r,
+                                    asignado_por=destino)
+                  for r in usuario.accesos.values_list("repositorio_id",
+                                                       flat=True)
+                  if r not in actuales]
+        AccesoRepositorio.objects.bulk_create(nuevos)
+        resumen["repositorios"] = len(nuevos)
+    return resumen
+
+
+def _eliminar_usuario(usuario, es_yo, destino_id=None):
+    """Elimina una cuenta. Si tiene historial (análisis o decisiones), antes
+    lo traspasa a `destino_id`; sin destino, responde 409."""
     if es_yo:
         return _error("No puede eliminar su propia cuenta.", "propia_cuenta",
                       MAL)
@@ -125,16 +171,30 @@ def _eliminar_usuario(usuario, es_yo):
                       "es_superusuario", MAL)
     analisis = usuario.predicciones.count()
     decisiones = usuario.decisiones.count()
-    if analisis or decisiones:
+    destino = None
+    if destino_id not in (None, ""):
+        destino = Usuario.objects.filter(pk=destino_id).first()
+        if destino is None:
+            return _error("La cuenta que recibiría el historial no existe.",
+                          "destino_no_encontrado", MAL)
+        problema = destino_traspaso_valido(usuario, destino)
+        if problema:
+            return _error(problema, "destino_no_valido", MAL)
+    elif analisis or decisiones:
         return _error(
             f"{usuario.username} tiene {analisis} análisis y {decisiones} "
-            "decisiones registradas. Para conservar la trazabilidad no se "
-            "puede eliminar: desactive la cuenta.", "con_historial",
+            "decisiones registradas. Para conservar la trazabilidad, elija "
+            "a qué cuenta se traspasan antes de eliminarla.", "con_historial",
             status.HTTP_409_CONFLICT)
-    # Accesos y token se borran en cascada; quien validó workflows o asignó
-    # accesos queda como "sin usuario" (SET_NULL).
-    usuario.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    with transaction.atomic():
+        resumen = traspasar_historial(usuario, destino) if destino else None
+        # Accesos y token se borran en cascada; quien validó workflows o
+        # asignó accesos sin traspaso queda como "sin usuario" (SET_NULL).
+        usuario.delete()
+    if resumen is None:
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response({"eliminado": usuario.username,
+                     "traspasado_a": destino.username, **resumen})
 
 
 @api_view(["PATCH", "DELETE"])
@@ -146,7 +206,8 @@ def usuario_detalle(request, pk):
     datos = request.data
     es_yo = usuario.pk == request.user.pk
     if request.method == "DELETE":
-        return _eliminar_usuario(usuario, es_yo)
+        return _eliminar_usuario(usuario, es_yo,
+                                 request.query_params.get("transferir_a"))
 
     # 1. Validar todo antes de cambiar nada.
     if "rol" in datos:

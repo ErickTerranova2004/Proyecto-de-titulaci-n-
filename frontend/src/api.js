@@ -86,7 +86,9 @@ export const api = {
         solicitar("/gestion/usuarios/", { method: "POST", body: JSON.stringify(datos) }),
     editarUsuario: (id, datos) =>
         solicitar(`/gestion/usuarios/${id}/`, { method: "PATCH", body: JSON.stringify(datos) }),
-    eliminarUsuario: (id) => solicitar(`/gestion/usuarios/${id}/`, { method: "DELETE" }),
+    // transferirA: cuenta que recibe el historial (análisis, decisiones y accesos).
+    eliminarUsuario: (id, transferirA) =>
+        solicitar(`/gestion/usuarios/${id}/${transferirA ? `?transferir_a=${encodeURIComponent(transferirA)}` : ""}`, { method: "DELETE" }),
     accesosUsuario: (id, repositorios) =>
         solicitar(`/gestion/usuarios/${id}/repositorios/`, { method: "PUT", body: JSON.stringify({ repositorios }) }),
     gestionWorkflows: () => solicitar("/gestion/workflows/"),
