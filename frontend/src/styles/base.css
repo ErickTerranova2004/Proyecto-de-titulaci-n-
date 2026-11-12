@@ -3404,3 +3404,18 @@ td>.gestion-insignia:first-child {
     gap: var(--esp-2);
     justify-content: flex-end;
 }
+
+/* Límite de errores: aviso en lugar de una sección que falló al renderizar. */
+.limite-errores p {
+    margin: 0 0 var(--esp-2);
+}
+
+.limite-errores p:last-child {
+    margin-bottom: 0;
+}
+
+.limite-errores__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--esp-2);
+}

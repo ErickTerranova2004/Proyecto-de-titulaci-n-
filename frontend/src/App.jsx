@@ -13,6 +13,7 @@ import Pendientes from "./components/Pendientes.jsx";
 import Planificador from "./components/Planificador.jsx";
 import Usuarios from "./components/Usuarios.jsx";
 import Workflows from "./components/Workflows.jsx";
+import { LimiteErrores } from "./limiteErrores.js";
 import { NOMBRES_ROL, rolPrincipal, seccionesDe } from "./roles.js";
 import { debeReiniciar, escucharSesion } from "./sesion.js";
 
@@ -179,6 +180,7 @@ export default function App() {
           {rol === "desarrollador" && !ventanaCerrada && alarma.pendientes.length > 0 && (
             <VentanaAsignaciones alarma={alarma} alAtender={atender} alCerrar={() => setVentanaCerrada(true)} />
           )}
+          <LimiteErrores claveReinicio={atendiendo ? `atender-${atendiendo.id}` : idActual}>
           {atendiendo ? (
             <AtenderAsignacion
               key={atendiendo.id}
@@ -221,6 +223,7 @@ export default function App() {
               {idActual === "integraciones" && <Integraciones />}
             </>
           )}
+          </LimiteErrores>
         </main>
 
       </div>

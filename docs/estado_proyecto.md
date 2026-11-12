@@ -141,22 +141,39 @@ cd frontend; npx vite --port 5174
    (`fly-prod-release.yml`, evento `release`, rama `v1.5.4`) y lumos-web
    (`deploy-cloudrun-release.yaml`, rama `v2.0.25`) con el SHA de la cabeza
    de `main` justo antes de su próxima release; el lote enlaza el resultado.
+3. **Confirmar con el tutor el cambio de variable objetivo**: de «fallo real
+   en producción» a «despliegue no completado en el pipeline». Justificación
+   en `informes/fase2_variable_objetivo.md` §5 (no hay evidencia suficiente
+   para etiquetar incidentes en producción; la nueva etiqueta es observable
+   con exactitud y no mide incidentes posteriores al despliegue).
+4. **Justificación escrita de por qué no se integraron Jira y SonarQube**
+   (propuesta, funcionalidad 1): redactarla como limitación del alcance y
+   trabajo futuro.
 
 **Media**
-3. **Error del etiquetado con `\bplan\b`**: `PATRON_NO_DESPLIEGA` marca
+5. **Error del etiquetado con `\bplan\b`**: `PATRON_NO_DESPLIEGA` marca
    «no despliega» una variable `plan.txt` dentro de un script de despliegue
    (caso built-in-saudi). Corregirlo afecta al dataset congelado: requiere
    aprobación.
-4. **Error boundary en React**: un error en un componente deja hoy toda la
-   interfaz en blanco (pasó en el panel de administración con v2).
-5. Actualizar el informe de supervisión de v2 en la tesis con los datos que
+6. Actualizar el informe de supervisión de v2 en la tesis con los datos que
    sigue sumando el lote.
+7. **Redactar el capítulo de resultados de la tesis**: dataset v2.0, modelo
+   v2 (validación GroupKFold), validación prospectiva con el lote,
+   limitaciones y uso de herramientas de IA.
 
 **Baja**
-6. Análisis 683 y 686 del repo de demostración: siguen pendientes de su
+8. Análisis 683 y 686 del repo de demostración: siguen pendientes de su
    resultado real (fuera de métricas); se enlazan solos si se despliega la
    demo.
-7. Etiquetas `sin_intento` restantes del lote (128 tras el re-etiquetado):
+9. Etiquetas `sin_intento` restantes del lote (128 tras el re-etiquetado):
    revisar si alguna es sospechosa.
-8. `datos_prueba/casos_prueba_30.md` nombra a las cuentas `prueba_*`
-   eliminadas (registro histórico; se dejó tal cual).
+10. `datos_prueba/casos_prueba_30.md` nombra a las cuentas `prueba_*`
+    eliminadas (registro histórico; se dejó tal cual).
+
+**Hecho el 12-nov**
+- Error boundary en React (`frontend/src/limiteErrores.js`): un error al
+  renderizar una sección muestra un aviso con «Reintentar» y «Recargar la
+  página» en lugar de dejar la interfaz en blanco; el menú sigue disponible
+  y el aviso se reinicia al cambiar de sección. Hay un segundo límite
+  alrededor de toda la aplicación (`main.jsx`). Prueba:
+  `frontend/tests/limiteErrores.test.js`.
