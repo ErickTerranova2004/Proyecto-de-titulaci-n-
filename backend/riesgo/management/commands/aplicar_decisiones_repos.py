@@ -16,16 +16,17 @@ import csv
 import json
 
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from django.db import transaction
 
+from riesgo.auditoria import ComandoAuditado
 from riesgo.models import Repositorio
 
 SIN_FUENTE = ("Azure-Samples/azure-search-openai-demo",
               "openfoodfacts/openfoodfacts-server")
 
 
-class Command(BaseCommand):
+class Command(ComandoAuditado):
     help = "Marca inactivos y de prueba los repositorios según lo acordado."
 
     def add_arguments(self, parser):

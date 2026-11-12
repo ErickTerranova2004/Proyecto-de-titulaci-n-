@@ -1,9 +1,11 @@
 """El esquema de la base de datos coincide con el diagrama ER
 (docs/modelo_er.png), columna por columna y con sus tipos.
 
-ER: lo que dice el diagrama. La base de datos debe tener exactamente
-ER − PENDIENTE_ETAPA_2 + EXTRA (lo de la implementación que el diagrama aún
-no recoge), con DIFERENCIAS_TIPO como únicas diferencias de tipo.
+ER: lo que dice el diagrama original. La base de datos debe tener
+exactamente ER + EXTRA (lo de la implementación que el diagrama original no
+recoge; sí lo recoge el actualizado, docs/modelo_er_actualizado.*), con
+DIFERENCIAS_TIPO como únicas diferencias de tipo. Todas las tablas propias
+tienen los cinco campos de auditoría (riesgo/auditoria.py).
 """
 
 import re
@@ -86,21 +88,6 @@ VISTAS = {"seg_usuario", "seg_grupo", "int_usuario_grupo", "seg_token"}
 TABLAS_PROPIAS = set(ER) - VISTAS | {"trx_seguimiento_lote",
                                      "trx_pendiente_despliegue"}
 
-# Auditoría del ER que aún no existe (etapa 2). En las vistas seg_* está
-# como columnas nulas o derivadas.
-_SIN_AUDITORIA = set(AUDITORIA)
-PENDIENTE_ETAPA_2 = {
-    "int_acceso_repositorio": _SIN_AUDITORIA,
-    "mae_repositorio": _SIN_AUDITORIA - {"est_registro", "fec_creacion"},
-    "mae_workflow": _SIN_AUDITORIA,
-    "trx_commit": _SIN_AUDITORIA,
-    "mae_version_modelo": _SIN_AUDITORIA - {"fec_creacion"},
-    "trx_ejecucion_workflow": _SIN_AUDITORIA,
-    "trx_prediccion": _SIN_AUDITORIA - {"fec_creacion"},
-    "trx_decision_despliegue": _SIN_AUDITORIA - {"fec_creacion"},
-    "int_prediccion_ejecucion": _SIN_AUDITORIA,
-}
-
 # En la implementación y no en el diagrama (hay que añadirlo al ER).
 EXTRA = {
     "mae_repositorio": {"es_demostracion": BOOL, "es_prueba": BOOL},
@@ -114,7 +101,7 @@ EXTRA = {
     "trx_seguimiento_lote": {
         "id_seguimiento_lote": BIGINT, "id_workflow": BIGINT,
         "fec_listado_hasta": TS, "jsn_pendientes": JSON, "cod_etag": vc(200),
-        "des_etag_params": vc(200), "fec_actualizacion": TS},
+        "des_etag_params": vc(200), **AUDITORIA},
     "trx_pendiente_despliegue": {
         "id_pendiente_despliegue": BIGINT, "id_workflow": BIGINT,
         "nom_rama_principal": vc(255), "cod_sha_cabeza": vc(40),
@@ -122,21 +109,18 @@ EXTRA = {
         "fec_ultimo_despliegue": TS, "tip_evento_ultimo_despliegue": vc(50),
         "nom_rama_ultimo_despliegue": vc(255), "nom_rama_sugerida": vc(255),
         "cod_etag_despliegues": vc(200), "cod_etag_cabeza": vc(200),
-        "fec_calculo": TS},
+        "fec_calculo": TS, **AUDITORIA},
 }
 
-# Únicas diferencias de tipo con el diagrama: est_registro es char(1) en el
-# ER y Django lo guarda como varchar(1).
-DIFERENCIAS_TIPO = {("mae_repositorio", "est_registro"): vc(1),
-                    # Django crea la tabla intermedia de grupos con bigint.
-                    ("int_usuario_grupo", "id_usuario_grupo"): BIGINT}
+# Única diferencia de tipo con el diagrama original: Django crea la tabla
+# intermedia de grupos con bigint (el actualizado ya dice bigint).
+DIFERENCIAS_TIPO = {("int_usuario_grupo", "id_usuario_grupo"): BIGINT}
 
 
 def esquema_esperado():
     esperado = {}
     for tabla in set(ER) | set(EXTRA):
-        columnas = {c: t for c, t in ER.get(tabla, {}).items()
-                    if c not in PENDIENTE_ETAPA_2.get(tabla, set())}
+        columnas = dict(ER.get(tabla, {}))
         columnas.update(EXTRA.get(tabla, {}))
         for (t, c), tipo in DIFERENCIAS_TIPO.items():
             if t == tabla:

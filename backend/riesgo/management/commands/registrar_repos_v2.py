@@ -17,10 +17,11 @@ import re
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from django.db import transaction
 from django.utils import timezone
 
+from riesgo.auditoria import ComandoAuditado
 from riesgo.models import AccesoRepositorio, Repositorio, Workflow
 
 FILA = re.compile(
@@ -45,7 +46,7 @@ def evidencia(fila):
             f"{fila['evidencia']}")[:2000]
 
 
-class Command(BaseCommand):
+class Command(ComandoAuditado):
     help = "Registra los repositorios del dataset v2 (sin ejecuciones)."
 
     def add_arguments(self, parser):
@@ -56,6 +57,9 @@ class Command(BaseCommand):
         parser.add_argument("--validado-por", required=True)
         parser.add_argument("--asignar", nargs="*", default=[])
         parser.add_argument("--aplicar", action="store_true")
+
+    def usuario_auditoria(self, opciones):
+        return opciones["validado_por"]
 
     def handle(self, *args, **opciones):
         from pathlib import Path

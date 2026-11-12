@@ -3,12 +3,13 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 
+from riesgo.auditoria import ComandoAuditado
 from riesgo.models import ROLES, VersionModelo
 
 
-class Command(BaseCommand):
+class Command(ComandoAuditado):
     help = ("Crea los grupos de roles y registra (y activa) un modelo "
             "entrenado a partir de su archivo JSON de metadatos.")
 

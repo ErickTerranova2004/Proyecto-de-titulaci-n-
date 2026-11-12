@@ -24,10 +24,11 @@ import time
 from collections import Counter
 
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from django.db.models import F
 from django.utils import timezone
 
+from riesgo.auditoria import ComandoAuditado
 from riesgo.models import Workflow
 from riesgo.services import github, lote
 from riesgo.services.features import fecha
@@ -35,7 +36,7 @@ from riesgo.services.pendientes import actualizar_pendientes
 from riesgo.services.predictor import SinModeloActivo, modelo_activo
 
 
-class Command(BaseCommand):
+class Command(ComandoAuditado):
     help = "Validación prospectiva: analiza ejecuciones posteriores al corte."
 
     def add_arguments(self, parser):
@@ -50,6 +51,10 @@ class Command(BaseCommand):
                             default=lote.DIAS_INTERACTIVOS,
                             help="Antigüedad máxima de los análisis "
                                  "interactivos que se verifican.")
+
+    def usuario_auditoria(self, opciones):
+        # Lo creado o modificado en la pasada se atribuye al usuario del lote.
+        return opciones["usuario"]
 
     def handle(self, *args, **opciones):
         try:

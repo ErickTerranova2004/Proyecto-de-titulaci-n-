@@ -2,6 +2,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from riesgo.auditoria import Auditoria, AuditoriaQuerySet
+
 ROLES = ("desarrollador", "lider_tecnico", "administrador")
 
 # Expresión regular por defecto para reconocer pasos de despliegue por su
@@ -20,7 +22,7 @@ PATRON_DESPLIEGUE = (
 )
 
 
-class Repositorio(models.Model):
+class Repositorio(Auditoria):
     """Repositorio de GitHub. github_id no cambia aunque se renombre."""
 
     id = models.BigAutoField(primary_key=True, db_column="id_repositorio")
@@ -41,11 +43,9 @@ class Repositorio(models.Model):
     # (datos_prueba/casos_prueba_30.json): igual que la demostración, queda
     # fuera de las métricas y los dashboards.
     es_prueba = models.BooleanField(default=False)
-    # A = activo; I = inactivo (se conserva con su historial, pero no se
-    # ofrece para nuevos análisis ni en los selectores).
-    ESTADOS = [("A", "Activo"), ("I", "Inactivo")]
-    est_registro = models.CharField(max_length=1, choices=ESTADOS,
-                                    default="A")
+    # est_registro (Auditoria): A = activo; I = inactivo (se conserva con su
+    # historial, pero no se ofrece para nuevos análisis ni en los selectores).
+    fec_creacion = None  # creado_en
 
     class Meta:
         db_table = "mae_repositorio"
@@ -55,7 +55,7 @@ class Repositorio(models.Model):
         return self.nombre_completo
 
 
-class AccesoRepositorio(models.Model):
+class AccesoRepositorio(Auditoria):
     """Repositorios que puede consultar cada desarrollador o líder."""
 
     id = models.BigAutoField(primary_key=True,
@@ -84,7 +84,7 @@ class AccesoRepositorio(models.Model):
         return f"{self.usuario} → {self.repositorio}"
 
 
-class Workflow(models.Model):
+class Workflow(Auditoria):
     """Workflow de GitHub Actions. Solo los validados admiten predicciones."""
 
     id = models.BigAutoField(primary_key=True, db_column="id_workflow")
@@ -134,7 +134,7 @@ class Workflow(models.Model):
         return f"{self.repositorio}:{self.path}"
 
 
-class Commit(models.Model):
+class Commit(Auditoria):
     id = models.BigAutoField(primary_key=True, db_column="id_commit")
     repositorio = models.ForeignKey(Repositorio, on_delete=models.PROTECT,
                                     related_name="commits",
@@ -166,7 +166,7 @@ class Commit(models.Model):
         return f"{self.repositorio}@{self.sha[:7]}"
 
 
-class DatosModeloQuerySet(models.QuerySet):
+class DatosModeloQuerySet(AuditoriaQuerySet):
     """Filas que pueden usarse para entrenar, evaluar o supervisar el modelo.
 
     Los repositorios de demostración (Repositorio.es_demostracion) y los de
@@ -188,7 +188,7 @@ class DatosModeloQuerySet(models.QuerySet):
         return self.filter(**{f"{self.campo_repositorio}__es_prueba": True})
 
 
-class EjecucionWorkflow(models.Model):
+class EjecucionWorkflow(Auditoria):
     """Un intento (run_id + run_attempt) de un workflow en GitHub Actions."""
 
     id = models.BigAutoField(primary_key=True,
@@ -264,7 +264,7 @@ class EjecucionWorkflow(models.Model):
         return f"run {self.run_id} intento {self.run_attempt}"
 
 
-class VersionModelo(models.Model):
+class VersionModelo(Auditoria):
     """Modelo entrenado registrado en la plataforma, con sus métricas."""
 
     id = models.BigAutoField(primary_key=True, db_column="id_version_modelo")
@@ -281,6 +281,7 @@ class VersionModelo(models.Model):
                                  db_column="es_vigente")
     registrado_en = models.DateTimeField(auto_now_add=True,
                                          db_column="fec_creacion")
+    fec_creacion = None  # registrado_en
 
     class Meta:
         db_table = "mae_version_modelo"
@@ -290,7 +291,7 @@ class VersionModelo(models.Model):
         return f"{self.version} ({self.nombre_modelo})"
 
 
-class Prediccion(models.Model):
+class Prediccion(Auditoria):
     """Análisis de riesgo de un despliegue con trazabilidad completa."""
 
     id = models.BigAutoField(primary_key=True, db_column="id_prediccion")
@@ -347,6 +348,7 @@ class Prediccion(models.Model):
         db_column="fec_extraccion_github")
     creada_en = models.DateTimeField(auto_now_add=True,
                                      db_column="fec_creacion")
+    fec_creacion = None  # creada_en
     # «interactivo»: análisis pedido en la plataforma antes de desplegar.
     # «lote»: análisis de una ejecución ya ocurrida (validación prospectiva
     # de v2), con las variables calculadas en el momento en que empezó
@@ -394,7 +396,7 @@ class Prediccion(models.Model):
         return f"{self.workflow}@{self.commit.sha[:7]}: {self.nivel}"
 
 
-class PrediccionEjecucion(models.Model):
+class PrediccionEjecucion(Auditoria):
     """Ejecuciones previas del workflow usadas como historial de una
     predicción (tabla intermedia N:M)."""
 
@@ -416,7 +418,7 @@ class PrediccionEjecucion(models.Model):
         return f"{self.prediccion_id} ← {self.ejecucion_workflow_id}"
 
 
-class DecisionDespliegue(models.Model):
+class DecisionDespliegue(Auditoria):
     """Decisión del líder técnico sobre una predicción (historial completo)."""
 
     id = models.BigAutoField(primary_key=True,
@@ -451,6 +453,7 @@ class DecisionDespliegue(models.Model):
                                   db_column="des_comentario")
     creada_en = models.DateTimeField(auto_now_add=True,
                                      db_column="fec_creacion")
+    fec_creacion = None  # creada_en
     # Asignación al desarrollador dueño de la predicción. Solo cuentan en la
     # última decisión de cada predicción. `decision` y `comentario` no cambian
     # después de creados; estos campos sí.
@@ -477,7 +480,7 @@ class DecisionDespliegue(models.Model):
         return f"{self.prediccion_id}: {self.decision}"
 
 
-class SeguimientoLote(models.Model):
+class SeguimientoLote(Auditoria):
     """Estado del análisis en lote de un workflow entre pasadas.
 
     Cada pasada lista solo las ejecuciones creadas desde `listado_hasta`
@@ -499,7 +502,8 @@ class SeguimientoLote(models.Model):
     etag_params = models.CharField(max_length=200, blank=True,
                                    db_column="des_etag_params")
     actualizado_en = models.DateTimeField(auto_now=True,
-                                          db_column="fec_actualizacion")
+                                          db_column="fec_modificacion")
+    fec_modificacion = None  # actualizado_en
 
 
     class Meta:
@@ -509,7 +513,7 @@ class SeguimientoLote(models.Model):
         return f"lote {self.workflow_id} hasta {self.listado_hasta:%Y-%m-%d %H:%M}"
 
 
-class PendienteDespliegue(models.Model):
+class PendienteDespliegue(Auditoria):
     """Commits de la rama principal aún sin desplegar por un workflow.
 
     Lo actualiza cada pasada del análisis en lote (peticiones condicionales:

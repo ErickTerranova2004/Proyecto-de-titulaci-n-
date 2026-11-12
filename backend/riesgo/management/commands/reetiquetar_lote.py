@@ -9,10 +9,11 @@ predicción (JSON) para la trazabilidad del cambio.
 import json
 from collections import Counter
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from django.db import transaction
 from django.utils import timezone
 
+from riesgo.auditoria import ComandoAuditado
 from riesgo.models import Prediccion
 from riesgo.services import github, lote
 from riesgo.services.verificacion import etiquetar_run
@@ -21,7 +22,7 @@ CAMPOS = ("etiqueta", "subtipo_etiqueta", "despliegue_ejecutado",
           "paso_fallido")
 
 
-class Command(BaseCommand):
+class Command(ComandoAuditado):
     help = "Re-etiqueta las ejecuciones de las predicciones en lote."
 
     def add_arguments(self, parser):

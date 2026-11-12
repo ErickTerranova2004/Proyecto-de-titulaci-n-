@@ -15,9 +15,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 import requests
 from django.conf import settings
-from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from riesgo.auditoria import ComandoAuditado
 from riesgo.models import Workflow
 
 RAW = "https://raw.githubusercontent.com/{repo}/HEAD/{path}"
@@ -32,7 +32,7 @@ def estado_archivo(sesion, workflow):
         return None
 
 
-class Command(BaseCommand):
+class Command(ComandoAuditado):
     help = "Marca como no disponibles los workflows que ya no existen."
 
     def add_arguments(self, parser):
