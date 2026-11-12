@@ -23,11 +23,17 @@ PATRON_DESPLIEGUE = (
 class Repositorio(models.Model):
     """Repositorio de GitHub. github_id no cambia aunque se renombre."""
 
-    github_id = models.BigIntegerField(unique=True, null=True, blank=True)
-    nombre_completo = models.CharField(max_length=200, unique=True)
-    propietario = models.CharField(max_length=100)
-    nombre = models.CharField(max_length=100)
-    creado_en = models.DateTimeField(auto_now_add=True)
+    id = models.BigAutoField(primary_key=True, db_column="id_repositorio")
+    github_id = models.BigIntegerField(unique=True, null=True, blank=True,
+                                       db_column="cod_github")
+    nombre_completo = models.CharField(max_length=200, unique=True,
+                                       db_column="nom_completo")
+    propietario = models.CharField(max_length=100,
+                                   db_column="nom_propietario")
+    nombre = models.CharField(max_length=100,
+                              db_column="nom_repositorio")
+    creado_en = models.DateTimeField(auto_now_add=True,
+                                     db_column="fec_creacion")
     # Repositorio creado para demostrar la plataforma (ejecuciones provocadas a
     # propósito). Sus resultados no son validación del modelo.
     es_demostracion = models.BooleanField(default=False)
@@ -42,6 +48,7 @@ class Repositorio(models.Model):
                                     default="A")
 
     class Meta:
+        db_table = "mae_repositorio"
         ordering = ["nombre_completo"]
 
     def __str__(self):
@@ -51,20 +58,27 @@ class Repositorio(models.Model):
 class AccesoRepositorio(models.Model):
     """Repositorios que puede consultar cada desarrollador o líder."""
 
+    id = models.BigAutoField(primary_key=True,
+                              db_column="id_acceso_repositorio")
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL,
                                 on_delete=models.CASCADE,
-                                related_name="accesos")
+                                related_name="accesos",
+                                db_column="id_usuario")
     repositorio = models.ForeignKey(Repositorio, on_delete=models.CASCADE,
-                                    related_name="accesos")
+                                    related_name="accesos",
+                                    db_column="id_repositorio")
     asignado_por = models.ForeignKey(settings.AUTH_USER_MODEL,
                                      on_delete=models.SET_NULL, null=True,
-                                     blank=True, related_name="+")
-    asignado_en = models.DateTimeField(auto_now_add=True)
+                                     blank=True, related_name="+",
+                                     db_column="id_usuario_asigna")
+    asignado_en = models.DateTimeField(auto_now_add=True,
+                                       db_column="fec_asignacion")
 
     class Meta:
+        db_table = "int_acceso_repositorio"
         constraints = [models.UniqueConstraint(
             fields=["usuario", "repositorio"],
-            name="acceso_unico_usuario_repositorio")]
+            name="uk_int_acceso_repositorio_id_usuario_id_repositorio")]
 
     def __str__(self):
         return f"{self.usuario} → {self.repositorio}"
@@ -73,30 +87,43 @@ class AccesoRepositorio(models.Model):
 class Workflow(models.Model):
     """Workflow de GitHub Actions. Solo los validados admiten predicciones."""
 
+    id = models.BigAutoField(primary_key=True, db_column="id_workflow")
     repositorio = models.ForeignKey(Repositorio, on_delete=models.PROTECT,
-                                    related_name="workflows")
-    path = models.CharField(max_length=255)
-    nombre = models.CharField(max_length=200, blank=True)
-    github_id = models.BigIntegerField(unique=True, null=True, blank=True)
-    despliegue_validado = models.BooleanField(default=False)
-    evidencia_validacion = models.TextField(blank=True)
+                                    related_name="workflows",
+                                    db_column="id_repositorio")
+    path = models.CharField(max_length=255,
+                            db_column="rut_archivo")
+    nombre = models.CharField(max_length=200, blank=True,
+                              db_column="nom_workflow")
+    github_id = models.BigIntegerField(unique=True, null=True, blank=True,
+                                       db_column="cod_github")
+    despliegue_validado = models.BooleanField(
+        default=False, db_column="es_despliegue_validado")
+    evidencia_validacion = models.TextField(
+        blank=True, db_column="des_evidencia_validacion")
     validado_por = models.ForeignKey(settings.AUTH_USER_MODEL,
                                      on_delete=models.SET_NULL, null=True,
-                                     blank=True, related_name="+")
-    validado_en = models.DateTimeField(null=True, blank=True)
-    patron_paso_despliegue = models.CharField(max_length=500,
-                                              default=PATRON_DESPLIEGUE)
+                                     blank=True, related_name="+",
+                                     db_column="id_usuario_valida")
+    validado_en = models.DateTimeField(null=True, blank=True,
+                                       db_column="fec_validacion")
+    patron_paso_despliegue = models.CharField(
+        max_length=500, default=PATRON_DESPLIEGUE,
+        db_column="des_patron_paso_despliegue")
     # El archivo del workflow puede haberse renombrado o eliminado después de
     # los datos de GHALogs. Se conserva el registro (trazabilidad), pero deja
     # de ofrecerse para nuevos análisis.
-    disponible_github = models.BooleanField(default=True)
-    verificado_github_en = models.DateTimeField(null=True, blank=True)
+    disponible_github = models.BooleanField(default=True,
+                                            db_column="es_disponible_github")
+    verificado_github_en = models.DateTimeField(
+        null=True, blank=True, db_column="fec_verificacion_github")
 
     class Meta:
+        db_table = "mae_workflow"
         ordering = ["repositorio", "path"]
         constraints = [models.UniqueConstraint(
             fields=["repositorio", "path"],
-            name="workflow_unico_por_repositorio")]
+            name="uk_mae_workflow_id_repositorio_rut_archivo")]
 
     def clean(self):
         if self.despliegue_validado and not self.evidencia_validacion.strip():
@@ -108,21 +135,32 @@ class Workflow(models.Model):
 
 
 class Commit(models.Model):
+    id = models.BigAutoField(primary_key=True, db_column="id_commit")
     repositorio = models.ForeignKey(Repositorio, on_delete=models.PROTECT,
-                                    related_name="commits")
-    sha = models.CharField(max_length=40)
-    fecha = models.DateTimeField(null=True, blank=True)
-    autor_hash = models.CharField(max_length=12, blank=True)
-    mensaje_resumen = models.CharField(max_length=200, blank=True)
+                                    related_name="commits",
+                                    db_column="id_repositorio")
+    sha = models.CharField(max_length=40,
+                           db_column="cod_sha")
+    fecha = models.DateTimeField(null=True, blank=True,
+                                 db_column="fec_commit")
+    autor_hash = models.CharField(max_length=12, blank=True,
+                                  db_column="hsh_autor")
+    mensaje_resumen = models.CharField(max_length=200, blank=True,
+                                       db_column="des_mensaje_resumen")
     # Métricas del cambio de código (GitHub: stats y files del commit).
     # Se recopilan y guardan; el modelo v1.1 no las usa como variables.
-    archivos_modificados = models.PositiveIntegerField(null=True, blank=True)
-    adiciones = models.PositiveIntegerField(null=True, blank=True)
-    eliminaciones = models.PositiveIntegerField(null=True, blank=True)
+    archivos_modificados = models.PositiveIntegerField(
+        null=True, blank=True, db_column="num_archivos_modificados")
+    adiciones = models.PositiveIntegerField(null=True, blank=True,
+                                            db_column="num_adiciones")
+    eliminaciones = models.PositiveIntegerField(null=True, blank=True,
+                                                db_column="num_eliminaciones")
 
     class Meta:
+        db_table = "trx_commit"
         constraints = [models.UniqueConstraint(
-            fields=["repositorio", "sha"], name="commit_unico_por_repositorio")]
+            fields=["repositorio", "sha"],
+            name="uk_trx_commit_id_repositorio_cod_sha")]
 
     def __str__(self):
         return f"{self.repositorio}@{self.sha[:7]}"
@@ -153,6 +191,8 @@ class DatosModeloQuerySet(models.QuerySet):
 class EjecucionWorkflow(models.Model):
     """Un intento (run_id + run_attempt) de un workflow en GitHub Actions."""
 
+    id = models.BigAutoField(primary_key=True,
+                              db_column="id_ejecucion_workflow")
     objects = DatosModeloQuerySet.as_manager()
 
     ETIQUETAS = [
@@ -173,31 +213,47 @@ class EjecucionWorkflow(models.Model):
     ]
 
     workflow = models.ForeignKey(Workflow, on_delete=models.PROTECT,
-                                 related_name="ejecuciones")
+                                 related_name="ejecuciones",
+                                 db_column="id_workflow")
     commit = models.ForeignKey(Commit, on_delete=models.PROTECT, null=True,
-                               blank=True, related_name="ejecuciones")
-    run_id = models.BigIntegerField()
-    run_attempt = models.PositiveIntegerField(default=1)
-    evento = models.CharField(max_length=50, blank=True)
-    rama = models.CharField(max_length=255, blank=True)
-    estado = models.CharField(max_length=30, blank=True)
-    conclusion = models.CharField(max_length=30, blank=True)
-    iniciada_en = models.DateTimeField(null=True, blank=True)
-    actualizada_en = models.DateTimeField(null=True, blank=True)
-    extraida_en = models.DateTimeField()
+                               blank=True, related_name="ejecuciones",
+                               db_column="id_commit")
+    run_id = models.BigIntegerField(db_column="cod_run")
+    run_attempt = models.PositiveIntegerField(default=1,
+                                              db_column="num_intento")
+    evento = models.CharField(max_length=50, blank=True,
+                              db_column="tip_evento")
+    rama = models.CharField(max_length=255, blank=True,
+                            db_column="nom_rama")
+    estado = models.CharField(max_length=30, blank=True,
+                              db_column="est_ejecucion")
+    conclusion = models.CharField(max_length=30, blank=True,
+                                  db_column="est_conclusion")
+    iniciada_en = models.DateTimeField(null=True, blank=True,
+                                       db_column="fec_inicio")
+    actualizada_en = models.DateTimeField(null=True, blank=True,
+                                          db_column="fec_actualizacion")
+    extraida_en = models.DateTimeField(db_column="fec_extraccion")
     # Resultado según la regla de informes/fase2_variable_objetivo.md
     # (solo se calcula al verificar una predicción con la API de jobs).
-    despliegue_ejecutado = models.BooleanField(null=True, blank=True)
-    paso_fallido = models.CharField(max_length=300, blank=True)
-    etiqueta = models.CharField(max_length=30, choices=ETIQUETAS, blank=True)
+    despliegue_ejecutado = models.BooleanField(
+        null=True, blank=True, db_column="es_despliegue_ejecutado")
+    paso_fallido = models.CharField(max_length=300, blank=True,
+                                    db_column="des_paso_fallido")
+    etiqueta = models.CharField(max_length=30, choices=ETIQUETAS, blank=True,
+                                db_column="tip_etiqueta")
     subtipo_etiqueta = models.CharField(max_length=30, choices=SUBTIPOS,
-                                        blank=True)
-    etiquetada_en = models.DateTimeField(null=True, blank=True)
+                                        blank=True,
+                                        db_column="tip_subetiqueta")
+    etiquetada_en = models.DateTimeField(null=True, blank=True,
+                                         db_column="fec_etiquetado")
 
     class Meta:
+        db_table = "trx_ejecucion_workflow"
         ordering = ["-iniciada_en"]
         constraints = [models.UniqueConstraint(
-            fields=["run_id", "run_attempt"], name="intento_unico")]
+            fields=["run_id", "run_attempt"],
+            name="uk_trx_ejecucion_workflow_cod_run_num_intento")]
 
     @property
     def y(self):
@@ -211,15 +267,23 @@ class EjecucionWorkflow(models.Model):
 class VersionModelo(models.Model):
     """Modelo entrenado registrado en la plataforma, con sus métricas."""
 
-    version = models.CharField(max_length=20, unique=True)
-    nombre_modelo = models.CharField(max_length=100)
-    archivo = models.CharField(max_length=255)
-    archivo_explicacion = models.CharField(max_length=255)
-    metadatos = models.JSONField()
-    activo = models.BooleanField(default=False)
-    registrado_en = models.DateTimeField(auto_now_add=True)
+    id = models.BigAutoField(primary_key=True, db_column="id_version_modelo")
+    version = models.CharField(max_length=20, unique=True,
+                               db_column="cod_version")
+    nombre_modelo = models.CharField(max_length=100,
+                                     db_column="nom_modelo")
+    archivo = models.CharField(max_length=255,
+                               db_column="rut_archivo")
+    archivo_explicacion = models.CharField(max_length=255,
+                                           db_column="rut_archivo_explicacion")
+    metadatos = models.JSONField(db_column="jsn_metadatos")
+    activo = models.BooleanField(default=False,
+                                 db_column="es_vigente")
+    registrado_en = models.DateTimeField(auto_now_add=True,
+                                         db_column="fec_creacion")
 
     class Meta:
+        db_table = "mae_version_modelo"
         ordering = ["-registrado_en"]
 
     def __str__(self):
@@ -229,6 +293,7 @@ class VersionModelo(models.Model):
 class Prediccion(models.Model):
     """Análisis de riesgo de un despliegue con trazabilidad completa."""
 
+    id = models.BigAutoField(primary_key=True, db_column="id_prediccion")
     objects = DatosModeloQuerySet.as_manager()
 
     NIVELES = [("bajo", "Bajo"), ("medio", "Medio"), ("alto", "Alto")]
@@ -238,36 +303,50 @@ class Prediccion(models.Model):
 
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL,
                                 on_delete=models.PROTECT,
-                                related_name="predicciones")
+                                related_name="predicciones",
+                                db_column="id_usuario")
     workflow = models.ForeignKey(Workflow, on_delete=models.PROTECT,
-                                 related_name="predicciones")
+                                 related_name="predicciones",
+                                 db_column="id_workflow")
     commit = models.ForeignKey(Commit, on_delete=models.PROTECT,
-                               related_name="predicciones")
+                               related_name="predicciones",
+                               db_column="id_commit")
     version_modelo = models.ForeignKey(VersionModelo,
                                        on_delete=models.PROTECT,
-                                       related_name="predicciones")
-    rama = models.CharField(max_length=255, blank=True)
-    evento = models.CharField(max_length=50)
-    variables = models.JSONField()
-    probabilidad = models.FloatField()
-    nivel = models.CharField(max_length=10, choices=NIVELES)
-    factores = models.JSONField()
+                                       related_name="predicciones",
+                                       db_column="id_version_modelo")
+    rama = models.CharField(max_length=255, blank=True,
+                            db_column="nom_rama")
+    evento = models.CharField(max_length=50,
+                              db_column="tip_evento")
+    variables = models.JSONField(db_column="jsn_variables")
+    probabilidad = models.FloatField(db_column="val_probabilidad")
+    nivel = models.CharField(max_length=10, choices=NIVELES,
+                             db_column="tip_nivel_riesgo")
+    factores = models.JSONField(db_column="jsn_factores")
     # Vacía en las predicciones anteriores a la recomendación automática.
     recomendacion = models.CharField(max_length=20, choices=RECOMENDACIONES,
-                                     blank=True)
+                                     blank=True,
+                                     db_column="tip_recomendacion")
     # Lista de {"codigo", "variable", "texto"}.
-    recomendaciones = models.JSONField()
+    recomendaciones = models.JSONField(db_column="jsn_recomendaciones")
     # {"origen": "ia"|"reglas", "modelo", "resumen", "error"}; nulo en
     # predicciones anteriores al análisis con IA.
-    analisis_ia = models.JSONField(null=True, blank=True)
+    analisis_ia = models.JSONField(null=True, blank=True,
+                                   db_column="jsn_analisis_ia")
     ejecuciones_previas = models.ManyToManyField(
-        EjecucionWorkflow, blank=True, related_name="predicciones_que_la_usan")
+        EjecucionWorkflow, blank=True, related_name="predicciones_que_la_usan",
+        through="PrediccionEjecucion")
     ejecucion_real = models.ForeignKey(
         EjecucionWorkflow, on_delete=models.PROTECT, null=True, blank=True,
-        related_name="predicciones_verificadas")
-    verificada_en = models.DateTimeField(null=True, blank=True)
-    datos_github_extraidos_en = models.DateTimeField()
-    creada_en = models.DateTimeField(auto_now_add=True)
+        related_name="predicciones_verificadas",
+        db_column="id_ejecucion_real")
+    verificada_en = models.DateTimeField(null=True, blank=True,
+                                         db_column="fec_verificacion")
+    datos_github_extraidos_en = models.DateTimeField(
+        db_column="fec_extraccion_github")
+    creada_en = models.DateTimeField(auto_now_add=True,
+                                     db_column="fec_creacion")
     # «interactivo»: análisis pedido en la plataforma antes de desplegar.
     # «lote»: análisis de una ejecución ya ocurrida (validación prospectiva
     # de v2), con las variables calculadas en el momento en que empezó
@@ -275,10 +354,13 @@ class Prediccion(models.Model):
     ORIGENES = [("interactivo", "Análisis en la plataforma"),
                 ("lote", "Análisis en lote de una ejecución posterior")]
     origen = models.CharField(max_length=12, choices=ORIGENES,
-                              default="interactivo")
-    momento_variables = models.DateTimeField(null=True, blank=True)
+                              default="interactivo",
+                              db_column="tip_origen")
+    momento_variables = models.DateTimeField(null=True, blank=True,
+                                             db_column="fec_momento_variables")
 
     class Meta:
+        db_table = "trx_prediccion"
         ordering = ["-creada_en"]
 
     def clean(self):
@@ -312,9 +394,33 @@ class Prediccion(models.Model):
         return f"{self.workflow}@{self.commit.sha[:7]}: {self.nivel}"
 
 
+class PrediccionEjecucion(models.Model):
+    """Ejecuciones previas del workflow usadas como historial de una
+    predicción (tabla intermedia N:M)."""
+
+    id = models.BigAutoField(primary_key=True,
+                              db_column="id_prediccion_ejecucion")
+    prediccion = models.ForeignKey(Prediccion, on_delete=models.CASCADE,
+                                   db_column="id_prediccion")
+    ejecucion_workflow = models.ForeignKey(EjecucionWorkflow,
+                                           on_delete=models.CASCADE,
+                                           db_column="id_ejecucion_workflow")
+
+    class Meta:
+        db_table = "int_prediccion_ejecucion"
+        constraints = [models.UniqueConstraint(
+            fields=["prediccion", "ejecucion_workflow"],
+            name="uk_int_prediccion_ejecucion_id_prediccion_id_ejecucion_workflow")]
+
+    def __str__(self):
+        return f"{self.prediccion_id} ← {self.ejecucion_workflow_id}"
+
+
 class DecisionDespliegue(models.Model):
     """Decisión del líder técnico sobre una predicción (historial completo)."""
 
+    id = models.BigAutoField(primary_key=True,
+                              db_column="id_decision_despliegue")
     DECISIONES = [
         ("autorizar", "Autorizar el despliegue"),
         ("posponer", "Posponer el despliegue"),
@@ -322,36 +428,49 @@ class DecisionDespliegue(models.Model):
     ]
 
     prediccion = models.ForeignKey(Prediccion, on_delete=models.CASCADE,
-                                   related_name="decisiones")
+                                   related_name="decisiones",
+                                   db_column="id_prediccion")
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL,
                                 on_delete=models.PROTECT,
-                                related_name="decisiones")
+                                related_name="decisiones",
+                                db_column="id_usuario")
     # Decisión que coincide con cada recomendación automática.
     SEGUN_RECOMENDACION = {"permitir": "autorizar",
                            "solicitar_revision": "solicitar_revision"}
 
-    decision = models.CharField(max_length=20, choices=DECISIONES)
+    decision = models.CharField(max_length=20, choices=DECISIONES,
+                                db_column="tip_decision")
     # Recomendación vigente al decidir y si el líder la aceptó (nulo si la
     # predicción no tenía recomendación).
     recomendacion = models.CharField(max_length=20, blank=True,
-                                     choices=Prediccion.RECOMENDACIONES)
-    acepta_recomendacion = models.BooleanField(null=True, blank=True)
-    comentario = models.TextField(blank=True, max_length=1000)
-    creada_en = models.DateTimeField(auto_now_add=True)
+                                     choices=Prediccion.RECOMENDACIONES,
+                                     db_column="tip_recomendacion")
+    acepta_recomendacion = models.BooleanField(
+        null=True, blank=True, db_column="es_acepta_recomendacion")
+    comentario = models.TextField(blank=True, max_length=1000,
+                                  db_column="des_comentario")
+    creada_en = models.DateTimeField(auto_now_add=True,
+                                     db_column="fec_creacion")
     # Asignación al desarrollador dueño de la predicción. Solo cuentan en la
     # última decisión de cada predicción. `decision` y `comentario` no cambian
     # después de creados; estos campos sí.
-    fecha_limite = models.DateField(null=True, blank=True)
-    vista_por_desarrollador_en = models.DateTimeField(null=True, blank=True)
-    cumplida_en = models.DateTimeField(null=True, blank=True)
+    fecha_limite = models.DateField(null=True, blank=True,
+                                    db_column="fec_limite")
+    vista_por_desarrollador_en = models.DateTimeField(
+        null=True, blank=True, db_column="fec_vista_desarrollador")
+    cumplida_en = models.DateTimeField(null=True, blank=True,
+                                       db_column="fec_cumplimiento")
     # Respuesta del desarrollador: el nuevo análisis con el que atendió la
     # decisión (posponer o solicitar revisión) y qué cambió.
     prediccion_respuesta = models.ForeignKey(
         Prediccion, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="responde_a")
-    respuesta_desarrollador = models.TextField(blank=True, max_length=1000)
+        related_name="responde_a",
+        db_column="id_prediccion_respuesta")
+    respuesta_desarrollador = models.TextField(
+        blank=True, max_length=1000, db_column="des_respuesta_desarrollador")
 
     class Meta:
+        db_table = "trx_decision_despliegue"
         ordering = ["-creada_en"]
 
     def __str__(self):
@@ -368,13 +487,23 @@ class SeguimientoLote(models.Model):
     nada y la consulta no gasta cuota.
     """
 
+    id = models.BigAutoField(primary_key=True, db_column="id_seguimiento_lote")
     workflow = models.OneToOneField(Workflow, on_delete=models.CASCADE,
-                                    related_name="seguimiento_lote")
-    listado_hasta = models.DateTimeField()
-    pendientes = models.JSONField(default=list)
-    etag = models.CharField(max_length=200, blank=True)
-    etag_params = models.CharField(max_length=200, blank=True)
-    actualizado_en = models.DateTimeField(auto_now=True)
+                                    related_name="seguimiento_lote",
+                                    db_column="id_workflow")
+    listado_hasta = models.DateTimeField(db_column="fec_listado_hasta")
+    pendientes = models.JSONField(default=list,
+                                  db_column="jsn_pendientes")
+    etag = models.CharField(max_length=200, blank=True,
+                            db_column="cod_etag")
+    etag_params = models.CharField(max_length=200, blank=True,
+                                   db_column="des_etag_params")
+    actualizado_en = models.DateTimeField(auto_now=True,
+                                          db_column="fec_actualizacion")
+
+
+    class Meta:
+        db_table = "trx_seguimiento_lote"
 
     def __str__(self):
         return f"lote {self.workflow_id} hasta {self.listado_hasta:%Y-%m-%d %H:%M}"
@@ -390,20 +519,37 @@ class PendienteDespliegue(models.Model):
     y el evento con el que despliega.
     """
 
+    id = models.BigAutoField(primary_key=True,
+                              db_column="id_pendiente_despliegue")
     workflow = models.OneToOneField(Workflow, on_delete=models.CASCADE,
-                                    related_name="pendiente_despliegue")
-    rama_principal = models.CharField(max_length=255, blank=True)
-    sha_cabeza = models.CharField(max_length=40, blank=True)
+                                    related_name="pendiente_despliegue",
+                                    db_column="id_workflow")
+    rama_principal = models.CharField(max_length=255, blank=True,
+                                      db_column="nom_rama_principal")
+    sha_cabeza = models.CharField(max_length=40, blank=True,
+                                  db_column="cod_sha_cabeza")
     # None: el workflow no tiene ningún despliegue correcto con el que comparar.
-    commits_pendientes = models.IntegerField(null=True, blank=True)
-    ultimo_despliegue_sha = models.CharField(max_length=40, blank=True)
-    ultimo_despliegue_en = models.DateTimeField(null=True, blank=True)
-    ultimo_despliegue_evento = models.CharField(max_length=50, blank=True)
-    ultimo_despliegue_rama = models.CharField(max_length=255, blank=True)
-    rama_sugerida = models.CharField(max_length=255, blank=True)
-    etag_despliegues = models.CharField(max_length=200, blank=True)
-    etag_cabeza = models.CharField(max_length=200, blank=True)
-    calculado_en = models.DateTimeField()
+    commits_pendientes = models.IntegerField(
+        null=True, blank=True, db_column="num_commits_pendientes")
+    ultimo_despliegue_sha = models.CharField(
+        max_length=40, blank=True, db_column="cod_sha_ultimo_despliegue")
+    ultimo_despliegue_en = models.DateTimeField(
+        null=True, blank=True, db_column="fec_ultimo_despliegue")
+    ultimo_despliegue_evento = models.CharField(
+        max_length=50, blank=True, db_column="tip_evento_ultimo_despliegue")
+    ultimo_despliegue_rama = models.CharField(
+        max_length=255, blank=True, db_column="nom_rama_ultimo_despliegue")
+    rama_sugerida = models.CharField(max_length=255, blank=True,
+                                     db_column="nom_rama_sugerida")
+    etag_despliegues = models.CharField(max_length=200, blank=True,
+                                        db_column="cod_etag_despliegues")
+    etag_cabeza = models.CharField(max_length=200, blank=True,
+                                   db_column="cod_etag_cabeza")
+    calculado_en = models.DateTimeField(db_column="fec_calculo")
+
+
+    class Meta:
+        db_table = "trx_pendiente_despliegue"
 
     def __str__(self):
         return f"{self.workflow}: {self.commits_pendientes} pendientes"

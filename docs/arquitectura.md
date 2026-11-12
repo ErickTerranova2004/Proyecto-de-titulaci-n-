@@ -18,7 +18,7 @@ flowchart LR
 
 ## Modelo de datos (PostgreSQL)
 
-Nombres de tabla de Django: `riesgo_<modelo>` para la aplicación y `auth_*` / `authtoken_token` para usuarios, roles y tokens. PK = clave primaria, FK = clave foránea, UK = participa en una restricción de unicidad.
+Este documento usa los nombres de los modelos y campos de Django (Python). En la base de datos, las tablas y columnas propias llevan los nombres del diagrama entidad-relación (`docs/modelo_er.png`): ver [Nombres en la base de datos](#nombres-en-la-base-de-datos-diagrama-er). Usuarios, roles y tokens siguen en las tablas de Django (`auth_*`, `authtoken_token`). PK = clave primaria, FK = clave foránea, UK = participa en una restricción de unicidad.
 
 ```mermaid
 erDiagram
@@ -193,6 +193,39 @@ Las métricas del cambio (`archivos_modificados`, `adiciones`, `eliminaciones`) 
 
 Las FK hacia `REPOSITORIO`, `WORKFLOW`, `COMMIT`, `VERSION_MODELO` y `EJECUCION_WORKFLOW` usan `PROTECT`: no se puede borrar un elemento referenciado por una predicción, para conservar la trazabilidad. `ACCESO_REPOSITORIO` usa `CASCADE`, porque si se borra el usuario o el repositorio desaparece el acceso. `DECISION_DESPLIEGUE` usa `CASCADE` hacia la predicción y `PROTECT` hacia el usuario que decidió.
 
+### Nombres en la base de datos (diagrama ER)
+
+Desde la migración `0017_nombres_er` las tablas y columnas propias usan los nombres del diagrama entidad-relación (`docs/modelo_er.png`) mediante `Meta.db_table` y `db_column`; los nombres en Python (modelos, campos, API y frontend) no cambiaron. Prefijos de tabla: `mae_` (maestras o catálogos), `trx_` (transaccionales) e `int_` (intermedias N:M). Prefijos de columna: `id_` (claves), `cod_` (códigos externos), `nom_`, `des_`, `tip_`, `est_`, `es_` (booleanos), `num_`, `val_`, `fec_`, `jsn_` (JSON), `rut_` (rutas) y `hsh_` (resúmenes).
+
+| Modelo (Django) | Tabla | Clave primaria |
+|---|---|---|
+| `Repositorio` | `mae_repositorio` | `id_repositorio` |
+| `Workflow` | `mae_workflow` | `id_workflow` |
+| `VersionModelo` | `mae_version_modelo` | `id_version_modelo` |
+| `Commit` | `trx_commit` | `id_commit` |
+| `EjecucionWorkflow` | `trx_ejecucion_workflow` | `id_ejecucion_workflow` |
+| `Prediccion` | `trx_prediccion` | `id_prediccion` |
+| `DecisionDespliegue` | `trx_decision_despliegue` | `id_decision_despliegue` |
+| `AccesoRepositorio` | `int_acceso_repositorio` | `id_acceso_repositorio` |
+| `PrediccionEjecucion` (`Prediccion.ejecuciones_previas`) | `int_prediccion_ejecucion` | `id_prediccion_ejecucion` |
+| `SeguimientoLote` (no está en el ER) | `trx_seguimiento_lote` | `id_seguimiento_lote` |
+| `PendienteDespliegue` (no está en el ER) | `trx_pendiente_despliegue` | `id_pendiente_despliegue` |
+
+La columna de cada campo es su `db_column` en `backend/riesgo/models.py`; la lista completa, con tipos, está en la prueba `backend/riesgo/tests/test_esquema_er.py`, que compara la base de datos con el diagrama (`ER`), lo que falta del diagrama (`PENDIENTE_ETAPA_2`: campos de auditoría) y lo que la implementación tiene y el diagrama aún no recoge (`EXTRA`). Índices, restricciones y secuencias se nombran `pk_<tabla>`, `fk_<tabla>_<columna>`, `uk_<tabla>_<columnas>`, `ck_<tabla>_<columna>`, `ix_<tabla>_<columnas>[_like]` y `sq_<tabla>_<columna>` (migración `0018`).
+
+**Usuarios, roles y tokens.** Se mantienen las tablas de Django (cambiar el modelo de usuario a mitad del proyecto obligaría a rehacer migraciones, usuarios y tokens). Para consultar con los nombres del ER hay vistas de **solo lectura** (un trigger rechaza cualquier escritura):
+
+| Entidad del ER | Vista | Tabla de Django | Equivalencias |
+|---|---|---|---|
+| `seg_usuario` | `seg_usuario` | `auth_user` | `id_usuario` = `id`, `nom_usuario` = `username`, `hsh_clave` = `password` (hash PBKDF2 de Django), `es_superusuario` = `is_superuser`, `est_registro` = `A` si `is_active` (si no, `I`), `fec_creacion` = `date_joined` |
+| `seg_grupo` | `seg_grupo` | `auth_group` | `id_grupo` = `id`, `nom_grupo` = `name` (roles: `desarrollador`, `lider_tecnico`, `administrador`) |
+| `int_usuario_grupo` | `int_usuario_grupo` | `auth_user_groups` | `id_usuario_grupo` = `id` (bigint en Django; int en el ER), `id_usuario` = `user_id`, `id_grupo` = `group_id` |
+| `seg_token` | `seg_token` | `authtoken_token` | `cod_token` = `key`, `id_usuario` = `user_id`, `fec_creacion` = `created` |
+
+En las vistas, las columnas de auditoría que Django no guarda (`usu_creacion`, `usu_modificacion`, `fec_modificacion`) son nulas. `auth_user` tiene además `first_name`, `last_name`, `email`, `is_staff`, `last_login` y `date_joined`, y Django crea sus tablas internas (`auth_permission`, `auth_group_permissions`, `auth_user_user_permissions`, `django_content_type`, `django_migrations`, `django_session`, `django_admin_log`), que no forman parte del modelo del dominio.
+
+**Diferencias con el diagrama.** (1) Los campos de auditoría (`est_registro`, `usu_creacion`, `fec_creacion`, `usu_modificacion`, `fec_modificacion`) solo existen en parte: `fec_creacion` en repositorio, versión del modelo, predicción y decisión, y `est_registro` (A/I, sin borrado lógico «E») en repositorio. (2) `est_registro` es `varchar(1)` (el ER dice `char(1)`). (3) La implementación tiene campos y tablas que el diagrama aún no recoge: `es_demostracion` y `es_prueba` (repositorio); `tip_recomendacion`, `jsn_analisis_ia`, `tip_origen` y `fec_momento_variables` (predicción); recomendación, aceptación, fecha límite, vista, cumplimiento y respuesta del desarrollador (decisión, con una segunda FK a predicción: `id_prediccion_respuesta`), y las tablas `trx_seguimiento_lote` y `trx_pendiente_despliegue`.
+
 ## Flujo de una predicción
 
 1. El usuario elige un repositorio con acceso asignado y uno de sus workflows validados (`GET /api/repositorios/`).
@@ -284,7 +317,7 @@ Al quitar un acceso, el usuario deja de ver ese repositorio y sus predicciones.
 
 ## Interfaz: pantalla → elemento → tabla.campo
 
-Cada dato visible viene de la API y, por ella, de la base de datos. Prefijo de tablas: `riesgo_` (por ejemplo, `prediccion` = `riesgo_prediccion`). Los textos marcados como *presentación* son rótulos fijos de la interfaz, no datos.
+Cada dato visible viene de la API y, por ella, de la base de datos. Se indican el modelo y el campo de Django; su tabla y columna en la base de datos están en [Nombres en la base de datos](#nombres-en-la-base-de-datos-diagrama-er) (por ejemplo, `prediccion.creada_en` = `trx_prediccion.fec_creacion`). Los textos marcados como *presentación* son rótulos fijos de la interfaz, no datos.
 
 | Pantalla | Elemento (HTML) | Endpoint | tabla.campo |
 |---|---|---|---|
