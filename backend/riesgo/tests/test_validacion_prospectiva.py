@@ -118,6 +118,11 @@ class GitHubFalso:
 
     def get_condicional(self, ruta, params=None, etag=""):
         """Listado con `created=>=desde`; 304 si nada cambió desde el ETag."""
+        if ruta.endswith("/git/ref/heads/main"):
+            return {"object": {"sha": self.runs[-1]["head_sha"]}}, ""
+        if "created" not in (params or {}):  # último despliegue correcto
+            return {"workflow_runs": [r for r in self.runs[::-1]
+                                      if r["conclusion"] == "success"]}, ""
         self.listados = (self.listados or []) + [params["created"]]
         desde = params["created"][2:]
         runs = [r for r in self.runs if r["created_at"] >= desde]

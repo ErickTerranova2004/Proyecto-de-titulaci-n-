@@ -15,9 +15,10 @@ export const sesion = {
 };
 
 // Error de la API con el código HTTP (`estado`; 0 si el servidor no responde).
-function errorApi(mensaje, estado) {
+function errorApi(mensaje, estado, datos = {}) {
     const error = new Error(mensaje);
     error.estado = estado;
+    error.datos = datos;
     return error;
 }
 
@@ -42,7 +43,7 @@ async function solicitar(ruta, opciones = {}) {
             .map(([campo, errores]) => `${campo}: ${[].concat(errores).join(" ")}`)
             .join(" · ") ||
             `Error ${respuesta.status}`;
-        throw errorApi(mensaje, respuesta.status);
+        throw errorApi(mensaje, respuesta.status, datos);
     }
     return datos;
 }

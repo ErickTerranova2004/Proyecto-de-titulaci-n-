@@ -28,6 +28,7 @@ from riesgo.serializers import (AsignacionSerializer, PrediccionSerializer,
                                 VersionModeloSerializer)
 from riesgo.services import analisis_ia, asignaciones, github, planificador
 from riesgo.services.sincronizacion import sincronizar_repositorio
+from riesgo.services.pendientes import despliegue_previo
 from riesgo.services.verificacion import enlazar_resultado, etiquetar_run
 from riesgo.services.features import calcular_variables, fecha
 from riesgo.services.predictor import SinModeloActivo, predecir
@@ -104,6 +105,20 @@ def _verificacion_pendiente(runs, workflow, repo, sha, creada_en):
                            f"{archivo}"}
 
 
+def _aviso_desplegado(previo, sha):
+    """409 de «Nuevo análisis»: el commit ya se desplegó o se está
+    desplegando; el desarrollador puede continuar de todos modos."""
+    en_curso = previo["estado"] != "completed"
+    detalle = (
+        f"Este commit ({sha[:7]}) se está desplegando ahora."
+        if en_curso else f"Este commit ({sha[:7]}) ya se desplegó.")
+    return {"detail": detalle + " El análisis no podrá compararse con un "
+                      "resultado real: solo se enlaza un despliegue que "
+                      "empiece después del análisis.",
+            "codigo": "commit_ya_desplegado", "en_curso": en_curso,
+            "sha": sha, "ejecucion": previo}
+
+
 def _ultima_ejecucion_commit(cliente, runs, workflow, repo, sha):
     """Resultado en GitHub de la última ejecución terminada del commit.
 
@@ -154,7 +169,7 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
         return visibles.filter(
             workflows__despliegue_validado=True,
             workflows__disponible_github=True).distinct().prefetch_related(
-            "workflows")
+            "workflows", "workflows__pendiente_despliegue")
 
     @action(detail=True, methods=["post"],
             permission_classes=[EsAdministrador])
@@ -345,6 +360,13 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             sha = datos["head_sha"]
             if not sha:
                 sha = cliente.ultimo_commit(nombre, datos["rama"])["sha"]
+            if not datos["confirmar_desplegado"]:
+                # Misma consulta que calcular_variables (queda en caché).
+                completo = cliente.commit(nombre, sha).get("sha") or sha
+                previo = despliegue_previo(cliente, nombre, workflow, completo)
+                if previo:
+                    return Response(_aviso_desplegado(previo, completo),
+                                    status=status.HTTP_409_CONFLICT)
             variables, extraido, contexto = calcular_variables(
                 cliente, nombre, workflow.path, sha, datos["rama"],
                 datos["evento"])

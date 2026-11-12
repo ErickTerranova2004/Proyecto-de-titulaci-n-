@@ -11,6 +11,8 @@ Cada pasada:
    etiqueta su resultado real. Solo lista lo creado desde la pasada anterior
    menos 48 h (SeguimientoLote) y se salta las ejecuciones ya enlazadas a un
    análisis interactivo.
+3. Actualiza los commits pendientes de desplegar de cada workflow (también
+   del repositorio de demostración) que muestra «Nuevo análisis».
 
     manage.py analizar_lote --contar            # solo cuenta (no guarda nada)
     manage.py analizar_lote --usuario analisis_lote
@@ -23,11 +25,13 @@ from collections import Counter
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import F
 from django.utils import timezone
 
 from riesgo.models import Workflow
 from riesgo.services import github, lote
 from riesgo.services.features import fecha
+from riesgo.services.pendientes import actualizar_pendientes
 from riesgo.services.predictor import SinModeloActivo, modelo_activo
 
 
@@ -80,6 +84,8 @@ class Command(BaseCommand):
             self._interactivos(gh, opciones, errores)
             total, etiquetas = self._workflows(gh, workflows, corte, version,
                                                usuario, opciones, errores)
+            if not opciones["contar"]:
+                self._pendientes(gh, opciones, errores)
         except github.LimiteExcedido:
             raise CommandError("Límite de la API de GitHub agotado; "
                                "vuelva a ejecutar más tarde.")
@@ -109,6 +115,33 @@ class Command(BaseCommand):
         for p in enlazadas:
             self.stdout.write(f"  análisis {p.id} ({p.workflow.repositorio}) → run "
                               f"{p.ejecucion_real.run_id}: {p.ejecucion_real.etiqueta}")
+
+    def _pendientes(self, gh, opciones, errores):
+        """Commits pendientes por workflow (repos reales y demo); primero los
+        que llevan más tiempo sin calcularse, por si se agota el límite."""
+        workflows = (Workflow.objects.filter(
+            despliegue_validado=True, disponible_github=True,
+            repositorio__est_registro="A", repositorio__es_prueba=False)
+            .select_related("repositorio")
+            .order_by(F("pendiente_despliegue__calculado_en").asc(nulls_first=True)))
+        if opciones["repos"]:
+            workflows = workflows.filter(
+                repositorio__nombre_completo__in=opciones["repos"])
+        resultado = Counter()
+        for workflow in workflows:
+            if gh.sesion.llamadas > opciones["max_llamadas"]:
+                resultado["sin_calcular_por_limite"] += 1
+                continue
+            try:
+                resultado[actualizar_pendientes(gh, workflow)] += 1
+            except github.LimiteExcedido:
+                raise
+            except github.GitHubError as exc:
+                errores.append(f"pendientes de {workflow}: {exc}")
+        con_pendientes = Workflow.objects.filter(
+            pendiente_despliegue__commits_pendientes__gt=0).count()
+        self.stdout.write(f"Commits pendientes: {dict(resultado)}; workflows "
+                          f"con commits sin desplegar: {con_pendientes}")
 
     def _workflows(self, gh, workflows, corte, version, usuario, opciones,
                    errores):

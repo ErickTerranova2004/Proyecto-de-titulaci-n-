@@ -378,3 +378,32 @@ class SeguimientoLote(models.Model):
 
     def __str__(self):
         return f"lote {self.workflow_id} hasta {self.listado_hasta:%Y-%m-%d %H:%M}"
+
+
+class PendienteDespliegue(models.Model):
+    """Commits de la rama principal aún sin desplegar por un workflow.
+
+    Lo actualiza cada pasada del análisis en lote (peticiones condicionales:
+    si nada cambió, no gasta cuota). «Nuevo análisis» lo muestra sin
+    consultar GitHub: los repositorios con commits pendientes van primero y
+    al elegirlos se rellenan el commit (cabeza de la rama principal), la rama
+    y el evento con el que despliega.
+    """
+
+    workflow = models.OneToOneField(Workflow, on_delete=models.CASCADE,
+                                    related_name="pendiente_despliegue")
+    rama_principal = models.CharField(max_length=255, blank=True)
+    sha_cabeza = models.CharField(max_length=40, blank=True)
+    # None: el workflow no tiene ningún despliegue correcto con el que comparar.
+    commits_pendientes = models.IntegerField(null=True, blank=True)
+    ultimo_despliegue_sha = models.CharField(max_length=40, blank=True)
+    ultimo_despliegue_en = models.DateTimeField(null=True, blank=True)
+    ultimo_despliegue_evento = models.CharField(max_length=50, blank=True)
+    ultimo_despliegue_rama = models.CharField(max_length=255, blank=True)
+    rama_sugerida = models.CharField(max_length=255, blank=True)
+    etag_despliegues = models.CharField(max_length=200, blank=True)
+    etag_cabeza = models.CharField(max_length=200, blank=True)
+    calculado_en = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.workflow}: {self.commits_pendientes} pendientes"

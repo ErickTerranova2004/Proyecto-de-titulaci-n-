@@ -1,8 +1,9 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from riesgo.models import (DecisionDespliegue, EjecucionWorkflow, Prediccion,
-                           Repositorio, VersionModelo)
+from riesgo.models import (DecisionDespliegue, EjecucionWorkflow,
+                           PendienteDespliegue, Prediccion, Repositorio,
+                           VersionModelo)
 from riesgo.services import asignaciones
 from riesgo.services.github import REPO, SHA, WORKFLOW
 
@@ -26,6 +27,9 @@ class SolicitudPrediccionSerializer(serializers.Serializer):
                                                 allow_null=True, default=None)
     respuesta_desarrollador = serializers.CharField(
         max_length=1000, required=False, allow_blank=True, default="")
+    # El commit ya se desplegó (o se está desplegando): analizar igualmente.
+    confirmar_desplegado = serializers.BooleanField(required=False,
+                                                    default=False)
 
     def validate(self, datos):
         if not datos["head_sha"] and not datos["rama"]:
@@ -226,9 +230,24 @@ class RepositorioSerializer(serializers.ModelSerializer):
                    if w.despliegue_validado)
 
     def get_workflows(self, repositorio):
-        return [{"path": w.path, "nombre": w.nombre}
+        return [{"path": w.path, "nombre": w.nombre,
+                 "pendientes": _pendientes(w)}
                 for w in repositorio.workflows.all()
                 if w.despliegue_validado and w.disponible_github]
+
+
+def _pendientes(workflow):
+    """Commits sin desplegar según la última pasada del lote (sin consultar
+    GitHub); None si aún no se ha calculado."""
+    try:
+        p = workflow.pendiente_despliegue
+    except PendienteDespliegue.DoesNotExist:
+        return None
+    return {"commits": p.commits_pendientes, "sha": p.sha_cabeza,
+            "rama_principal": p.rama_principal, "rama": p.rama_sugerida,
+            "evento": p.ultimo_despliegue_evento,
+            "ultimo_despliegue_en": p.ultimo_despliegue_en,
+            "calculado_en": p.calculado_en}
 
 
 class VersionModeloSerializer(serializers.ModelSerializer):
