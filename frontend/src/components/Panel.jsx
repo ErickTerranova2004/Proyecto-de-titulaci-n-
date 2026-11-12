@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
 import { cargarTarjetas } from "../cargaAdmin.js";
+import { formatoMetrica, metricasModelo } from "../metricas.js";
 import { MisAsignaciones } from "./Alarma.jsx";
 import { Alerta, Fecha, NIVELES, NivelRiesgo, NotaCorte, porcentaje } from "./comunes.jsx";
 import { BarrasApiladas, Dona, Embudo, Linea } from "./graficos.jsx";
@@ -628,7 +629,7 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
             titulo="Modelo activo"
             valor={activo ? activo.version : "—"}
             detalle={activo
-              ? `${activo.nombre_modelo} · PR-AUC ${activo.metadatos.metricas_prueba["PR-AUC"].toFixed(3)}`
+              ? `${activo.nombre_modelo} · PR-AUC ${formatoMetrica(metricasModelo(activo.metadatos).valores["PR-AUC"])}`
               : "No hay un modelo activo"}
           />
           <Kpi

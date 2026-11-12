@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { Alerta, Fecha, NIVELES, NotaCorte, porcentaje } from "./comunes.jsx";
 
-const METRICAS = ["PR-AUC", "ROC-AUC", "Precision", "Recall", "F1", "Brier"];
+import { formatoMetrica, METRICAS, metricasModelo } from "../metricas.js";
 
 export default function Modelos({ modelos, esAdmin, alCambiar }) {
   const [error, setError] = useState("");
@@ -26,7 +26,8 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
       <header className="encabezado">
         <h1 id="titulo-modelos">Versiones del modelo</h1>
         <p className="secundario">
-          Modelos registrados. Las métricas corresponden a la partición temporal de prueba de cada versión.
+          Modelos registrados. Las métricas de v1 y v1.1 corresponden a su partición temporal de prueba; las de v2, a
+          la validación por repositorio (repositorios no vistos). No son comparables entre sí.
         </p>
       </header>
       <Alerta>{error}</Alerta>
@@ -40,7 +41,7 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
               <th scope="col">Modelo</th>
               <th scope="col">Estado</th>
               <th scope="col" className="numero">Filas de entrenamiento</th>
-              <th scope="col" className="numero">Filas de prueba</th>
+              <th scope="col">Evaluación</th>
               {METRICAS.map((m) => (
                 <th key={m} scope="col" className="numero">{m}</th>
               ))}
@@ -51,7 +52,7 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
           </thead>
           <tbody>
             {modelos.map((m) => {
-              const met = m.metadatos.metricas_prueba;
+              const { origen, valores: met } = metricasModelo(m.metadatos);
               const limites = m.metadatos.limites_riesgo;
               return (
                 <tr key={m.id}>
@@ -59,9 +60,13 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
                   <td><strong>{m.nombre_modelo}</strong></td>
                   <td>{m.activo ? <span className="estado estado--activo">Activo</span> : <span className="secundario">Inactivo</span>}</td>
                   <td className="numero">{m.metadatos.filas_entrenamiento}</td>
-                  <td className="numero">{m.metadatos.filas_prueba}</td>
+                  <td>
+                    {origen ?? "—"}
+                    {m.metadatos.filas_prueba != null && ` (${m.metadatos.filas_prueba} filas)`}
+                    {m.metadatos.repositorios != null && ` (${m.metadatos.repositorios} repositorios)`}
+                  </td>
                   {METRICAS.map((clave) => (
-                    <td key={clave} className="numero destacado">{met[clave].toFixed(3)}</td>
+                    <td key={clave} className="numero destacado">{formatoMetrica(met[clave])}</td>
                   ))}
                   <td className="font-mono">{porcentaje(limites.medio)} / {porcentaje(limites.alto)}</td>
                   <td><Fecha valor={m.registrado_en} /></td>
