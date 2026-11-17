@@ -49,7 +49,6 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
   }, [resultado]);
   const workflows = repos?.find((r) => r.nombre_completo === datos.repositorio)?.workflows || [];
   const workflowElegido = workflows.find((w) => w.path === datos.workflow_path);
-  const pendientes = commitsPendientes(workflowElegido) ? workflowElegido.pendientes : null;
 
   // Con commits pendientes se rellenan commit, rama y evento; si no, se vacía
   // el commit (podría ser de otro repositorio).
@@ -214,15 +213,6 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
               </select>
             </div>
           </div>
-          {pendientes && (
-            <p className="nota" role="status">
-              {textoPendientes(pendientes.commits)} sin desplegar en <strong>{pendientes.rama_principal}</strong> desde
-              el último despliegue correcto (<Fecha valor={pendientes.ultimo_despliegue_en} />
-              {pendientes.evento && <>, evento {pendientes.evento}</>}). Se rellenaron el último commit, la rama
-              {pendientes.evento === "release" && " (el tag probable de la próxima versión)"} y el evento. Datos de la
-              tarea programada del <Fecha valor={pendientes.calculado_en} />.
-            </p>
-          )}
         </fieldset>
 
         {respuesta && (
