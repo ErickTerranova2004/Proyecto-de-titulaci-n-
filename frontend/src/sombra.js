@@ -29,9 +29,3 @@ export function textoComparacion(referencia, modelo) {
   return `${referencia} frente a ${modelo.version}: Brier ${TEXTOS[resultadoReferencia(modelo, "brier")]}; PR-AUC ${
     TEXTOS[resultadoReferencia(modelo, "pr_auc")]}.`;
 }
-
-// Confirmación del botón «Activar» de Modelos.
-export function textoConfirmarActivacion(nuevo, actual) {
-  const desde = actual ? ` en lugar de ${actual.version} (${actual.nombre_modelo})` : "";
-  return `¿Activar ${nuevo.version} (${nuevo.nombre_modelo})? Todos los análisis nuevos y las pasadas del lote usarán este modelo${desde}.`;
-}

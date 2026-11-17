@@ -35,11 +35,3 @@ test("textos", () => {
   assert.match(textoComparacion("v2", v1), /^v2 frente a v1: Brier mejor .*PR-AUC mejor/);
   assert.match(textoComparacion("v2", v11), /sin diferencia concluyente/);
 });
-
-test("confirmación antes de cambiar el modelo activo", async () => {
-  const { textoConfirmarActivacion } = await import("../src/sombra.js");
-  assert.equal(
-    textoConfirmarActivacion({ version: "v1", nombre_modelo: "Árbol de decisión" }, { version: "v2", nombre_modelo: "Random Forest" }),
-    "¿Activar v1 (Árbol de decisión)? Todos los análisis nuevos y las pasadas del lote usarán este modelo en lugar de v2 (Random Forest).",
-  );
-});

@@ -3,17 +3,13 @@ import { api } from "../api.js";
 import { Alerta, Fecha, NIVELES, NotaCorte, porcentaje } from "./comunes.jsx";
 
 import { formatoMetrica, METRICAS, metricasModelo } from "../metricas.js";
-import { formatoIntervalo, textoComparacion, textoConfirmarActivacion } from "../sombra.js";
+import { formatoIntervalo, textoComparacion } from "../sombra.js";
 
 export default function Modelos({ modelos, esAdmin, alCambiar }) {
   const [error, setError] = useState("");
   const [activando, setActivando] = useState(null);
 
   async function activar(id) {
-    // Cambiar el modelo activo cambia todos los análisis nuevos: se confirma.
-    const nuevo = modelos.find((m) => m.id === id);
-    const actual = modelos.find((m) => m.activo);
-    if (!window.confirm(textoConfirmarActivacion(nuevo, actual))) return;
     setError("");
     setActivando(id);
     try {

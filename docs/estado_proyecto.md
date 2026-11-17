@@ -233,8 +233,10 @@ cd frontend; npx vite --port 5174
 - Incidente 10:56: v1 quedó activa desde Modelos → «Activar» (usuario
   `revision_admin`, en el backend antiguo de las 8:49). Se reactivó v2 a las
   10:59 (respaldo `..._105926_antes_reactivar_v2.dump`); no se hizo ninguna
-  predicción con v1 en ese intervalo. El botón «Activar» ahora pide
-  confirmación.
+  predicción con v1 en ese intervalo. Se repitió a las 11:04:56 (otra
+  activación de v1 desde el mismo botón); v2 se reactivó a las 11:06
+  (respaldo `..._antes_reactivar_v2_b.dump`), sin predicciones con v1. Se
+  probó una confirmación en el botón y se quitó a pedido del usuario.
 
 **Hecho el 12-nov**
 - Error boundary en React (`frontend/src/limiteErrores.js`): un error al
