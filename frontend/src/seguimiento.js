@@ -1,9 +1,6 @@
-// Resultado real de un análisis: ya no hay botón «Verificar resultado real».
-// La vista del análisis consulta GitHub sola (seguimiento en la página) y la
-// tarea programada del lote enlaza los pendientes cada 4 h.
-
-export const TEXTO_VERIFICACION_AUTOMATICA =
-  "El resultado real se verifica automáticamente cuando el despliegue termina (seguimiento en la página y tarea programada cada 4 h)";
+// Resultado real de un análisis: la vista no muestra el apartado mientras no
+// haya resultado; lo enlaza el seguimiento en segundo plano de la página y la
+// tarea programada del lote (cada 4 h).
 
 // Mientras la verificación quede pendiente se vuelve a consultar GitHub cada
 // INTERVALO_SEGUIMIENTO, como máximo DURACION_SEGUIMIENTO desde que se abrió.

@@ -4,7 +4,7 @@ import {
   Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, hoyLocal, NIVELES, NivelRiesgo, porcentaje, useRoles,
 } from "./comunes.jsx";
 import { aceptaRecomendacion, decisionRecomendada, RECOMENDACIONES } from "../recomendacion.js";
-import { INTERVALO_SEGUIMIENTO, siguientePaso, TEXTO_VERIFICACION_AUTOMATICA } from "../seguimiento.js";
+import { INTERVALO_SEGUIMIENTO, siguientePaso } from "../seguimiento.js";
 
 // Textos de presentación para los códigos de EjecucionWorkflow.etiqueta y
 // EjecucionWorkflow.subtipo_etiqueta (los códigos vienen de la API).
@@ -64,8 +64,6 @@ function Factores({ factores }) {
 // INTERVALO_SEGUIMIENTO, como máximo DURACION_SEGUIMIENTO. Si la página se
 // cierra, la tarea programada del lote enlaza el resultado (cada 4 h).
 function ResultadoReal({ prediccion, alActualizar }) {
-  const [pendiente, setPendiente] = useState(null);
-  const [error, setError] = useState("");
   const temporizador = useRef(null);
   const inicio = useRef(0);
   const real = prediccion.ejecucion_real;
@@ -76,25 +74,21 @@ function ResultadoReal({ prediccion, alActualizar }) {
   }
 
   async function consultar() {
-    setError("");
     try {
       const respuesta = await api.verificar(prediccion.id);
       const paso = siguientePaso(respuesta, Date.now() - inicio.current);
       if (paso === "enlazado") {
         detener();
-        setPendiente(null);
         alActualizar(respuesta);
         return;
       }
-      setPendiente(respuesta);
       if (paso === "detener") {
         detener();
         return;
       }
       temporizador.current = setTimeout(consultar, INTERVALO_SEGUIMIENTO);
-    } catch (e) {
+    } catch {
       detener();
-      setError(e.message);
     }
   }
 
@@ -106,33 +100,14 @@ function ResultadoReal({ prediccion, alActualizar }) {
     return () => clearTimeout(temporizador.current);
   }, [prediccion.id]);
 
-  if (!real) {
-    return (
-      <div className="recuadro">
-        <p role="note">{TEXTO_VERIFICACION_AUTOMATICA}.</p>
-        {pendiente?.ejecucion_github && <EjecucionGitHub ejecucion={pendiente.ejecucion_github} />}
-        <Alerta>{error}</Alerta>
-      </div>
-    );
-  }
-  return <DatosEjecucion real={real} className="datos recuadro" />;
-}
-
-// Resultado en GitHub de una ejecución del mismo commit que empezó antes del
-// análisis: se muestra, pero no se enlaza ni cuenta en la supervisión.
-function EjecucionGitHub({ ejecucion }) {
+  // Sin resultado real el apartado no se muestra: el seguimiento sigue en
+  // segundo plano y, al enlazarse la ejecución, aparece con sus datos.
+  if (!real) return null;
   return (
-    <div className="nota" role="status">
-      <p><strong>Resultado real en GitHub</strong></p>
-      <DatosEjecucion real={ejecucion} className="datos" />
-      <p className="secundario">
-        Esta ejecución empezó antes del análisis, por eso no se enlaza ni cuenta en la supervisión del modelo. Si llega
-        una ejecución posterior, se enlazará automáticamente.
-        {ejecucion.url && (
-          <> <a href={ejecucion.url}>Ver la ejecución en GitHub</a>.</>
-        )}
-      </p>
-    </div>
+    <section aria-labelledby={`real-${prediccion.id}`}>
+      <h3 id={`real-${prediccion.id}`}>Resultado real</h3>
+      <DatosEjecucion real={real} className="datos recuadro" />
+    </section>
   );
 }
 
@@ -447,10 +422,7 @@ export default function Resultado({ prediccion, modelos }) {
         )}
       </section>
 
-      <section aria-labelledby={`real-${p.id}`}>
-        <h3 id={`real-${p.id}`}>Resultado real</h3>
-        <ResultadoReal prediccion={p} alActualizar={setP} />
-      </section>
+      <ResultadoReal prediccion={p} alActualizar={setP} />
 
       <section aria-labelledby={`decision-${p.id}`}>
         <h3 id={`decision-${p.id}`}>Decisión del líder técnico</h3>
