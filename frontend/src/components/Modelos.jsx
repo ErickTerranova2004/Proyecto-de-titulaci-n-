@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
-import { Alerta, Fecha, NIVELES, NotaCorte, porcentaje } from "./comunes.jsx";
+import { Alerta, Fecha, NIVELES, porcentaje } from "./comunes.jsx";
 
 import { formatoMetrica, METRICAS, metricasModelo } from "../metricas.js";
 import { formatoIntervalo } from "../sombra.js";
@@ -118,9 +118,6 @@ function Supervision({ modelos }) {
     <section aria-labelledby="titulo-supervision">
       <h2 id="titulo-supervision">Supervisión con resultados reales</h2>
       <Alerta>{error}</Alerta>
-      {modelos.map((m) => (
-        <NotaCorte key={m.id} supervision={datos[m.id]} />
-      ))}
       <div className="tabla-contenedor">
         <table>
           <caption>
