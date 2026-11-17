@@ -12,6 +12,7 @@ de recomendaciones.py: nunca un error 500.
 import json
 import logging
 import math
+import time
 
 import anthropic
 import httpx
@@ -121,7 +122,8 @@ def analizar(variables, resultado, contexto, repositorio, workflow_path,
              rama, evento):
     """Devuelve (analisis_ia, recomendaciones).
 
-    analisis_ia: {"origen", "modelo", "resumen", "error"}.
+    analisis_ia: {"origen", "modelo", "resumen", "error"} y, con Claude,
+    "uso": {"tokens_entrada", "tokens_salida", "duracion_s"}.
     recomendaciones: lista de {"codigo", "variable", "texto"}.
     """
     proveedor = settings.IA_PROVEEDOR
@@ -142,6 +144,7 @@ def _con_claude(datos, variables, factores):
     cliente = anthropic.Anthropic(api_key=settings.CLAUDE_API_KEY,
                                   timeout=float(settings.IA_TIMEOUT),
                                   max_retries=0)
+    inicio = time.monotonic()
     try:
         respuesta = cliente.messages.parse(
             model=settings.CLAUDE_MODELO,
@@ -172,8 +175,13 @@ def _con_claude(datos, variables, factores):
     uso = respuesta.usage
     logger.info("Análisis con %s: %s tokens de entrada, %s de salida",
                 respuesta.model, uso.input_tokens, uso.output_tokens)
-    return _con_analisis(analisis, respuesta.model or settings.CLAUDE_MODELO,
-                         variables, factores)
+    resultado, recomendaciones = _con_analisis(
+        analisis, respuesta.model or settings.CLAUDE_MODELO, variables, factores)
+    # Consumo de la llamada, guardado con el análisis (jsn_analisis_ia).
+    resultado["uso"] = {"tokens_entrada": uso.input_tokens,
+                        "tokens_salida": uso.output_tokens,
+                        "duracion_s": round(time.monotonic() - inicio, 2)}
+    return resultado, recomendaciones
 
 
 def _con_gemini(datos, variables, factores):

@@ -164,9 +164,14 @@ class ClaudeTest(SimpleTestCase):
                 mock.patch.object(analisis_ia.genai, "Client") as gemini:
             analisis, recomendaciones = _analizar()
         gemini.assert_not_called()
+        uso = analisis.pop("uso")
         self.assertEqual(analisis, {"origen": "ia", "modelo": "claude-haiku-5-5",
                                     "resumen": "La última ejecución falló.",
                                     "error": None})
+        # El consumo de la llamada se guarda con el análisis.
+        self.assertEqual((uso["tokens_entrada"], uso["tokens_salida"]),
+                         (1200, 150))
+        self.assertGreaterEqual(uso["duracion_s"], 0)
         self.assertEqual(recomendaciones, [
             {"codigo": "IA01", "variable": "wf_ultimo_fallo",
              "texto": "Revise el fallo anterior."},
