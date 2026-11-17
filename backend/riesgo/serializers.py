@@ -223,7 +223,8 @@ class RepositorioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Repositorio
-        fields = ["id", "nombre_completo", "workflows", "workflows_validados"]
+        fields = ["id", "nombre_completo", "workflows", "workflows_validados",
+                  "es_demostracion", "es_prueba"]
 
     def get_workflows_validados(self, repositorio):
         return sum(1 for w in repositorio.workflows.all()
