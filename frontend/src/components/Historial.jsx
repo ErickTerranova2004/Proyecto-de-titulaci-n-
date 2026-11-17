@@ -3,7 +3,7 @@ import { api } from "../api.js";
 import {
   Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador,
 } from "./comunes.jsx";
-import Resultado, { ETIQUETAS } from "./Resultado.jsx";
+import Resultado from "./Resultado.jsx";
 
 // Seguimiento de la fecha límite de la última decisión (vista / cumplida).
 export function SeguimientoAsignacion({ decision, nivelOriginal }) {
@@ -46,7 +46,7 @@ export default function Historial({
             ← Volver al historial
           </button>
         </div>
-        <Resultado prediccion={seleccion} modelos={modelos} />
+        <Resultado prediccion={seleccion} modelos={modelos} mostrarResultadoReal={false} />
       </section>
     );
   }
@@ -79,7 +79,6 @@ export default function Historial({
                   <th scope="col">Commit</th>
                   <th scope="col">Riesgo</th>
                   <th scope="col" className="numero">Probabilidad</th>
-                  <th scope="col">Resultado real</th>
                   <th scope="col">Decisión</th>
                   {mostrarSeguimiento && <th scope="col">Fecha límite</th>}
                   {mostrarSeguimiento && <th scope="col">Seguimiento</th>}
@@ -98,7 +97,6 @@ export default function Historial({
                     <td><code>{p.head_sha.slice(0, 7)}</code></td>
                     <td><NivelRiesgo nivel={p.nivel} /></td>
                     <td className="numero destacado">{porcentaje(p.probabilidad)}</td>
-                    <td>{p.ejecucion_real ? ETIQUETAS[p.ejecucion_real.etiqueta] || p.ejecucion_real.etiqueta : "Pendiente"}</td>
                     <td>{p.decisiones?.length ? DECISIONES[p.decisiones[0].decision] : "Sin decisión"}</td>
                     {mostrarSeguimiento && <td><FechaDia valor={p.decisiones?.[0]?.fecha_limite} /></td>}
                     {mostrarSeguimiento && <td><SeguimientoAsignacion decision={p.decisiones?.[0]} nivelOriginal={p.nivel} /></td>}

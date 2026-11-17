@@ -316,7 +316,8 @@ function Decision({ prediccion, alActualizar }) {
   );
 }
 
-export default function Resultado({ prediccion, modelos }) {
+// mostrarResultadoReal = false (Historial): sin el apartado «Resultado real».
+export default function Resultado({ prediccion, modelos, mostrarResultadoReal = true }) {
   const [p, setP] = useState(prediccion);
   useEffect(() => setP(prediccion), [prediccion]);
 
@@ -422,7 +423,7 @@ export default function Resultado({ prediccion, modelos }) {
         )}
       </section>
 
-      <ResultadoReal prediccion={p} alActualizar={setP} />
+      {mostrarResultadoReal && <ResultadoReal prediccion={p} alActualizar={setP} />}
 
       <section aria-labelledby={`decision-${p.id}`}>
         <h3 id={`decision-${p.id}`}>Decisión del líder técnico</h3>
