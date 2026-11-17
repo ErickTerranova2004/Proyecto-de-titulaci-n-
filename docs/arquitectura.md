@@ -237,8 +237,23 @@ En las vistas, las columnas de auditoría que Django no guarda (`usu_creacion`, 
 1. El usuario elige un repositorio con acceso asignado y uno de sus workflows validados (`GET /api/repositorios/`).
 2. El backend valida las entradas y busca el repositorio por nombre. Si no lo encuentra, consulta GitHub y lo busca por `github_id`, por si fue renombrado. Después comprueba el **acceso** y que el workflow esté **validado**.
 3. Consulta GitHub (commit, historial del workflow e historial del repositorio) y calcula las mismas variables del entrenamiento, usando solo ejecuciones completadas antes del momento de la predicción.
-4. Calcula la probabilidad calibrada, el nivel de riesgo, los factores SHAP y las recomendaciones con su código de regla.
-5. En una transacción guarda el `COMMIT`, las `EJECUCION_WORKFLOW` previas (enlazadas en `PREDICCION_EJECUCIONES_PREVIAS`) y la `PREDICCION`.
+4. Calcula la probabilidad calibrada, el nivel de riesgo, los factores SHAP y la recomendación automática (alto → «Solicitar revisión previa»; bajo o medio → «Permitir el despliegue»).
+5. Redacta el análisis explicado (ver [Análisis con IA](#análisis-con-ia)): un resumen y recomendaciones `IA01`, `IA02`… o, si no hay IA disponible, las recomendaciones por reglas con su código.
+6. En una transacción guarda el `COMMIT`, las `EJECUCION_WORKFLOW` previas (enlazadas en `PREDICCION_EJECUCIONES_PREVIAS`) y la `PREDICCION`.
+
+### Análisis con IA
+
+`backend/riesgo/services/analisis_ia.py`. La IA **solo redacta**: recibe la probabilidad, el nivel, los factores SHAP, las variables y el contexto del commit (sin el nombre del autor) y devuelve un resumen y de 1 a 5 recomendaciones con la variable en que se basan (`IA01`, `IA02`…). No recalcula ni cambia la probabilidad, el nivel ni la recomendación automática.
+
+| Variable (`backend/.env`) | Valor por defecto | Uso |
+|---|---|---|
+| `IA_PROVEEDOR` | `claude` | `claude`, `gemini` o `reglas` |
+| `CLAUDE_API_KEY` | — | Clave de Anthropic; se pasa explícitamente al SDK (no se lee `ANTHROPIC_API_KEY`) |
+| `CLAUDE_MODELO` | `claude-haiku-5-5` | Modelo de Claude |
+| `GEMINI_API_KEY`, `GEMINI_MODELO` | —, `gemini-3.5-flash` | Proveedor alternativo |
+| `IA_TIMEOUT` | `90` | Segundos máximos de espera |
+
+Con Claude se usa el SDK oficial (`anthropic`) con salida estructurada (`client.messages.parse` con el esquema Pydantic `Analisis`), esfuerzo `low` y sin reintentos, para que la espera nunca supere `IA_TIMEOUT`. Si falta la clave del proveedor, la llamada falla (tiempo agotado, conexión, 4xx/5xx), la respuesta no cumple el esquema o el modelo la rechaza (`stop_reason: "refusal"`), el análisis sale **por reglas** (`recomendaciones.py`) y `analisis_ia.error` indica el motivo: nunca un error 500. En las pruebas automáticas `IA_PROVEEDOR` es siempre `reglas` (`config/settings.py`): ninguna prueba llama a una API de pago; las de Claude y Gemini la simulan.
 
 ## Verificación del resultado real
 

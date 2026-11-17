@@ -192,6 +192,10 @@ class AnalisisLoteTest(Base):
         lote.analizar_workflow(gh, self.workflow, CORTE, self.version,
                                self.usuario)
         gh.runs[-1].update(status="completed", conclusion="success")
+        # Pasada anterior a una hora fija (la real es «ahora»): la ventana
+        # incremental (pasada anterior − 48 h) incluye las ejecuciones del 10.
+        SeguimientoLote.objects.filter(workflow=self.workflow).update(
+            listado_hasta=momento(11, 6))
         resumen, creadas = lote.analizar_workflow(
             gh, self.workflow, CORTE, self.version, self.usuario)
         self.assertEqual(resumen["ya_analizadas"], 2)

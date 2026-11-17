@@ -2,7 +2,8 @@
 
 Tesis: «Plataforma predictiva basada en IA para el riesgo de despliegue de
 aplicaciones empresariales». Django/DRF + React/Vite, PostgreSQL, Random
-Forest/XGBoost + SHAP, análisis de texto con Gemini.
+Forest/XGBoost + SHAP, análisis de texto con Claude (Haiku 5.5; Gemini como
+alternativa).
 
 Actualizado: 2026-11-12 · rama `feature/100-repos-desplegados` (publicada en
 `origin`, **sin merge a `main`**).
@@ -49,8 +50,11 @@ Actualizado: 2026-11-12 · rama `feature/100-repos-desplegados` (publicada en
 - Recomendación automática: nivel alto → «Solicitar revisión previa»;
   bajo/medio → «Permitir el despliegue». El líder técnico la acepta o la
   cambia (se guarda `acepta_recomendacion`).
-- Gemini solo redacta el texto del análisis; si falla o tarda (`IA_TIMEOUT`),
-  se usa el análisis por reglas (nunca Error 500).
+- La IA solo redacta el texto del análisis (resumen y recomendaciones IA01,
+  IA02…). Proveedor `IA_PROVEEDOR=claude|gemini|reglas` (por defecto Claude,
+  modelo `CLAUDE_MODELO=claude-haiku-5-5`, clave `CLAUDE_API_KEY`); si falla,
+  rechaza o tarda más de `IA_TIMEOUT`, se usa el análisis por reglas (nunca
+  Error 500). Las pruebas nunca llaman a una API de pago.
 - Supervisión prospectiva: cuenta solo ejecuciones posteriores al corte;
   excluye repos de demostración y de prueba. 542 predicciones de lote y 225
   interactivas en la base (12-nov).
@@ -125,7 +129,7 @@ cd frontend; npx vite --port 5174
 |---|---|
 | Mantener las tablas de usuarios de Django y exponer `seg_*` como vistas | Cambiar el modelo de usuario a mitad del proyecto obliga a rehacer migraciones, usuarios y tokens |
 | `est_registro` sin borrado lógico ('E') | Cambiaría el comportamiento de todas las consultas y de las restricciones únicas |
-| La IA (Gemini) solo redacta el análisis | La probabilidad, el nivel, los factores SHAP y la recomendación son del modelo |
+| La IA (Claude; antes Gemini) solo redacta el análisis | La probabilidad, el nivel, los factores SHAP y la recomendación son del modelo |
 | Lote: no analizar ejecuciones ya enlazadas a un análisis interactivo | Un despliegue no debe contar dos veces en la supervisión |
 | Lote cada 4 h (no cada hora) | Las variables se reconstruyen al inicio de cada ejecución: la frecuencia no cambia el resultado y ahorra cuota |
 | No filtrar repositorios en «Nuevo análisis»; avisar del commit ya desplegado | «Desplegado» depende del commit; la mayoría despliega con cada push |

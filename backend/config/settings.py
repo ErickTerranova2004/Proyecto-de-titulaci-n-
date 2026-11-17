@@ -5,6 +5,7 @@ de variables de entorno o de backend/.env, nunca del código fuente.
 """
 
 import os
+import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -145,11 +146,21 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_API_URL = "https://api.github.com"
 MODELOS_DIR = Path(os.environ.get("MODELOS_DIR", PROJECT_DIR / "modelos"))
 
-# Análisis explicado con Gemini. Sin GEMINI_API_KEY se usan las
+# Análisis explicado con IA (riesgo/services/analisis_ia.py): la IA solo
+# redacta el texto; probabilidad, nivel, SHAP y recomendación son del
+# modelo. IA_PROVEEDOR = claude | gemini | reglas. Sin la clave del
+# proveedor, o si falla o tarda más de IA_TIMEOUT segundos, se usan las
 # recomendaciones por reglas.
+IA_PROVEEDOR = os.environ.get("IA_PROVEEDOR", "claude").strip().lower()
+CLAUDE_API_KEY = os.environ.get("CLAUDE_API_KEY", "")
+CLAUDE_MODELO = os.environ.get("CLAUDE_MODELO", "claude-haiku-5-5")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODELO = os.environ.get("GEMINI_MODELO", "gemini-3.5-flash")
 IA_TIMEOUT = int(os.environ.get("IA_TIMEOUT", "90"))
+# Las pruebas nunca llaman a una API de IA de pago (cada prueba que la
+# simula fija su proveedor con override_settings).
+if sys.argv[1:2] == ["test"]:
+    IA_PROVEEDOR = "reglas"
 
 # Correo de asignaciones al desarrollador: desactivado por defecto. Se envía
 # solo con CORREO_ASIGNACIONES=1; sin EMAIL_HOST se usa el backend de consola
