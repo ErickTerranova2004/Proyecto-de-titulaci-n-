@@ -6,6 +6,7 @@ import { MisAsignaciones } from "./Alarma.jsx";
 import { Alerta, Fecha, NIVELES, NivelRiesgo, NotaCorte, porcentaje } from "./comunes.jsx";
 import { BarrasApiladas, Dona, Embudo, Linea } from "./graficos.jsx";
 import Resultado, { ETIQUETAS } from "./Resultado.jsx";
+import { pasosEmbudo, textoDemostracion } from "../embudo.js";
 
 // Dashboard principal con el mismo diseño para los tres perfiles: flujo de la
 // plataforma, distribución por nivel, análisis por día, seguimiento de
@@ -160,6 +161,9 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
   // (siguen en Historial y en el resultado de cada análisis).
   const [historial, setHistorial] = useState(null);
   const [demostraciones, setDemostraciones] = useState(0);
+  // Análisis del repositorio de demostración: solo se suman al embudo del
+  // desarrollador («Mis resultados verificados»).
+  const [demos, setDemos] = useState([]);
   const [repos, setRepos] = useState([]);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
@@ -179,6 +183,7 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
         const reales = h.filter((p) => !p.demostracion && !p.prueba);
         setHistorial(reales);
         setDemostraciones(h.length - reales.length);
+        setDemos(h.filter((p) => p.demostracion));
         setRepos(r);
         setCargadoEn(new Date().toISOString());
       })
@@ -216,6 +221,10 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
     const verificadas = enPeriodo.filter((p) => p.ejecucion_real);
     const evaluables = verificadas.filter((p) => p.ejecucion_real.y !== null && p.ejecucion_real.y !== undefined);
     const noCompletados = evaluables.filter((p) => p.ejecucion_real.y === 1);
+    const demosPeriodo = perfil === "desarrollador"
+      ? demos.filter((p) => new Date(p.creada_en).getTime() >= desde)
+      : [];
+    const embudo = pasosEmbudo(enPeriodo, demosPeriodo);
     const ordenarRecientes = (lista) => [...lista].sort((a, b) => (a.creada_en < b.creada_en ? 1 : -1));
     const sinDecision = ordenarRecientes(enPeriodo.filter((p) => !p.decisiones?.length && p.nivel !== "bajo"));
 
@@ -236,12 +245,12 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
     }
 
     return {
-      total, anterior, conteos, alto, probMedia, verificadas, evaluables, noCompletados, repositorios, sinDecision,
+      total, anterior, conteos, alto, probMedia, verificadas, evaluables, noCompletados, repositorios, sinDecision, embudo,
       desarrolladores: agrupar(enPeriodo, "usuario").sort((a, b) => b.n - a.n),
       dias: serieDiaria(enPeriodo, desde, ahora),
       recientes: ordenarRecientes(enPeriodo).slice(0, 6),
     };
-  }, [historial, repos, periodo, perfil]);
+  }, [historial, demos, repos, periodo, perfil]);
 
   const nombrePeriodo = PERIODOS.find(([id]) => id === periodo)[1].toLowerCase();
   const workflowsValidados = repos.reduce((s, r) => s + r.workflows.length, 0);
@@ -294,13 +303,14 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
         <p className="secundario">De la predicción a la ejecución real</p>
         <Embudo
           pasos={[
-            { etiqueta: "Análisis realizados", valor: datos.total },
-            { etiqueta: "Ejecución real verificada", valor: datos.verificadas.length },
-            { etiqueta: "Resultado evaluable", valor: datos.evaluables.length },
-            { etiqueta: "Despliegue no completado", valor: datos.noCompletados.length },
+            { etiqueta: "Análisis realizados", valor: datos.embudo.total },
+            { etiqueta: "Ejecución real verificada", valor: datos.embudo.verificadas },
+            { etiqueta: "Resultado evaluable", valor: datos.embudo.evaluables },
+            { etiqueta: "Despliegue no completado", valor: datos.embudo.noCompletados },
           ]}
         />
         <p className="secundario nota-pie">Los casos ambiguos o sin intento de despliegue no son evaluables.</p>
+        {datos.embudo.demostracion > 0 && <p className="secundario nota-pie">{textoDemostracion(datos.embudo)}</p>}
       </section>
     </div>
   );
