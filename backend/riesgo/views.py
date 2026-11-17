@@ -511,17 +511,26 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
         version = self.get_object()
         todas, predicciones, corte, excluidas_corte = (
             supervision.posteriores_al_corte(version))
+        # Una versión no activa no hace análisis nuevos: su supervisión suma
+        # sus predicciones en sombra (las mismas ejecuciones evaluables que
+        # la del modelo activo, ver services/sombra.py).
+        sombra = (Prediccion.con_sombra.filter(origen="sombra",
+                                               version_modelo=version)
+                  if not version.activo else Prediccion.con_sombra.none())
         evaluables = [
             (p.nivel, p.probabilidad, p.ejecucion_real.y)
-            for p in supervision.evaluables(predicciones)
+            for consulta in (predicciones, sombra)
+            for p in supervision.evaluables(consulta)
             .select_related("ejecucion_real")]
         y = [y for _, _, y in evaluables]
         por_nivel = supervision.tasas_por_nivel(
             [n for n, _, _ in evaluables], y)
         brier = supervision.brier([p for _, p, _ in evaluables], y)
+        n_sombra = sombra.count()
         return Response({
             "version": version.version,
-            "predicciones": predicciones.count(),
+            "predicciones": predicciones.count() + n_sombra,
+            "predicciones_sombra": n_sombra,
             # Excluidas de todas las métricas anteriores.
             "predicciones_demostracion": todas.de_demostracion().count(),
             "predicciones_prueba": todas.de_prueba().count(),
@@ -529,7 +538,8 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
             "predicciones_anteriores_al_corte": excluidas_corte,
             "predicciones_lote": predicciones.filter(origen="lote").count(),
             "verificadas": predicciones.filter(
-                ejecucion_real__isnull=False).count(),
+                ejecucion_real__isnull=False).count()
+            + sombra.filter(ejecucion_real__isnull=False).count(),
             "evaluables": len(evaluables),
             "por_nivel": por_nivel,
             "brier": brier,

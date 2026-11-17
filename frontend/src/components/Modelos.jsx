@@ -168,6 +168,15 @@ function Supervision({ modelos }) {
           </p>
         ) : null;
       })}
+      {modelos.map((m) => {
+        const n = datos[m.id]?.predicciones_sombra;
+        return n ? (
+          <p key={`sombra-${m.id}`} className="secundario nota-pie">
+            {datos[m.id].version}: incluye {n} predicciones en sombra sobre las mismas ejecuciones del modelo activo (no
+            hace análisis nuevos mientras no está activo).
+          </p>
+        ) : null;
+      })}
       <ComparacionSombra />
     </section>
   );

@@ -140,9 +140,21 @@ class FueraDeLaPlataformaTest(Base):
         api = test_api.ApiTest.cliente(self, admin)
         self.assertEqual([p["id"] for p in api.get("/api/predicciones/").json()],
                          [base.id])
+        # La supervisión de v2 (activo) no las cuenta; la de una versión no
+        # activa las suma (no hace análisis nuevos) y lo indica aparte.
+        datos = api.get(f"/api/modelos/{self.v2.id}/supervision/").json()
+        self.assertEqual((datos["predicciones"], datos["predicciones_sombra"]),
+                         (1, 0))
         for version in (self.v1, self.v11):
             datos = api.get(f"/api/modelos/{version.id}/supervision/").json()
-            self.assertEqual(datos["predicciones"], 0)
+            self.assertEqual(datos["predicciones"], 1)
+            self.assertEqual(datos["predicciones_sombra"], 1)
+            self.assertEqual(datos["verificadas"], 1)
+            self.assertEqual(datos["evaluables"], 1)
+            self.assertEqual(datos["por_nivel"][Prediccion.con_sombra.get(
+                origen="sombra", version_modelo=version).nivel]
+                ["no_completados"], 1)
+            self.assertIsNotNone(datos["brier"])
         workflows = api.get("/api/gestion/workflows/").json()["workflows"]
         self.assertEqual(workflows[0]["predicciones"], 1)
         usuarios = {u["usuario"]: u for u in api.get(
