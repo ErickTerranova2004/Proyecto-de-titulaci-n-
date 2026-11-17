@@ -3,8 +3,8 @@
 Cada pasada:
 1. Enlaza el resultado real de los análisis interactivos pendientes (de los
    últimos --dias-interactivos días, repositorios reales y de demostración),
-   igual que el botón «Verificar resultado real», aunque nadie tenga la
-   pestaña abierta.
+   igual que el seguimiento automático de la vista del análisis, aunque
+   nadie tenga la pestaña abierta.
 2. Para los workflows validados de repositorios activos que no son de prueba
    ni de demostración: predice con el modelo activo cada ejecución terminada
    que empezó después de metadatos.fecha_corte (variables en su inicio) y
@@ -13,6 +13,8 @@ Cada pasada:
    análisis interactivo.
 3. Actualiza los commits pendientes de desplegar de cada workflow (también
    del repositorio de demostración) que muestra «Nuevo análisis».
+4. Evaluación en sombra: v1 y v1.1 predicen las ejecuciones evaluables
+   nuevas con las variables ya guardadas (sin llamadas a GitHub).
 
     manage.py analizar_lote --contar            # solo cuenta (no guarda nada)
     manage.py analizar_lote --usuario analisis_lote
@@ -30,7 +32,7 @@ from django.utils import timezone
 
 from riesgo.auditoria import ComandoAuditado
 from riesgo.models import Workflow
-from riesgo.services import github, lote
+from riesgo.services import github, lote, sombra
 from riesgo.services.features import fecha
 from riesgo.services.pendientes import actualizar_pendientes
 from riesgo.services.predictor import SinModeloActivo, modelo_activo
@@ -94,6 +96,10 @@ class Command(ComandoAuditado):
         except github.LimiteExcedido:
             raise CommandError("Límite de la API de GitHub agotado; "
                                "vuelva a ejecutar más tarde.")
+        if not opciones["contar"] and not opciones["repos"]:
+            resumen = sombra.generar(usuario)
+            self.stdout.write("Evaluación en sombra: " + ", ".join(
+                f"{v} +{d['creadas']}" for v, d in resumen.items()))
         self.stdout.write(
             f"\nTotal: {dict(total)}\nEtiquetas: {dict(etiquetas)}\n"
             f"Llamadas a la API: {gh.sesion.llamadas} · sin cambios (304, no "

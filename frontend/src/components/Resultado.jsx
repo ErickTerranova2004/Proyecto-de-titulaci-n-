@@ -4,6 +4,7 @@ import {
   Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, hoyLocal, NIVELES, NivelRiesgo, porcentaje, useRoles,
 } from "./comunes.jsx";
 import { aceptaRecomendacion, decisionRecomendada, RECOMENDACIONES } from "../recomendacion.js";
+import { INTERVALO_SEGUIMIENTO, siguientePaso, TEXTO_VERIFICACION_AUTOMATICA } from "../seguimiento.js";
 
 // Textos de presentación para los códigos de EjecucionWorkflow.etiqueta y
 // EjecucionWorkflow.subtipo_etiqueta (los códigos vienen de la API).
@@ -82,11 +83,10 @@ function PasosPendiente({ pendiente }) {
   );
 }
 
-// Seguimiento automático: mientras la verificación quede pendiente se vuelve a
-// consultar GitHub cada INTERVALO_SEGUIMIENTO, como máximo DURACION_SEGUIMIENTO.
-const INTERVALO_SEGUIMIENTO = 30_000;
-const DURACION_SEGUIMIENTO = 2 * 60 * 60 * 1000;
-
+// Seguimiento automático (src/seguimiento.js): empieza al abrir el análisis y,
+// mientras la verificación quede pendiente, vuelve a consultar GitHub cada
+// INTERVALO_SEGUIMIENTO, como máximo DURACION_SEGUIMIENTO. Si la página se
+// cierra, la tarea programada del lote enlaza el resultado (cada 4 h).
 function ResultadoReal({ prediccion, alActualizar }) {
   const [pendiente, setPendiente] = useState(null);
   const [error, setError] = useState("");
@@ -103,22 +103,21 @@ function ResultadoReal({ prediccion, alActualizar }) {
     setSiguiendo(false);
   }
 
-  useEffect(() => () => clearTimeout(temporizador.current), []);
-
   async function consultar() {
     setCargando(true);
     setError("");
     try {
       const respuesta = await api.verificar(prediccion.id);
       setUltimaConsulta(new Date());
-      if (respuesta.estado !== "pendiente") {
+      const paso = siguientePaso(respuesta, Date.now() - inicio.current);
+      if (paso === "enlazado") {
         detener();
         setPendiente(null);
         alActualizar(respuesta);
         return;
       }
       setPendiente(respuesta);
-      if (Date.now() - inicio.current >= DURACION_SEGUIMIENTO) {
+      if (paso === "detener") {
         detener();
         return;
       }
@@ -132,40 +131,38 @@ function ResultadoReal({ prediccion, alActualizar }) {
     }
   }
 
-  function verificar() {
-    clearTimeout(temporizador.current);
+  // El seguimiento empieza solo al abrir un análisis sin resultado real.
+  useEffect(() => {
+    if (real) return undefined;
     inicio.current = Date.now();
-    setPendiente(null);
     consultar();
-  }
+    return () => clearTimeout(temporizador.current);
+  }, [prediccion.id]);
 
   if (!real) {
     return (
       <div className="recuadro">
+        <p role="note">{TEXTO_VERIFICACION_AUTOMATICA}.</p>
         <p className="secundario">
-          Aún no se ha enlazado la ejecución real. Se enlaza la primera ejecución terminada del mismo workflow y del
-          mismo commit que haya empezado después de este análisis.
+          Se enlaza la primera ejecución terminada del mismo workflow y del mismo commit que haya empezado después de
+          este análisis.
         </p>
-        {siguiendo ? (
-          <button className="boton boton--secundario" type="button" onClick={detener}>
-            Detener seguimiento
-          </button>
-        ) : (
-          <button className="boton" type="button" disabled={cargando} onClick={verificar}>
-            {cargando ? "Consultando GitHub…" : "Verificar resultado real"}
-          </button>
-        )}
         {siguiendo && (
           <p className="secundario" role="status">
             {cargando ? "Consultando GitHub…" : "Seguimiento automático activo"}: se consulta GitHub cada 30 s y el
             resultado se enlaza en cuanto la ejecución termine.
             {ultimaConsulta && (
               <> Última consulta: {ultimaConsulta.toLocaleTimeString("es-EC", { timeZone: "America/Guayaquil" })}.</>
-            )}
+            )}{" "}
+            <button className="boton boton--secundario boton--pequeno" type="button" onClick={detener}>
+              Detener seguimiento
+            </button>
           </p>
         )}
         {!siguiendo && pendiente && (
-          <p className="secundario">El seguimiento automático está detenido. Pulse «Verificar resultado real» para reanudarlo.</p>
+          <p className="secundario">
+            El seguimiento en la página está detenido; la tarea programada enlazará el resultado en su próxima pasada.
+          </p>
         )}
         {pendiente?.ejecucion_github ? (
           <EjecucionGitHub ejecucion={pendiente.ejecucion_github} />

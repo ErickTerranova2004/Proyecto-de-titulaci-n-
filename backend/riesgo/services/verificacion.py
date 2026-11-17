@@ -6,8 +6,9 @@ etiquetado.enriquecer) antes de aplicar la regla de etiquetado. Sin el YAML,
 un paso como «Sync repo to remote VM» (burnett01/rsync-deployments) no se
 reconoce como despliegue.
 
-`enlazar_resultado` lo usan el botón «Verificar resultado real» y cada pasada
-del análisis en lote (análisis interactivos pendientes), así que el enlace no
+`enlazar_resultado` lo usan el seguimiento automático de la vista del análisis
+(POST /verificar/) y cada pasada del análisis en lote (análisis interactivos
+pendientes), así que el enlace no
 depende de que alguien tenga la pestaña abierta.
 """
 

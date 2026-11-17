@@ -5,7 +5,7 @@ aplicaciones empresariales». Django/DRF + React/Vite, PostgreSQL, Random
 Forest/XGBoost + SHAP, análisis de texto con Claude (Haiku 5.5; Gemini como
 alternativa).
 
-Actualizado: 2026-11-12 · rama `feature/100-repos-desplegados` (publicada en
+Actualizado: 2026-11-17 · rama `feature/100-repos-desplegados` (publicada en
 `origin`, **sin merge a `main`**).
 
 ## 1. Reglas acordadas (obligatorias)
@@ -56,8 +56,33 @@ Actualizado: 2026-11-12 · rama `feature/100-repos-desplegados` (publicada en
   rechaza o tarda más de `IA_TIMEOUT`, se usa el análisis por reglas (nunca
   Error 500). Las pruebas nunca llaman a una API de pago.
 - Supervisión prospectiva: cuenta solo ejecuciones posteriores al corte;
-  excluye repos de demostración y de prueba. 542 predicciones de lote y 225
-  interactivas en la base (12-nov).
+  excluye repos de demostración y de prueba. 1.158 predicciones de lote y
+  261 interactivas en la base (17-nov).
+- **Evaluación en sombra de v1 y v1.1** (`riesgo/services/sombra.py`,
+  comando `evaluar_sombra`, también al final de cada pasada del lote): sin
+  activarlos ni llamar a GitHub, predicen las mismas ejecuciones evaluables
+  de la supervisión de v2 con las variables guardadas en cada predicción de
+  v2; `reejecutado_por_otro` (que v2 no guarda) se rellena con la mediana
+  del imputador de cada modelo. Se guardan con `origen = "sombra"` e
+  `id_prediccion_base`; el gestor por defecto (`Prediccion.objects`) las
+  excluye, así que no salen en historiales, paneles, «Nuevo análisis» ni en
+  los conteos (solo `Prediccion.con_sombra` las ve). Modelos → Supervisión
+  muestra la comparación (`/api/modelos/comparacion-sombra/`).
+- Resultado al 17-nov (791 ejecuciones evaluables, 96 no completadas;
+  IC 95 %: Wilson en tasas, bootstrap pareado de 1.000 remuestreos):
+
+  | Versión | Tasa bajo | Tasa medio | Tasa alto | Brier | PR-AUC |
+  |---|---|---|---|---|---|
+  | v2 | 5,9 % (40/678) | 28,6 % (12/42) | 62,0 % (44/71) | 0,084 [0,068–0,101] | 0,506 [0,410–0,609] |
+  | v1.1 | 7,2 % (51/710) | 41,2 % (14/34) | 66,0 % (31/47) | 0,087 [0,070–0,103] | 0,492 [0,397–0,594] |
+  | v1 | 9,4 % (70/743) | 35,3 % (6/17) | 64,5 % (20/31) | 0,092 [0,075–0,109] | 0,412 [0,319–0,511] |
+
+  v2 supera a v1 de forma significativa (diferencia de Brier +0,0075
+  [0,0025–0,0135] y de PR-AUC −0,094 [−0,149 – −0,043] a favor de v2).
+  Frente a v1.1, v2 es mejor en los valores puntuales y detecta más fallos
+  en el nivel alto (44 frente a 31), pero los IC de la diferencia incluyen
+  el 0 (Brier +0,0026 [−0,0018–0,0073]; PR-AUC −0,014 [−0,053–0,029]):
+  no es concluyente.
 
 ### Plataforma
 - 229 repositorios activos (198 del dataset v2 + 1 de demostración
@@ -66,10 +91,15 @@ Actualizado: 2026-11-12 · rama `feature/100-repos-desplegados` (publicada en
 - «Nuevo análisis»: los repos con commits pendientes de desplegar salen
   primero («N commits pendientes») y rellenan SHA, rama y evento; aviso 409
   si el commit ya se desplegó o se está desplegando (se puede continuar).
-- «Verificar resultado real»: enlaza la primera ejecución terminada del
-  mismo workflow y commit que empiece después del análisis (ignora las
-  `skipped`); seguimiento automático 30 s en el navegador y, además, cada
-  pasada del lote.
+- Resultado real: ya no hay botón «Verificar resultado real». La vista del
+  análisis indica que se verifica automáticamente: al abrirla empieza el
+  seguimiento en la página (consulta cada 30 s, hasta 2 h; se puede
+  detener) y cada pasada del lote enlaza los pendientes. Se enlaza la
+  primera ejecución terminada del mismo workflow y commit que empiece
+  después del análisis (ignora las `skipped`).
+- Workflows (administrador): por defecto solo los de repositorios activos;
+  la casilla «Incluir repositorios inactivos» muestra también los demás. Los
+  contadores indican a qué alcance corresponden.
 - Usuarios activos: `admin` (superusuario), `revision_admin`,
   `revision_dev`, `revision_lider` (contraseñas de prueba en
   `datos_prueba/usuarios_prueba.md`) y `analisis_lote` (cuenta interna del
@@ -82,7 +112,7 @@ Actualizado: 2026-11-12 · rama `feature/100-repos-desplegados` (publicada en
 
 ### Base de datos y diagrama ER
 - Nombres del ER (`docs/modelo_er.png`): tablas `mae_`, `trx_`, `int_`
-  (migraciones 0016–0018); índices y restricciones `pk_/fk_/uk_/ck_/ix_/sq_`;
+  (migraciones 0016–0018, y 0021 para la columna de la 0020); índices y restricciones `pk_/fk_/uk_/ck_/ix_/sq_`;
   vistas de solo lectura `seg_usuario`, `seg_grupo`, `int_usuario_grupo`,
   `seg_token` sobre las tablas de Django (`auth_*`, que se mantienen).
 - Auditoría (migración 0019, `riesgo/auditoria.py`): `est_registro`
@@ -90,6 +120,8 @@ Actualizado: 2026-11-12 · rama `feature/100-repos-desplegados` (publicada en
   `usu_modificacion`, `fec_modificacion` en las 11 tablas propias; se llenan
   en todas las vías de escritura (middleware para la API, `ComandoAuditado`
   para los comandos, `sistema` fuera de ambos).
+- Migración 0020: origen `sombra` y `trx_prediccion.id_prediccion_base`
+  (única con `id_version_modelo`: una sombra por versión y predicción).
 - `backend/riesgo/tests/test_esquema_er.py` compara la base con el ER
   columna por columna.
 - Diagrama actualizado: `docs/modelo_er_actualizado.drawio` y `.png`,
@@ -105,7 +137,8 @@ Actualizado: 2026-11-12 · rama `feature/100-repos-desplegados` (publicada en
 - Cada pasada: (1) enlaza análisis interactivos pendientes (30 días),
   (2) analiza ejecuciones nuevas posteriores al corte (listado incremental,
   ETag; se salta las ya enlazadas a un análisis interactivo), (3) actualiza
-  los commits pendientes por workflow. Gasto típico: 10–40 llamadas a la API
+  los commits pendientes por workflow, (4) crea las predicciones en sombra
+  que falten (sin llamadas a GitHub). Gasto típico: 10–40 llamadas a la API
   (+ cientos de 304 sin coste).
 - Comprobar: `Get-ScheduledTaskInfo -TaskPath "\tesis\" -TaskName analizar_lote`.
   Desactivar/activar: `Disable-ScheduledTask` / `Enable-ScheduledTask`
@@ -122,6 +155,7 @@ cd frontend; npx vite --port 5174
 - `riesgo_despliegue_20261112_002918_antes_nombres_er.dump`
 - `riesgo_despliegue_20261112_005202_antes_auditoria.dump`
 - `riesgo_despliegue_20261112_033644_antes_quitar_prueba.dump`
+- `riesgo_despliegue_20261117_103250_antes_sombra.dump`
 
 ## 3. Decisiones tomadas
 
@@ -135,6 +169,9 @@ cd frontend; npx vite --port 5174
 | No filtrar repositorios en «Nuevo análisis»; avisar del commit ya desplegado | «Desplegado» depende del commit; la mayoría despliega con cada push |
 | Cuentas con historial: eliminar solo traspasándolo | Conservar trazabilidad y métricas |
 | Análisis de demostración y de prueba fuera de las métricas | No son validación del modelo |
+| v1 y v1.1 se comparan en sombra, sin activarlos | Mismas ejecuciones y mismas variables para los tres modelos; activar otro modelo cambiaría los análisis de los usuarios |
+| Las predicciones en sombra se excluyen en el gestor por defecto | Ninguna consulta existente puede contarlas como análisis de usuarios por descuido |
+| Sin botón «Verificar resultado real» | La verificación ya es automática (página y lote); el botón confundía |
 
 ## 4. Pendientes (por prioridad)
 
@@ -160,7 +197,7 @@ cd frontend; npx vite --port 5174
    (caso built-in-saudi). Corregirlo afecta al dataset congelado: requiere
    aprobación.
 6. Actualizar el informe de supervisión de v2 en la tesis con los datos que
-   sigue sumando el lote.
+   sigue sumando el lote, incluida la comparación en sombra con v1 y v1.1.
 7. **Redactar el capítulo de resultados de la tesis**: dataset v2.0, modelo
    v2 (validación GroupKFold), validación prospectiva con el lote,
    limitaciones y uso de herramientas de IA.
@@ -173,6 +210,16 @@ cd frontend; npx vite --port 5174
    revisar si alguna es sospechosa.
 10. `datos_prueba/casos_prueba_30.md` nombra a las cuentas `prueba_*`
     eliminadas (registro histórico; se dejó tal cual).
+
+**Hecho el 17-nov**
+- Claude (Haiku 5.5) redacta el análisis; los tokens y la duración de cada
+  llamada se guardan en `jsn_analisis_ia.uso`.
+- Script `scriptsnalisis_programados.cmd` (análisis interactivos reales
+  repartidos en el tiempo, como `revision_dev`). Hoy hubo dos ejecuciones
+  solapadas (08:50 y 10:03): 43 análisis (ids 1388–1430), 18 commits
+  analizados dos veces. Se detuvo a las 10:32 con 21 de 40.
+- Evaluación en sombra, verificación automática sin botón y filtro de
+  repositorios inactivos en Workflows (arriba).
 
 **Hecho el 12-nov**
 - Error boundary en React (`frontend/src/limiteErrores.js`): un error al

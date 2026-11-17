@@ -3,6 +3,7 @@ import { api } from "../api.js";
 import { Alerta, Fecha, NIVELES, NotaCorte, porcentaje } from "./comunes.jsx";
 
 import { formatoMetrica, METRICAS, metricasModelo } from "../metricas.js";
+import { formatoIntervalo, textoComparacion } from "../sombra.js";
 
 export default function Modelos({ modelos, esAdmin, alCambiar }) {
   const [error, setError] = useState("");
@@ -167,6 +168,85 @@ function Supervision({ modelos }) {
           </p>
         ) : null;
       })}
+      <ComparacionSombra />
+    </section>
+  );
+}
+
+// v2 (activo) frente a v1.1 y v1 evaluados en sombra sobre exactamente las
+// mismas ejecuciones evaluables (riesgo/services/supervision.comparacion).
+function ComparacionSombra() {
+  const [datos, setDatos] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    api.comparacionSombra().then(setDatos).catch((e) => setError(e.message));
+  }, []);
+
+  const tasa = (n) =>
+    n.tasa == null ? "—" : `${porcentaje(n.tasa)} (${n.no_completados}/${n.evaluables}) ${n.ic95 ? `[${porcentaje(n.ic95[0])} – ${porcentaje(n.ic95[1])}]` : ""}`;
+  const indicador = (m) => `${m.valor == null ? "—" : m.valor.toFixed(3)} ${formatoIntervalo(m.ic95)}`;
+
+  return (
+    <section className="sombra" aria-labelledby="titulo-sombra">
+      <h3 id="titulo-sombra">Comparación con las versiones anteriores (mismas ejecuciones)</h3>
+      <Alerta>{error}</Alerta>
+      {!datos && !error && <p role="status" className="secundario">Calculando la comparación…</p>}
+      {datos && (
+        <>
+          <p className="nota">
+            {datos.modelos.filter((m) => m.en_sombra).map((m) => m.version).join(" y ")} se evalúan en sombra: sin
+            activarlos y sin consultar GitHub, predicen las mismas {datos.ejecuciones} ejecuciones evaluables de la
+            supervisión de {datos.referencia} (posteriores a su fecha de corte) con las variables ya guardadas en cada
+            predicción de {datos.referencia}; las variables que {datos.referencia} no guarda se rellenan con la mediana de
+            entrenamiento de cada modelo. Esas predicciones no son análisis de usuarios: no aparecen en historiales,
+            paneles ni «Nuevo análisis». Cada modelo asigna el nivel con sus propios límites de riesgo.
+          </p>
+          <div className="tabla-contenedor">
+            <table>
+              <caption>
+                {datos.ejecuciones} ejecuciones evaluables, {datos.no_completados} no completadas. Entre corchetes, IC 95 %
+                (Wilson para las tasas; bootstrap pareado de {datos.remuestreos} remuestreos para Brier y PR-AUC).
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Versión</th>
+                  {Object.values(NIVELES).map((n) => (
+                    <th key={n} scope="col" className="numero">Tasa de fallo · nivel {n.toLowerCase()}</th>
+                  ))}
+                  <th scope="col" className="numero">Brier (menor es mejor)</th>
+                  <th scope="col" className="numero">PR-AUC (mayor es mejor)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {datos.modelos.map((m) => (
+                  <tr key={m.version}>
+                    <th scope="row">
+                      {m.version} <span className="secundario">{m.en_sombra ? "(en sombra)" : "(activo)"}</span>
+                    </th>
+                    {Object.keys(NIVELES).map((n) => (
+                      <td key={n} className="numero">{tasa(m.por_nivel[n])}</td>
+                    ))}
+                    <td className="numero">{indicador(m.brier)}</td>
+                    <td className="numero">{indicador(m.pr_auc)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <ul className="secundario">
+            {datos.modelos.filter((m) => m.en_sombra).map((m) => (
+              <li key={m.version}>{textoComparacion(datos.referencia, m)}</li>
+            ))}
+          </ul>
+          {datos.sin_sombra > 0 && (
+            <p className="secundario nota-pie">
+              {datos.sin_sombra} ejecuciones evaluables recientes de {datos.referencia} aún no tienen predicción en sombra
+              (se crean en la próxima pasada del lote) y no entran en la comparación.
+            </p>
+          )}
+        </>
+      )}
     </section>
   );
 }

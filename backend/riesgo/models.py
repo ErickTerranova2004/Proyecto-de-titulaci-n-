@@ -291,11 +291,23 @@ class VersionModelo(Auditoria):
         return f"{self.version} ({self.nombre_modelo})"
 
 
+class SinSombraManager(models.Manager.from_queryset(DatosModeloQuerySet)):
+    """Predicciones de la plataforma: sin las de la evaluación en sombra.
+
+    Es el gestor por defecto, así que historiales, dashboards, permisos,
+    «Nuevo análisis» y la supervisión de cada versión nunca las ven. Solo la
+    comparación en sombra usa Prediccion.con_sombra."""
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(origen="sombra")
+
+
 class Prediccion(Auditoria):
     """Análisis de riesgo de un despliegue con trazabilidad completa."""
 
     id = models.BigAutoField(primary_key=True, db_column="id_prediccion")
-    objects = DatosModeloQuerySet.as_manager()
+    objects = SinSombraManager()
+    con_sombra = DatosModeloQuerySet.as_manager()
 
     NIVELES = [("bajo", "Bajo"), ("medio", "Medio"), ("alto", "Alto")]
     # Recomendación automática según el nivel (predictor.recomendacion_de).
@@ -353,17 +365,28 @@ class Prediccion(Auditoria):
     # «lote»: análisis de una ejecución ya ocurrida (validación prospectiva
     # de v2), con las variables calculadas en el momento en que empezó
     # (momento_variables) y solo con lo que existía antes de ese momento.
+    # «sombra»: predicción de una versión no activa (v1, v1.1) sobre la
+    # misma ejecución evaluable que una predicción del modelo activo
+    # (prediccion_base), con las variables guardadas en esta. No es un
+    # análisis de usuario: el gestor por defecto la excluye.
     ORIGENES = [("interactivo", "Análisis en la plataforma"),
-                ("lote", "Análisis en lote de una ejecución posterior")]
+                ("lote", "Análisis en lote de una ejecución posterior"),
+                ("sombra", "Evaluación en sombra de una versión no activa")]
     origen = models.CharField(max_length=12, choices=ORIGENES,
                               default="interactivo",
                               db_column="tip_origen")
     momento_variables = models.DateTimeField(null=True, blank=True,
                                              db_column="fec_momento_variables")
+    prediccion_base = models.ForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True,
+        related_name="+", db_column="id_prediccion_base")
 
     class Meta:
         db_table = "trx_prediccion"
         ordering = ["-creada_en"]
+        constraints = [models.UniqueConstraint(
+            fields=["version_modelo", "prediccion_base"],
+            name="uk_trx_prediccion_id_version_modelo_id_prediccion_base")]
 
     def clean(self):
         errores = {}
@@ -376,6 +399,12 @@ class Prediccion(Auditoria):
                 errores["ejecucion_real"] = "La ejecución es de otro workflow."
             elif real.commit_id != self.commit_id:
                 errores["ejecucion_real"] = "La ejecución es de otro commit."
+            elif self.origen == "sombra":
+                base = self.prediccion_base
+                if base is None or base.ejecucion_real_id != real.id:
+                    errores["ejecucion_real"] = (
+                        "En la evaluación en sombra, la ejecución debe ser la "
+                        "de la predicción base.")
             elif self.origen == "lote":
                 # La ejecución evaluada es la que empezó en el momento de
                 # las variables.

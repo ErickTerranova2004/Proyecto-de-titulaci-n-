@@ -10,7 +10,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -33,7 +33,8 @@ NO_ENCONTRADO = status.HTTP_404_NOT_FOUND
 def _consulta_usuarios():
     return Usuario.objects.prefetch_related(
         "groups", "accesos__repositorio").annotate(
-        n_analisis=Count("predicciones", distinct=True),
+        n_analisis=Count("predicciones", distinct=True,
+                         filter=~Q(predicciones__origen="sombra")),
         n_decisiones=Count("decisiones", distinct=True)).order_by("username")
 
 
@@ -137,7 +138,8 @@ def traspasar_historial(usuario, destino):
     `usuario` pasan a `destino` (los registros de auditoría conservan quién
     los creó)."""
     resumen = {
-        "analisis": Prediccion.objects.filter(usuario=usuario).update(
+        # Con las de la evaluación en sombra (si la cuenta es la del lote).
+        "analisis": Prediccion.con_sombra.filter(usuario=usuario).update(
             usuario=destino),
         "decisiones": DecisionDespliegue.objects.filter(
             usuario=usuario).update(usuario=destino),
@@ -169,7 +171,7 @@ def _eliminar_usuario(usuario, es_yo, destino_id=None):
     if usuario.is_superuser:
         return _error("El superusuario no se puede eliminar.",
                       "es_superusuario", MAL)
-    analisis = usuario.predicciones.count()
+    analisis = Prediccion.con_sombra.filter(usuario=usuario).count()
     decisiones = usuario.decisiones.count()
     destino = None
     if destino_id not in (None, ""):
@@ -284,7 +286,8 @@ def _consulta_workflows():
     return Workflow.objects.select_related(
         "repositorio", "validado_por").annotate(
         n_ejecuciones=Count("ejecuciones", distinct=True),
-        n_predicciones=Count("predicciones", distinct=True))
+        n_predicciones=Count("predicciones", distinct=True,
+                             filter=~Q(predicciones__origen="sombra")))
 
 
 def _serializar_workflow(w):

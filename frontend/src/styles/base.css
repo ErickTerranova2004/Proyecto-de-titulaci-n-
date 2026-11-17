@@ -1072,6 +1072,15 @@ td.destacado {
     font-size: 11px;
 }
 
+/* Comparación en sombra (Modelos → Supervisión). */
+.sombra {
+    margin-top: var(--esp-5);
+}
+
+.sombra .nota {
+    margin-bottom: var(--esp-3);
+}
+
 .vacio {
     text-align: center;
     padding: var(--esp-6) var(--esp-4);

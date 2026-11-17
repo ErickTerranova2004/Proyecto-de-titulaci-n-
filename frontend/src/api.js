@@ -66,6 +66,7 @@ export const api = {
     modelos: () => solicitar("/modelos/"),
     activarModelo: (id) => solicitar(`/modelos/${id}/activar/`, { method: "POST" }),
     supervision: (id) => solicitar(`/modelos/${id}/supervision/`),
+    comparacionSombra: () => solicitar("/modelos/comparacion-sombra/"),
     decidir: (id, datos) =>
         solicitar(`/predicciones/${id}/decision/`, { method: "POST", body: JSON.stringify(datos) }),
     fijarFechaLimite: (id, fecha_limite) =>

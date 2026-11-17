@@ -92,7 +92,8 @@ TABLAS_PROPIAS = set(ER) - VISTAS | {"trx_seguimiento_lote",
 EXTRA = {
     "mae_repositorio": {"es_demostracion": BOOL, "es_prueba": BOOL},
     "trx_prediccion": {"tip_recomendacion": vc(20), "jsn_analisis_ia": JSON,
-                       "tip_origen": vc(12), "fec_momento_variables": TS},
+                       "tip_origen": vc(12), "fec_momento_variables": TS,
+                       "id_prediccion_base": BIGINT},
     "trx_decision_despliegue": {
         "tip_recomendacion": vc(20), "es_acepta_recomendacion": BOOL,
         "fec_limite": "date", "fec_vista_desarrollador": TS,

@@ -4,7 +4,7 @@ import math
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import F, Max, Q
+from django.db.models import F, Max
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
@@ -26,11 +26,12 @@ from riesgo.serializers import (AsignacionSerializer, PrediccionSerializer,
                                 SolicitudPrediccionSerializer,
                                 SolicitudRegistroSerializer,
                                 VersionModeloSerializer)
-from riesgo.services import analisis_ia, asignaciones, github, planificador
+from riesgo.services import (analisis_ia, asignaciones, github, planificador,
+                             supervision)
 from riesgo.services.sincronizacion import sincronizar_repositorio
 from riesgo.services.pendientes import despliegue_previo
 from riesgo.services.verificacion import enlazar_resultado, etiquetar_run
-from riesgo.services.features import calcular_variables, fecha
+from riesgo.services.features import calcular_variables
 from riesgo.services.predictor import SinModeloActivo, predecir
 from riesgo.services.trazabilidad import (RepositorioNoRegistrado,
                                           guardar_commit, guardar_ejecucion,
@@ -505,37 +506,16 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
     def supervision(self, request, pk=None):
         """Comparación de las predicciones con los resultados reales."""
         version = self.get_object()
-        todas = Prediccion.objects.filter(version_modelo=version)
-        # Ni las de demostración ni las de los casos de prueba: no son
-        # validación del modelo.
-        predicciones = todas.para_modelo()
-        # Fecha de corte (metadatos.fecha_corte): solo cuentan ejecuciones
-        # que empezaron después de la más reciente del entrenamiento.
-        corte = fecha(version.metadatos.get("fecha_corte"))
-        excluidas_corte = 0
-        if corte is not None:
-            posteriores = predicciones.filter(
-                Q(origen="lote", momento_variables__gt=corte)
-                | Q(origen="interactivo", creada_en__gt=corte)).exclude(
-                ejecucion_real__iniciada_en__lte=corte)
-            excluidas_corte = predicciones.count() - posteriores.count()
-            predicciones = posteriores
+        todas, predicciones, corte, excluidas_corte = (
+            supervision.posteriores_al_corte(version))
         evaluables = [
             (p.nivel, p.probabilidad, p.ejecucion_real.y)
-            for p in predicciones.filter(
-                ejecucion_real__etiqueta__in=["despliegue_completado",
-                                              "despliegue_no_completado"])
+            for p in supervision.evaluables(predicciones)
             .select_related("ejecucion_real")]
-        por_nivel = {}
-        for nivel in ("bajo", "medio", "alto"):
-            casos = [y for n, _, y in evaluables if n == nivel]
-            por_nivel[nivel] = {
-                "evaluables": len(casos),
-                "no_completados": sum(casos),
-                "tasa": (sum(casos) / len(casos)) if casos else None,
-            }
-        brier = (sum((p - y) ** 2 for _, p, y in evaluables) / len(evaluables)
-                 if evaluables else None)
+        y = [y for _, _, y in evaluables]
+        por_nivel = supervision.tasas_por_nivel(
+            [n for n, _, _ in evaluables], y)
+        brier = supervision.brier([p for _, p, _ in evaluables], y)
         return Response({
             "version": version.version,
             "predicciones": predicciones.count(),
@@ -551,6 +531,17 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
             "por_nivel": por_nivel,
             "brier": brier,
         })
+
+    @action(detail=False, url_path="comparacion-sombra",
+            permission_classes=[EsAdministrador])
+    def comparacion_sombra(self, request):
+        """El modelo activo y las versiones no activas (evaluadas en sombra)
+        sobre exactamente las mismas ejecuciones evaluables."""
+        datos = supervision.comparacion()
+        if datos is None:
+            return _error("No hay un modelo activo.", "sin_modelo_activo",
+                          status.HTTP_409_CONFLICT)
+        return Response(datos)
 
     @action(detail=True, methods=["post"],
             permission_classes=[EsAdministrador])

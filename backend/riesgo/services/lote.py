@@ -6,7 +6,7 @@ entrenamiento (metadatos.fecha_corte), se calculan las variables en el
 momento en que empezó, solo con lo que existía antes (la misma función y las
 mismas consultas que scripts/construir_dataset_v2.py), se predice con el
 modelo activo y se etiqueta su resultado real con la API de jobs, igual que
-el botón «Verificar resultado real».
+el seguimiento automático de la vista del análisis.
 
 Las ejecuciones que aún no han terminado se cuentan como pendientes y se
 analizan al volver a ejecutar el lote. Solo lectura de la API de GitHub; no se
@@ -374,7 +374,7 @@ def interactivos_pendientes(dias=DIAS_INTERACTIVOS):
 
 def verificar_interactivos(gh, dias=DIAS_INTERACTIVOS):
     """Enlaza el resultado real de los análisis interactivos pendientes, igual
-    que el botón «Verificar resultado real».
+    que el seguimiento automático de la vista del análisis.
 
     Devuelve (resumen, enlazadas, errores).
     """

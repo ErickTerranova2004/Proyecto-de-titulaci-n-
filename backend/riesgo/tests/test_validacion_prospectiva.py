@@ -452,7 +452,7 @@ class RegistrarReposV2Test(TestCase):
 
 @override_settings(GEMINI_API_KEY="")
 class VerificarConYamlTest(TestCase):
-    """«Verificar resultado real» lee el YAML del workflow en el commit."""
+    """La verificación del resultado real lee el YAML del workflow en el commit."""
 
     @classmethod
     def setUpTestData(cls):
