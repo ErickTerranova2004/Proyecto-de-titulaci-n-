@@ -194,14 +194,6 @@ function ComparacionSombra() {
       {!datos && !error && <p role="status" className="secundario">Calculando la comparación…</p>}
       {datos && (
         <>
-          <p className="nota">
-            {datos.modelos.filter((m) => m.en_sombra).map((m) => m.version).join(" y ")} se evalúan en sombra: sin
-            activarlos y sin consultar GitHub, predicen las mismas {datos.ejecuciones} ejecuciones evaluables de la
-            supervisión de {datos.referencia} (posteriores a su fecha de corte) con las variables ya guardadas en cada
-            predicción de {datos.referencia}; las variables que {datos.referencia} no guarda se rellenan con la mediana de
-            entrenamiento de cada modelo. Esas predicciones no son análisis de usuarios: no aparecen en historiales,
-            paneles ni «Nuevo análisis». Cada modelo asigna el nivel con sus propios límites de riesgo.
-          </p>
           <div className="tabla-contenedor">
             <table>
               <caption>
