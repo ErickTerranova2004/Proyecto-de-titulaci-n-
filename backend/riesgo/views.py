@@ -46,6 +46,15 @@ def _json_seguro(variables):
             for k, v in variables.items()}
 
 
+def _error_no_interactivo():
+    # Una decisión se asigna al desarrollador que hizo el análisis: la de un
+    # análisis del lote no le llegaría a nadie.
+    return _error("Solo se decide sobre análisis hechos por un desarrollador "
+                  "antes de desplegar; los del lote evalúan despliegues que "
+                  "ya ocurrieron.", "no_es_interactivo",
+                  status.HTTP_400_BAD_REQUEST)
+
+
 def _error(mensaje, codigo, estado):
     return Response({"detail": mensaje, "codigo": codigo}, status=estado)
 
@@ -458,6 +467,8 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
     def decision(self, request, pk=None):
         """El líder técnico autoriza, pospone o pide revisión del cambio."""
         prediccion = self.get_object()
+        if prediccion.origen != "interactivo":
+            return _error_no_interactivo()
         solicitud = SolicitudDecisionSerializer(data=request.data)
         solicitud.is_valid(raise_exception=True)
         datos = solicitud.validated_data
@@ -479,6 +490,8 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             permission_classes=[EsLiderOAdministrador])
     def fecha_limite(self, request, pk=None):
         """Añade o cambia la fecha límite de la última decisión."""
+        if self.get_object().origen != "interactivo":
+            return _error_no_interactivo()
         prediccion = self.get_object()
         decision = prediccion.decisiones.order_by("-creada_en", "-id").first()
         if decision is None:

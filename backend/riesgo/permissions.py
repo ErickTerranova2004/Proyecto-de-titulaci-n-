@@ -52,7 +52,12 @@ def predicciones_visibles(usuario):
         "ejecucion_real")
     if es_admin(usuario):
         return consulta
-    consulta = consulta.filter(workflow__repositorio__accesos__usuario=usuario)
+    # El líder técnico y el desarrollador solo ven los análisis hechos en la
+    # plataforma: los del lote (cuenta analisis_lote) evalúan despliegues que
+    # ya ocurrieron y no admiten decisión ni asignación.
+    consulta = consulta.filter(
+        origen="interactivo",
+        workflow__repositorio__accesos__usuario=usuario)
     if not es_lider(usuario):
         consulta = consulta.filter(usuario=usuario)
     return consulta

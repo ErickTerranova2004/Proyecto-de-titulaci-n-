@@ -44,7 +44,10 @@ class MecanismoTest(TestCase):
                                               propietario="a", nombre="b")
         auditada(self, repo, "ana")
         creado, modificado = repo.creado_en, repo.fec_modificacion
-        with auditoria.como("luis"):
+        # Hora fija posterior: en Windows el reloj puede repetir el instante.
+        despues = modificado + timedelta(seconds=1)
+        with auditoria.como("luis"), mock.patch(
+                "django.utils.timezone.now", return_value=despues):
             repo.nombre = "c"
             repo.save()
         auditada(self, repo, "ana", "luis")
