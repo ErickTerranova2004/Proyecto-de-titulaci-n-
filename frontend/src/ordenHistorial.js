@@ -1,14 +1,18 @@
-// Historial: primero lo que tuvo actividad más reciente. La actividad de un
-// análisis es su última decisión (si la tiene) o su creación: así, al
-// registrar una decisión, ese análisis pasa al primer lugar.
+// Historial: primero los análisis con decisión del líder técnico, de la
+// decisión más reciente a la más antigua (aunque el análisis sea antiguo),
+// para no tener que buscarlas; después los que no tienen decisión, del más
+// reciente al más antiguo.
 
-export function ultimaActividad(p) {
-  const fechas = [p.creada_en, ...(p.decisiones ?? []).map((d) => d.creada_en)]
-    .filter(Boolean)
-    .map((f) => new Date(f).getTime());
-  return Math.max(...fechas);
+function tiempo(fecha) {
+  return fecha ? new Date(fecha).getTime() : 0;
+}
+
+export function ultimaDecision(p) {
+  return Math.max(0, ...(p.decisiones ?? []).map((d) => tiempo(d.creada_en)));
 }
 
 export function ordenarPorActividad(analisis) {
-  return [...(analisis ?? [])].sort((a, b) => ultimaActividad(b) - ultimaActividad(a) || b.id - a.id);
+  return [...(analisis ?? [])].sort(
+    (a, b) => ultimaDecision(b) - ultimaDecision(a) || tiempo(b.creada_en) - tiempo(a.creada_en) || b.id - a.id,
+  );
 }

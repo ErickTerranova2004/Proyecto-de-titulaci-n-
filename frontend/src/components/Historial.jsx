@@ -33,8 +33,8 @@ export default function Historial({
   const [error, setError] = useState("");
   const [seleccion, setSeleccion] = useState(null);
 
-  // Primero lo de actividad más reciente: un análisis con una decisión nueva
-  // sube al primer lugar (src/ordenHistorial.js).
+  // Primero los análisis con decisión del líder (la más reciente arriba) y
+  // después los demás (src/ordenHistorial.js).
   const cargar = () => api.historial().then((h) => setFilas(ordenarPorActividad(h))).catch((e) => setError(e.message));
   useEffect(() => {
     cargar();
@@ -59,7 +59,7 @@ export default function Historial({
       <header className="encabezado">
         <h1 id="titulo-historial">{titulo}</h1>
         <p className="secundario">
-          {descripcion ?? "Análisis visibles según su rol y sus repositorios asignados"}, primero los de actividad más reciente (análisis o decisión).
+          {descripcion ?? "Análisis visibles según su rol y sus repositorios asignados"}, primero los que tienen decisión del líder técnico.
         </p>
       </header>
       <Alerta>{error}</Alerta>
