@@ -214,7 +214,7 @@ function ComparacionSombra() {
                 {datos.modelos.map((m) => (
                   <tr key={m.version}>
                     <th scope="row">
-                      {m.version} <span className="secundario">{m.en_sombra ? "(en sombra)" : "(activo)"}</span>
+                      {m.version}
                     </th>
                     {Object.keys(NIVELES).map((n) => (
                       <td key={n} className="numero">{tasa(m.por_nivel[n])}</td>
