@@ -230,6 +230,11 @@ cd frontend; npx vite --port 5174
   repositorios inactivos en Workflows (arriba).
 - v1.1 oculta (migración 0022) tras guardar
   `informes/comparacion_sombra_v2.md`.
+- Incidente 10:56: v1 quedó activa desde Modelos → «Activar» (usuario
+  `revision_admin`, en el backend antiguo de las 8:49). Se reactivó v2 a las
+  10:59 (respaldo `..._105926_antes_reactivar_v2.dump`); no se hizo ninguna
+  predicción con v1 en ese intervalo. El botón «Activar» ahora pide
+  confirmación.
 
 **Hecho el 12-nov**
 - Error boundary en React (`frontend/src/limiteErrores.js`): un error al
