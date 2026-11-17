@@ -3,7 +3,7 @@ import { api } from "../api.js";
 import { Alerta, Fecha, NIVELES, NotaCorte, porcentaje } from "./comunes.jsx";
 
 import { formatoMetrica, METRICAS, metricasModelo } from "../metricas.js";
-import { formatoIntervalo, textoComparacion } from "../sombra.js";
+import { formatoIntervalo } from "../sombra.js";
 
 export default function Modelos({ modelos, esAdmin, alCambiar }) {
   const [error, setError] = useState("");
@@ -159,24 +159,6 @@ function Supervision({ modelos }) {
           </tbody>
         </table>
       </div>
-      {modelos.map((m) => {
-        const n = datos[m.id]?.predicciones_demostracion;
-        const np = datos[m.id]?.predicciones_prueba;
-        return n || np ? (
-          <p key={m.id} className="secundario nota-pie">
-            {datos[m.id].version}: no incluye {[n && `${n} predicciones de repositorios de demostración`, np && `${np} de los casos de prueba`].filter(Boolean).join(" ni ")} (no son validación del modelo).
-          </p>
-        ) : null;
-      })}
-      {modelos.map((m) => {
-        const n = datos[m.id]?.predicciones_sombra;
-        return n ? (
-          <p key={`sombra-${m.id}`} className="secundario nota-pie">
-            {datos[m.id].version}: incluye {n} predicciones en sombra sobre las mismas ejecuciones del modelo activo (no
-            hace análisis nuevos mientras no está activo).
-          </p>
-        ) : null;
-      })}
       <ComparacionSombra />
     </section>
   );
@@ -235,11 +217,6 @@ function ComparacionSombra() {
               </tbody>
             </table>
           </div>
-          <ul className="secundario">
-            {datos.modelos.filter((m) => m.en_sombra).map((m) => (
-              <li key={m.version}>{textoComparacion(datos.referencia, m)}</li>
-            ))}
-          </ul>
           {datos.sin_sombra > 0 && (
             <p className="secundario nota-pie">
               {datos.sin_sombra} ejecuciones evaluables recientes de {datos.referencia} aún no tienen predicción en sombra
