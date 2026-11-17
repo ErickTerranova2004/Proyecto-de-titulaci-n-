@@ -4,6 +4,7 @@ import {
   Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador,
 } from "./comunes.jsx";
 import Resultado from "./Resultado.jsx";
+import { ordenarPorActividad } from "../ordenHistorial.js";
 
 // Seguimiento de la fecha límite de la última decisión (vista / cumplida).
 export function SeguimientoAsignacion({ decision, nivelOriginal }) {
@@ -32,7 +33,9 @@ export default function Historial({
   const [error, setError] = useState("");
   const [seleccion, setSeleccion] = useState(null);
 
-  const cargar = () => api.historial().then(setFilas).catch((e) => setError(e.message));
+  // Primero lo de actividad más reciente: un análisis con una decisión nueva
+  // sube al primer lugar (src/ordenHistorial.js).
+  const cargar = () => api.historial().then((h) => setFilas(ordenarPorActividad(h))).catch((e) => setError(e.message));
   useEffect(() => {
     cargar();
   }, []);
@@ -56,7 +59,7 @@ export default function Historial({
       <header className="encabezado">
         <h1 id="titulo-historial">{titulo}</h1>
         <p className="secundario">
-          {descripcion ?? "Análisis visibles según su rol y sus repositorios asignados"}, del más reciente al más antiguo.
+          {descripcion ?? "Análisis visibles según su rol y sus repositorios asignados"}, primero los de actividad más reciente (análisis o decisión).
         </p>
       </header>
       <Alerta>{error}</Alerta>
