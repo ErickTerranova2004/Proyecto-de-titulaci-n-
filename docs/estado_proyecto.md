@@ -46,7 +46,11 @@ Actualizado: 2026-11-17 · rama `feature/100-repos-desplegados` (publicada en
 ### Modelo v2 (activo)
 - Random Forest, validación GroupKFold por repositorio: PR-AUC 0,415,
   ROC-AUC 0,803, recall y=1 0,536, precisión 0,517, F1 0,526, Brier 0,067.
-  v1 y v1.1 están registrados e inactivos.
+  v1 está registrado e inactivo. **v1.1 está oculta** (`est_registro = 'I'`,
+  migración 0022): no sale en Modelos, Supervisión, la comparación ni los
+  selectores, no se puede activar y `evaluar_sombra` ya no la evalúa; sus
+  filas, sus 83 predicciones interactivas, sus 791 en sombra y sus archivos
+  se conservan.
 - Recomendación automática: nivel alto → «Solicitar revisión previa»;
   bajo/medio → «Permitir el despliegue». El líder técnico la acepta o la
   cambia (se guarda `acepta_recomendacion`).
@@ -82,7 +86,9 @@ Actualizado: 2026-11-17 · rama `feature/100-repos-desplegados` (publicada en
   Frente a v1.1, v2 es mejor en los valores puntuales y detecta más fallos
   en el nivel alto (44 frente a 31), pero los IC de la diferencia incluyen
   el 0 (Brier +0,0026 [−0,0018–0,0073]; PR-AUC −0,014 [−0,053–0,029]):
-  no es concluyente.
+  no es concluyente. Tabla completa y conclusión en
+  `informes/comparacion_sombra_v2.md` (guardado antes de ocultar v1.1);
+  desde entonces la comparación de la plataforma muestra v2 y v1.
 
 ### Plataforma
 - 229 repositorios activos (198 del dataset v2 + 1 de demostración
@@ -156,6 +162,7 @@ cd frontend; npx vite --port 5174
 - `riesgo_despliegue_20261112_005202_antes_auditoria.dump`
 - `riesgo_despliegue_20261112_033644_antes_quitar_prueba.dump`
 - `riesgo_despliegue_20261117_103250_antes_sombra.dump`
+- `riesgo_despliegue_20261117_105450_antes_ocultar_v1_1.dump`
 
 ## 3. Decisiones tomadas
 
@@ -171,6 +178,7 @@ cd frontend; npx vite --port 5174
 | Análisis de demostración y de prueba fuera de las métricas | No son validación del modelo |
 | v1 y v1.1 se comparan en sombra, sin activarlos | Mismas ejecuciones y mismas variables para los tres modelos; activar otro modelo cambiaría los análisis de los usuarios |
 | Las predicciones en sombra se excluyen en el gestor por defecto | Ninguna consulta existente puede contarlas como análisis de usuarios por descuido |
+| Ocultar v1.1 en lugar de borrarla | Hay predicciones que la referencian (PROTECT) y la comparación en sombra queda documentada en el informe |
 | Sin botón «Verificar resultado real» | La verificación ya es automática (página y lote); el botón confundía |
 
 ## 4. Pendientes (por prioridad)
@@ -220,6 +228,8 @@ cd frontend; npx vite --port 5174
   analizados dos veces. Se detuvo a las 10:32 con 21 de 40.
 - Evaluación en sombra, verificación automática sin botón y filtro de
   repositorios inactivos en Workflows (arriba).
+- v1.1 oculta (migración 0022) tras guardar
+  `informes/comparacion_sombra_v2.md`.
 
 **Hecho el 12-nov**
 - Error boundary en React (`frontend/src/limiteErrores.js`): un error al

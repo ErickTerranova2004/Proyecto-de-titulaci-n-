@@ -205,3 +205,42 @@ class MetricasTest(SimpleTestCase):
         bajo, alto = r["v2"]["brier"]["ic95"]
         self.assertLessEqual(bajo, r["v2"]["brier"]["valor"])
         self.assertGreaterEqual(alto, r["v2"]["brier"]["valor"])
+
+
+class VersionOcultaTest(Base):
+    """v1.1 oculta (est_registro = 'I', migración 0022): no sale en ninguna
+    pantalla, pero sus filas y predicciones se conservan."""
+
+    def setUp(self):
+        VersionModelo.objects.filter(id=self.v11.id).update(est_registro="I")
+        admin = test_api.ApiTest._usuario("admin", "administrador", [])
+        self.api = test_api.ApiTest.cliente(self, admin)
+
+    def test_no_sale_en_la_lista_ni_se_puede_activar_ni_supervisar(self):
+        versiones = [m["version"] for m in self.api.get("/api/modelos/").json()]
+        self.assertEqual(sorted(versiones), ["v1", "v2"])
+        self.assertEqual(self.api.post(
+            f"/api/modelos/{self.v11.id}/activar/").status_code, 404)
+        self.assertEqual(self.api.get(
+            f"/api/modelos/{self.v11.id}/supervision/").status_code, 404)
+        self.assertTrue(VersionModelo.objects.get(id=self.v11.id).activo is False)
+
+    def test_comparacion_y_sombra_sin_la_version_oculta(self):
+        self.prediccion()
+        resumen = sombra.generar(self.lote)
+        self.assertEqual(list(resumen), ["v1"])
+        datos = self.api.get("/api/modelos/comparacion-sombra/").json()
+        self.assertEqual([m["version"] for m in datos["modelos"]], ["v2", "v1"])
+        self.assertEqual(datos["ejecuciones"], 1)
+
+    def test_la_migracion_solo_oculta_v1_1(self):
+        from importlib import import_module
+        from django.apps import apps
+        VersionModelo.objects.update(est_registro="A")
+        migracion = import_module("riesgo.migrations.0022_ocultar_v1_1")
+        migracion.estado("I")(apps, None)
+        self.assertEqual(
+            dict(VersionModelo.objects.values_list("version", "est_registro")),
+            {"v1": "A", "v1.1": "I", "v2": "A"})
+        migracion.estado("A")(apps, None)
+        self.assertFalse(VersionModelo.objects.filter(est_registro="I").exists())

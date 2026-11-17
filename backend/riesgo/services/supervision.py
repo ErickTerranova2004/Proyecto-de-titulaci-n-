@@ -150,7 +150,9 @@ def comparacion():
     referencia = VersionModelo.objects.filter(activo=True).first()
     if referencia is None:
         return None
-    sombras = list(VersionModelo.objects.exclude(id=referencia.id)
+    # Solo las versiones visibles (est_registro = 'A'): v1.1 está oculta.
+    sombras = list(VersionModelo.objects.filter(est_registro="A")
+                   .exclude(id=referencia.id)
                    .order_by("-registrado_en", "-id"))
     _, predicciones, corte, _ = posteriores_al_corte(referencia)
     base = list(evaluables(predicciones).select_related("ejecucion_real")

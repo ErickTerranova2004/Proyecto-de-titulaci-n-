@@ -27,7 +27,7 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
       <header className="encabezado">
         <h1 id="titulo-modelos">Versiones del modelo</h1>
         <p className="secundario">
-          Modelos registrados. Las métricas de v1 y v1.1 corresponden a su partición temporal de prueba; las de v2, a
+          Modelos registrados. Las métricas de v1 corresponden a su partición temporal de prueba; las de v2, a
           la validación por repositorio (repositorios no vistos). No son comparables entre sí.
         </p>
       </header>
@@ -173,7 +173,7 @@ function Supervision({ modelos }) {
   );
 }
 
-// v2 (activo) frente a v1.1 y v1 evaluados en sombra sobre exactamente las
+// El modelo activo frente a las versiones visibles evaluadas en sombra, sobre exactamente las
 // mismas ejecuciones evaluables (riesgo/services/supervision.comparacion).
 function ComparacionSombra() {
   const [datos, setDatos] = useState(null);

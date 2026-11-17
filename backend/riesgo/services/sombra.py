@@ -68,7 +68,9 @@ def generar(usuario, contar=False):
     {version: {"creadas": n, "rellenadas": [variables]}}."""
     referencia = predictor.modelo_activo()
     resumen = {}
-    for version in VersionModelo.objects.exclude(id=referencia.id).order_by("id"):
+    # Las versiones ocultas (est_registro = 'I') ya no se evalúan.
+    visibles = VersionModelo.objects.filter(est_registro="A")
+    for version in visibles.exclude(id=referencia.id).order_by("id"):
         lista = list(pendientes(referencia, version))
         filas, rellenadas = [], set()
         for p in lista:
