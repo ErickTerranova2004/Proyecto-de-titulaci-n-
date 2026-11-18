@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
+import { textoEnvio } from "../restablecer.js";
 import { NOMBRES_ROL } from "../roles.js";
 import { candidatosTraspaso, motivoNoEliminar, tieneHistorial } from "../traspaso.js";
 import { Alerta, Fecha } from "./comunes.jsx";
 import { Aviso, Dialogo, Filtros, Indicador } from "./gestion.jsx";
 
-// Gestión de cuentas: rol, estado, contraseña y repositorios asignados.
-// Los permisos reales los aplica el backend (views_gestion.py).
+// Gestión de cuentas: rol, estado, correo y repositorios asignados. El
+// administrador no escribe contraseñas: envía al usuario un enlace por correo
+// para que la elija él (también al crear la cuenta). Los permisos reales los
+// aplica el backend (views_gestion.py).
 
 const ROLES = ["administrador", "lider_tecnico", "desarrollador"];
 // Roles que solo ven los repositorios que se les asignan.
@@ -17,12 +20,14 @@ const FILTROS = [
   ["lider_tecnico", "Líderes técnicos"],
   ["desarrollador", "Desarrolladores"],
   ["sin_rol", "Sin rol"],
+  ["sin_correo", "Sin correo"],
   ["inactivos", "Inactivos"],
 ];
 
 function cumple(u, filtro) {
   if (filtro === "todos") return true;
   if (filtro === "sin_rol") return !u.rol;
+  if (filtro === "sin_correo") return !u.correo;
   if (filtro === "inactivos") return !u.activo;
   return u.rol === filtro;
 }
@@ -85,6 +90,8 @@ export default function Usuarios() {
         u.nombre.toLowerCase().includes(texto)),
   );
   const sinRepos = usuarios.filter((u) => CON_ACCESOS.includes(u.rol) && !u.repositorios.length).length;
+  // Sin correo no se les puede enviar el enlace para restablecer la contraseña.
+  const sinCorreo = usuarios.filter((u) => !u.correo && u.activo);
 
   return (
     <section className="vista" aria-labelledby="titulo-usuarios">
@@ -107,6 +114,22 @@ export default function Usuarios() {
       <Alerta>{error}</Alerta>
       <Aviso texto={aviso} />
       {!datos && !error && <p role="status" className="secundario">Cargando usuarios…</p>}
+      {datos?.correo && !datos.correo.configurado && (
+        <p className="alerta alerta--aviso" role="status">
+          <strong>El envío de correos no está configurado.</strong> Los enlaces para restablecer contraseñas se
+          escriben en la consola del servidor y no llegan al buzón de los usuarios. Configure EMAIL_HOST y las demás
+          variables EMAIL_* en backend/.env y reinicie el backend.
+        </p>
+      )}
+      {sinCorreo.length > 0 && (
+        <p className="alerta alerta--aviso" role="status">
+          <strong>
+            {sinCorreo.length === 1 ? "1 cuenta activa no tiene" : `${sinCorreo.length} cuentas activas no tienen`} correo
+            registrado:
+          </strong>{" "}
+          {sinCorreo.map((u) => u.usuario).join(", ")}. No se les puede enviar el enlace para restablecer la contraseña.
+        </p>
+      )}
 
       {datos && (
         <>
@@ -118,9 +141,9 @@ export default function Usuarios() {
             <Indicador
               icono="alto"
               titulo="Requieren atención"
-              valor={conteos.sin_rol + sinRepos}
-              nivel={conteos.sin_rol + sinRepos ? "alto" : undefined}
-              detalle={`${conteos.sin_rol} sin rol · ${sinRepos} sin repositorios`}
+              valor={conteos.sin_rol + sinRepos + sinCorreo.length}
+              nivel={conteos.sin_rol + sinRepos + sinCorreo.length ? "alto" : undefined}
+              detalle={`${conteos.sin_rol} sin rol · ${sinRepos} sin repositorios · ${sinCorreo.length} sin correo`}
             />
           </div>
 
@@ -166,7 +189,9 @@ export default function Usuarios() {
                                 {u.usuario}
                                 {u.es_actual && <span className="gestion-insignia">Usted</span>}
                               </strong>
-                              <span className="secundario">{u.correo || "Sin correo"}</span>
+                              <span className="secundario">
+                                {u.correo || <span className="gestion-estado gestion-estado--pendiente">Sin correo</span>}
+                              </span>
                             </div>
                           </div>
                         </td>
@@ -180,6 +205,11 @@ export default function Usuarios() {
                           <span className={`gestion-estado gestion-estado--${u.activo ? "ok" : "apagado"}`}>
                             {u.activo ? "Activo" : "Inactivo"}
                           </span>
+                          {u.rol && !u.clave_definida && (
+                            <span className="gestion-estado gestion-estado--pendiente" title="Aún no eligió su contraseña con el enlace del correo">
+                              Contraseña pendiente
+                            </span>
+                          )}
                         </td>
                         <td>{u.ultimo_acceso ? <Fecha valor={u.ultimo_acceso} /> : <span className="secundario">Nunca</span>}</td>
                         <td>
@@ -200,10 +230,10 @@ export default function Usuarios() {
       {creando && (
         <DialogoNuevo
           alCerrar={() => setCreando(false)}
-          alCrear={(u) => {
+          alCrear={({ envio, ...u }) => {
             reemplazar(u);
             setCreando(false);
-            avisar(`Usuario ${u.usuario} creado.`);
+            avisar(`Usuario ${u.usuario} creado. ${textoEnvio(u.usuario, envio)}`);
             // Si necesita repositorios, se abre directamente para asignarlos.
             if (CON_ACCESOS.includes(u.rol)) setEditando(u);
           }}
@@ -219,6 +249,10 @@ export default function Usuarios() {
             reemplazar(u);
             setEditando(null);
             avisar(`Cambios de ${u.usuario} guardados.`);
+          }}
+          alActualizar={(u) => {
+            reemplazar(u);
+            setEditando(u); // muestra el último envío sin cerrar la ventana
           }}
           alEliminar={(u, traspaso) => {
             setEditando(null);
@@ -249,7 +283,7 @@ function SelectorRol({ valor, alCambiar, deshabilitado }) {
 }
 
 function DialogoNuevo({ alCerrar, alCrear }) {
-  const [form, setForm] = useState({ usuario: "", correo: "", contrasena: "", rol: "desarrollador" });
+  const [form, setForm] = useState({ usuario: "", correo: "", rol: "desarrollador" });
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
   const cambiar = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
@@ -272,12 +306,12 @@ function DialogoNuevo({ alCerrar, alCrear }) {
           <input value={form.usuario} onChange={cambiar("usuario")} required autoFocus autoComplete="off" />
         </label>
         <label className="campo"><span>Correo electrónico</span>
-          <input type="email" value={form.correo} onChange={cambiar("correo")} />
+          <input type="email" value={form.correo} onChange={cambiar("correo")} required autoComplete="off" />
         </label>
-        <label className="campo"><span>Contraseña inicial</span>
-          <input type="password" value={form.contrasena} onChange={cambiar("contrasena")} required autoComplete="new-password" />
-        </label>
-        <p className="secundario nota-pie">Mínimo 8 caracteres, no solo números ni una contraseña común.</p>
+        <p className="secundario nota-pie">
+          El usuario recibirá en este correo un enlace para crear su contraseña (vale una hora). Si caduca, envíe
+          otro desde «Gestionar».
+        </p>
         <label className="campo"><span>Rol</span>
           <SelectorRol valor={form.rol} alCambiar={(rol) => setForm({ ...form, rol })} />
         </label>
@@ -386,11 +420,72 @@ function ZonaEliminar({ usuario, usuarios, alEliminar }) {
   );
 }
 
-function DialogoUsuario({ usuario, repositorios, usuarios, alCerrar, alGuardar, alEliminar }) {
+// Envío del enlace para restablecer la contraseña y último envío registrado.
+function ZonaContrasena({ usuario, cambiosSinGuardar, alActualizar }) {
+  const [enviando, setEnviando] = useState(false);
+  const [aviso, setAviso] = useState("");
+  const [error, setError] = useState("");
+  const ultimo = usuario.ultimo_restablecimiento;
+  const motivo = !usuario.correo
+    ? "Registre un correo y guarde los cambios para poder enviar el enlace."
+    : !usuario.activo
+      ? "La cuenta está desactivada: actívela y guarde los cambios para enviar el enlace."
+      : cambiosSinGuardar
+        ? "Guarde primero el cambio de correo o de estado."
+        : null;
+
+  async function enviar() {
+    setEnviando(true);
+    setError("");
+    setAviso("");
+    try {
+      const r = await api.enviarRestablecimiento(usuario.id);
+      setAviso(textoEnvio(usuario.usuario, r));
+      alActualizar(r.usuario);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <fieldset className="gestion-repos">
+      <legend>Contraseña</legend>
+      <p className="secundario nota-pie">
+        {usuario.clave_definida
+          ? "El administrador no puede ver ni cambiar la contraseña. Envíe un enlace para que el usuario la restablezca."
+          : "El usuario todavía no ha creado su contraseña con el enlace del correo."}
+      </p>
+      {ultimo && (
+        <p className="secundario nota-pie">
+          Último enlace: <Fecha valor={ultimo.solicitado_en} />{" "}
+          {ultimo.origen === "usuario" ? "(lo pidió el usuario)" : `(enviado por ${ultimo.solicitado_por})`}
+          {!ultimo.enviado && " · el envío falló"}
+          {ultimo.medio === "consola" && ultimo.enviado && " · escrito en la consola del servidor"}
+          {ultimo.cambiada_en ? <> · contraseña cambiada el <Fecha valor={ultimo.cambiada_en} /></> : " · sin usar"}
+        </p>
+      )}
+      <button
+        type="button"
+        className="boton boton--secundario"
+        onClick={enviar}
+        disabled={enviando || Boolean(motivo)}
+        aria-describedby={motivo ? "motivo-enlace" : undefined}
+      >
+        {enviando ? "Enviando…" : "Enviar enlace para restablecer contraseña"}
+      </button>
+      {motivo && <p id="motivo-enlace" className="secundario nota-pie">{motivo}</p>}
+      <Aviso texto={aviso} />
+      <Alerta>{error}</Alerta>
+    </fieldset>
+  );
+}
+
+function DialogoUsuario({ usuario, repositorios, usuarios, alCerrar, alGuardar, alActualizar, alEliminar }) {
   const [rol, setRol] = useState(usuario.rol || "");
   const [activo, setActivo] = useState(usuario.activo);
   const [correo, setCorreo] = useState(usuario.correo);
-  const [contrasena, setContrasena] = useState("");
   const [asignados, setAsignados] = useState(() => new Set(usuario.repositorios.map((r) => r.id)));
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
@@ -402,7 +497,6 @@ function DialogoUsuario({ usuario, repositorios, usuarios, alCerrar, alGuardar, 
     if ((usuario.rol || "") !== rol) cambios.rol = rol || null;
     if (usuario.activo !== activo) cambios.activo = activo;
     if (usuario.correo !== correo.trim()) cambios.correo = correo.trim();
-    if (contrasena) cambios.contrasena = contrasena;
     const antes = usuario.repositorios.map((r) => r.id).sort().join(",");
     const despues = [...asignados].sort().join(",");
 
@@ -461,15 +555,11 @@ function DialogoUsuario({ usuario, repositorios, usuarios, alCerrar, alGuardar, 
           />
         </label>
 
-        <label className="campo"><span>Nueva contraseña (opcional)</span>
-          <input
-            type="password"
-            value={contrasena}
-            onChange={(e) => setContrasena(e.target.value)}
-            placeholder="Dejar vacío para no cambiarla"
-            autoComplete="new-password"
-          />
-        </label>
+        <ZonaContrasena
+          usuario={usuario}
+          cambiosSinGuardar={usuario.correo !== correo.trim() || usuario.activo !== activo}
+          alActualizar={alActualizar}
+        />
 
         {CON_ACCESOS.includes(rol) ? (
           <SelectorRepositorios repositorios={repositorios} asignados={asignados} alCambiar={setAsignados} />

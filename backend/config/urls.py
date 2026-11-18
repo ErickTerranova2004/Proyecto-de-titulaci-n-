@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from riesgo import views, views_gestion
+from riesgo import views, views_clave, views_gestion
 from riesgo.sesion import iniciar_sesion
 
 router = DefaultRouter()
@@ -18,12 +18,18 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Registra el último acceso (last_login) en cada inicio de sesión.
     path("api/auth/token/", iniciar_sesion),
+    # Restablecimiento de contraseña por correo (sin sesión).
+    path("api/auth/restablecer/solicitar/", views_clave.solicitar),
+    path("api/auth/restablecer/validar/", views_clave.validar),
+    path("api/auth/restablecer/confirmar/", views_clave.confirmar),
     path("api/yo/", views.yo),
     path("api/integraciones/", views.integraciones),
     path("api/resumen-admin/", views.resumen_admin),
     # Gestión de usuarios, accesos y workflows (solo administrador).
     path("api/gestion/usuarios/", views_gestion.usuarios),
     path("api/gestion/usuarios/<int:pk>/", views_gestion.usuario_detalle),
+    path("api/gestion/usuarios/<int:pk>/restablecer/",
+         views_gestion.usuario_restablecer),
     path("api/gestion/usuarios/<int:pk>/repositorios/",
          views_gestion.usuario_repositorios),
     path("api/gestion/workflows/", views_gestion.workflows),

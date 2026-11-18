@@ -40,6 +40,7 @@ export const SECCIONES = {
     ],
     administrador: [
         seccion("panel", "Panel de administración", "panel"),
+        seccion("historial", "Historial de análisis", "historial"),
         seccion("usuarios", "Usuarios y accesos", "usuarios"),
         seccion("workflows", "Workflows", "workflows"),
         seccion("modelos", "Modelos", "modelos"),

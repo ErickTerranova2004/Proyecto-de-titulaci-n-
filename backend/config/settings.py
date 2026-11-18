@@ -131,7 +131,9 @@ REST_FRAMEWORK = {
     ],
     # La interfaz consulta sola (asignaciones, seguimiento de la ejecución
     # real cada 30 s), por eso el límite deja margen al uso normal.
-    "DEFAULT_THROTTLE_RATES": {"user": "1000/hour"},
+    # «restablecer»: peticiones públicas de restablecimiento de contraseña
+    # (por IP), para que no se usen para enviar correos en masa.
+    "DEFAULT_THROTTLE_RATES": {"user": "1000/hour", "restablecer": "20/hour"},
 }
 
 CORS_ALLOWED_ORIGINS = [o for o in os.environ.get(
@@ -162,21 +164,36 @@ IA_TIMEOUT = int(os.environ.get("IA_TIMEOUT", "90"))
 if sys.argv[1:2] == ["test"]:
     IA_PROVEEDOR = "reglas"
 
-# Correo de asignaciones al desarrollador: desactivado por defecto. Se envía
-# solo con CORREO_ASIGNACIONES=1; sin EMAIL_HOST se usa el backend de consola
-# (el mensaje se escribe en la terminal del servidor, útil en desarrollo).
+# Correo (restablecimiento de contraseña y, con CORREO_ASIGNACIONES=1,
+# asignaciones al desarrollador). Sin EMAIL_HOST se usa el backend de consola:
+# el mensaje se escribe en la terminal del servidor y la interfaz lo avisa.
 CORREO_ASIGNACIONES = os.environ.get("CORREO_ASIGNACIONES", "") == "1"
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
 if EMAIL_HOST:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+    EMAIL_PORT = int(os.environ.get("EMAIL_PORT") or "587")
     EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
-    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-    EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
+    # Gmail muestra la contraseña de aplicación en grupos («abcd efgh …»):
+    # se admite pegada con o sin espacios.
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").replace(
+        " ", "")
+    EMAIL_USE_TLS = (os.environ.get("EMAIL_USE_TLS") or "1").strip().lower() \
+        in ("1", "true", "si", "sí", "yes")
+    EMAIL_TIMEOUT = 20
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL",
-                                    "riesgo-despliegue@localhost")
+# `or`: una clave presente pero vacía en .env también toma el valor por defecto.
+DEFAULT_FROM_EMAIL = (os.environ.get("DEFAULT_FROM_EMAIL")
+                      or "riesgo-despliegue@localhost")
+CORREO_CONFIGURADO = bool(EMAIL_HOST)
+
+# Dirección del frontend: el enlace del correo de restablecimiento apunta a
+# FRONTEND_URL/restablecer/<uid>/<token>.
+FRONTEND_URL = (os.environ.get("FRONTEND_URL")
+                or "http://localhost:5174").rstrip("/")
+# Validez del enlace de restablecimiento (PasswordResetTokenGenerator): 1 hora.
+# Es de un solo uso: el token depende del hash de la contraseña, que cambia.
+PASSWORD_RESET_TIMEOUT = 3600
 
 LOGGING = {
     "version": 1,

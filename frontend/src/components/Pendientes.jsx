@@ -1,42 +1,45 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import {
   Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador, textoPlazo,
 } from "./comunes.jsx";
+import FiltrosHistorial from "./FiltrosHistorial.jsx";
 import Resultado from "./Resultado.jsx";
+import { consultaHistorial, errorRango, FILTROS_INICIALES, hayFiltros, ORDENES } from "../filtrosHistorial.js";
 
-const FILTROS = [
-  ["medio-alto", "Nivel medio y alto"],
-  ["todos", "Todos los niveles"],
-];
+// Aquí todos los análisis están sin decisión: no aplica «con decisión primero».
+const ORDENES_PENDIENTES = ORDENES.filter(([id]) => id !== "decision");
 
 // Vista del líder técnico: predicciones de sus repositorios sin decisión y
 // asignaciones con fecha límite. La decisión usa el formulario de Resultado.
+// Nivel, fechas y orden los aplica el backend (sin_decision=1); por defecto,
+// todos los niveles, del más reciente al más antiguo.
 export default function Pendientes({ modelos }) {
-  const [historial, setHistorial] = useState(null);
+  const [sinDecision, setSinDecision] = useState(null);
   const [asignaciones, setAsignaciones] = useState(null);
   const [error, setError] = useState("");
-  const [filtro, setFiltro] = useState("medio-alto");
+  const [filtros, setFiltros] = useState(FILTROS_INICIALES);
   const [seleccion, setSeleccion] = useState(null);
+  const [abriendo, setAbriendo] = useState(false);
+  const peticion = useRef(0);
 
-  const cargar = () =>
-    Promise.all([api.historial(), api.asignaciones()])
-      .then(([h, a]) => {
-        setHistorial(h);
-        setAsignaciones(a);
-      })
-      .catch((e) => setError(e.message));
-  useEffect(() => {
-    cargar();
-  }, []);
-
-  const sinDecision = useMemo(
-    () =>
-      historial
-        ?.filter((p) => !p.decisiones?.length && (filtro === "todos" || p.nivel !== "bajo"))
-        .sort((a, b) => b.probabilidad - a.probabilidad),
-    [historial, filtro],
-  );
+  function cargarPendientes() {
+    if (errorRango(filtros.desde, filtros.hasta)) return;
+    const id = ++peticion.current;
+    setError("");
+    api
+      .historial(consultaHistorial({ ...filtros, sinDecision: true }))
+      .then((h) => id === peticion.current && setSinDecision(h))
+      .catch((e) => id === peticion.current && setError(e.message));
+  }
+  const cargarAsignaciones = () => api.asignaciones().then(setAsignaciones).catch((e) => setError(e.message));
+  function cargar() {
+    cargarPendientes();
+    cargarAsignaciones();
+  }
+  useEffect(cargarAsignaciones, []);
+  useEffect(cargarPendientes, [filtros.desde, filtros.hasta, filtros.nivel, filtros.orden]);
+  const filtrado = hayFiltros(filtros);
 
   if (seleccion) {
     return (
@@ -52,7 +55,16 @@ export default function Pendientes({ modelos }) {
     );
   }
 
-  const abrir = (id) => setSeleccion(historial.find((p) => p.id === id));
+  // El análisis de una asignación ya tiene decisión: no está en la lista de
+  // pendientes, se pide al backend.
+  function abrir(id) {
+    setAbriendo(true);
+    api
+      .prediccion(id)
+      .then(setSeleccion)
+      .catch((e) => setError(e.message))
+      .finally(() => setAbriendo(false));
+  }
 
   return (
     <section className="vista" aria-labelledby="titulo-pendientes">
@@ -64,21 +76,33 @@ export default function Pendientes({ modelos }) {
           </p>
         </header>
         <div className="panel__acciones">
-          <label className="campo campo--en-linea" htmlFor="filtro-pendientes">
-            <span>Mostrar</span>
-            <select id="filtro-pendientes" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
-              {FILTROS.map(([id, texto]) => <option key={id} value={id}>{texto}</option>)}
-            </select>
-          </label>
           <button className="boton boton--secundario" type="button" onClick={cargar}>Actualizar</button>
         </div>
       </div>
+      <div className="filtros-historial__barra">
+        <FiltrosHistorial
+          id="pendientes"
+          filtros={filtros}
+          alCambiar={setFiltros}
+          conNivel
+          ordenes={ORDENES_PENDIENTES}
+        />
+        {filtrado && (
+          <div className="panel__acciones">
+            <button className="boton boton--secundario" type="button" onClick={() => setFiltros(FILTROS_INICIALES)}>
+              Quitar filtros
+            </button>
+          </div>
+        )}
+      </div>
       <Alerta>{error}</Alerta>
-      {!historial && !error && <p role="status" className="secundario">Cargando pendientes…</p>}
+      {!sinDecision && !error && <p role="status" className="secundario">Cargando pendientes…</p>}
 
       {sinDecision && (
         <section aria-labelledby="titulo-sin-decision">
-          <h2 id="titulo-sin-decision">Predicciones sin decisión</h2>
+          <h2 id="titulo-sin-decision">
+            Predicciones sin decisión <span className="secundario">({sinDecision.length})</span>
+          </h2>
           {!sinDecision.length ? (
             <div className="tarjeta vacio">
               <p className="secundario">No hay análisis pendientes de decisión con este filtro.</p>
@@ -169,7 +193,7 @@ export default function Pendientes({ modelos }) {
                             : <span className="secundario">{a.cumplida_en ? "Marcada sin nuevo análisis" : "—"}</span>}
                         </td>
                         <td>
-                          <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => abrir(a.prediccion)}>
+                          <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => abrir(a.prediccion)} disabled={abriendo}>
                             Ver<span className="solo-lector"> el análisis de {a.repositorio}</span>
                           </button>
                         </td>

@@ -6,7 +6,9 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import F, Max
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, mixins
@@ -306,6 +308,67 @@ def integraciones(request):
     }})
 
 
+def _fecha_parametro(parametros, nombre):
+    valor = (parametros.get(nombre) or "").strip()
+    if not valor:
+        return None
+    try:
+        fecha = parse_date(valor)
+    except ValueError:
+        fecha = None
+    if fecha is None:
+        raise ValidationError({nombre: "Use una fecha con el formato "
+                                       "AAAA-MM-DD."})
+    return fecha
+
+
+def filtrar_historial(consulta, parametros):
+    """Filtros y orden de los historiales y de «Pendientes de decisión».
+
+    - desde / hasta (AAAA-MM-DD, ambos incluidos): día de creación del
+      análisis en la zona horaria de la plataforma (America/Guayaquil).
+    - nivel: bajo, medio o alto (varios separados por comas).
+    - sin_decision=1: solo los análisis que esperan la decisión del líder.
+    - origen: interactivo o lote (solo cambia algo para el administrador;
+      el resto ya ve solo los interactivos).
+    - orden: «reciente» (por defecto, del más reciente al más antiguo) o
+      «antiguo».
+    """
+    desde = _fecha_parametro(parametros, "desde")
+    hasta = _fecha_parametro(parametros, "hasta")
+    if desde and hasta and desde > hasta:
+        raise ValidationError({"desde": "La fecha «desde» no puede ser "
+                                        "posterior a «hasta»."})
+    if desde:
+        consulta = consulta.filter(creada_en__date__gte=desde)
+    if hasta:
+        consulta = consulta.filter(creada_en__date__lte=hasta)
+
+    niveles = {n.strip() for n in (parametros.get("nivel") or "").split(",")
+               if n.strip()}
+    validos = {n for n, _ in Prediccion.NIVELES}
+    if niveles - validos:
+        raise ValidationError({"nivel": "Use bajo, medio o alto."})
+    if niveles:
+        consulta = consulta.filter(nivel__in=niveles)
+
+    if parametros.get("sin_decision") in ("1", "true"):
+        consulta = consulta.filter(decisiones__isnull=True)
+
+    origen = parametros.get("origen")
+    if origen:
+        if origen not in ("interactivo", "lote"):
+            raise ValidationError({"origen": "Use interactivo o lote."})
+        consulta = consulta.filter(origen=origen)
+
+    orden = parametros.get("orden") or "reciente"
+    if orden not in ("reciente", "antiguo"):
+        raise ValidationError({"orden": "Use reciente o antiguo."})
+    if orden == "antiguo":
+        return consulta.order_by("creada_en", "id")
+    return consulta.order_by("-creada_en", "-id")
+
+
 class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                         GenericViewSet):
     serializer_class = PrediccionSerializer
@@ -318,6 +381,8 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         if repositorio:
             consulta = consulta.filter(
                 workflow__repositorio__nombre_completo=repositorio)
+        if self.action == "list":
+            consulta = filtrar_historial(consulta, self.request.query_params)
         return consulta
 
     def create(self, request):

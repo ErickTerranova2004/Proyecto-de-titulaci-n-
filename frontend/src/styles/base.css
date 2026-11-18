@@ -3428,3 +3428,92 @@ td>.gestion-insignia:first-child {
     flex-wrap: wrap;
     gap: var(--esp-2);
 }
+
+
+/* Filtros de los historiales y de «Pendientes de decisión» (fechas, nivel,
+   origen y orden; los aplica el backend). */
+
+.filtros-historial__barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--esp-3);
+}
+
+.filtros-historial {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--esp-2) var(--esp-4);
+}
+
+.filtros-historial input[type="date"] {
+    width: auto;
+}
+
+.filtros-historial__error {
+    flex-basis: 100%;
+    margin: 0;
+}
+
+/* Avisos que no son errores (correo sin configurar, cuentas sin correo). */
+
+.alerta--aviso {
+    border-color: color-mix(in srgb, var(--color-medio) 45%, transparent);
+    background: color-mix(in srgb, var(--color-medio) 14%, transparent);
+    color: var(--medio-texto);
+    font-weight: 400;
+}
+
+/* Restablecimiento de contraseña: enlaces de texto y tarjeta de una columna. */
+
+.boton-enlace {
+    align-self: center;
+    margin-top: var(--esp-3);
+    padding: 4px 2px;
+    border: 0;
+    background: none;
+    color: var(--acento-texto);
+    font: inherit;
+    font-size: var(--texto-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.boton-enlace:hover {
+    text-decoration-thickness: 2px;
+}
+
+.boton-enlace:focus-visible {
+    outline: 2px solid var(--acento-texto);
+    outline-offset: 2px;
+}
+
+.acceso__tarjeta.acceso__tarjeta--simple {
+    max-width: 480px;
+    min-height: 0;
+    grid-template-columns: 1fr;
+}
+
+.acceso__tarjeta--simple .acceso__monograma {
+    margin-bottom: var(--esp-3);
+}
+
+.acceso__formulario .gestion-aviso {
+    margin-bottom: var(--esp-3);
+}
+
+.acceso__reglas {
+    margin: 0;
+    padding-left: 1.2em;
+}
+
+@media (max-width: 640px) {
+    .filtros-historial,
+    .filtros-historial__barra {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

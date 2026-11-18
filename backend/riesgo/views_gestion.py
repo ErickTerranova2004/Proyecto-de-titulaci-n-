@@ -2,13 +2,18 @@
 
 Reemplaza el uso del administrador de Django para estas tareas. Cada listado
 devuelve todo en una sola petición para no gastar el límite de peticiones por hora.
+
+El administrador no escribe ni cambia contraseñas ajenas: envía al correo del
+usuario un enlace para que la elija él (services/restablecimiento.py). Al
+crear una cuenta se envía ese mismo enlace; hasta usarlo, la cuenta no tiene
+contraseña utilizable.
 """
 import re
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
@@ -19,9 +24,9 @@ from rest_framework.response import Response
 
 from riesgo.models import (PATRON_DESPLIEGUE, ROLES, AccesoRepositorio,
                            DecisionDespliegue, Prediccion, Repositorio,
-                           Workflow)
+                           RestablecimientoClave, Workflow)
 from riesgo.permissions import EsAdministrador, rol_principal
-from riesgo.services import github
+from riesgo.services import github, restablecimiento
 from riesgo.views import _error, _error_github
 
 Usuario = get_user_model()
@@ -38,7 +43,39 @@ def _consulta_usuarios():
         n_decisiones=Count("decisiones", distinct=True)).order_by("username")
 
 
-def _serializar_usuario(u, actual):
+def _serializar_restablecimiento(r):
+    if r is None:
+        return None
+    return {
+        "solicitado_en": r.solicitado_en,
+        "origen": r.origen,
+        "solicitado_por": r.usu_creacion,
+        "correo": r.correo,
+        "enviado": r.enviado,
+        "medio": r.medio,
+        "cambiada_en": r.cambiada_en,
+    }
+
+
+def _ultimos_restablecimientos(ids=None):
+    """Último enlace de restablecimiento de cada cuenta, {id_usuario: fila}."""
+    consulta = RestablecimientoClave.objects.filter(usuario__isnull=False)
+    if ids is not None:
+        consulta = consulta.filter(usuario_id__in=ids)
+    ultimos = {}
+    for r in consulta.order_by("-solicitado_en", "-id"):
+        ultimos.setdefault(r.usuario_id, r)
+    return ultimos
+
+
+def _estado_correo():
+    medio = restablecimiento.medio_correo()
+    return {"configurado": medio == "smtp", "medio": medio}
+
+
+def _serializar_usuario(u, actual, ultimos=None):
+    if ultimos is None:
+        ultimos = _ultimos_restablecimientos([u.id])
     return {
         "id": u.id,
         "usuario": u.username,
@@ -47,6 +84,10 @@ def _serializar_usuario(u, actual):
         "rol": rol_principal(u),
         "superusuario": u.is_superuser,
         "activo": u.is_active,
+        # False: cuenta nueva que aún no eligió su contraseña con el enlace.
+        "clave_definida": u.has_usable_password(),
+        "ultimo_restablecimiento": _serializar_restablecimiento(
+            ultimos.get(u.id)),
         "ultimo_acceso": u.last_login,
         "alta": u.date_joined,
         "repositorios": sorted(
@@ -60,12 +101,18 @@ def _serializar_usuario(u, actual):
     }
 
 
-def _validar_contrasena(contrasena, usuario):
+def _correo_valido(correo):
     try:
-        validate_password(contrasena, usuario)
-    except ValidationError as exc:
-        return " ".join(exc.messages)
-    return None
+        validate_email(correo)
+    except ValidationError:
+        return False
+    return True
+
+
+def _resultado_envio(registro):
+    """Respuesta del envío del enlace (para el aviso de la interfaz)."""
+    return {"enviado": registro.enviado, "medio": registro.medio,
+            "correo": registro.correo}
 
 
 def _asignar_rol(usuario, rol):
@@ -82,9 +129,11 @@ def _asignar_rol(usuario, rol):
 @permission_classes([EsAdministrador])
 def usuarios(request):
     if request.method == "GET":
+        ultimos = _ultimos_restablecimientos()
         return Response({
-            "usuarios": [_serializar_usuario(u, request.user)
+            "usuarios": [_serializar_usuario(u, request.user, ultimos)
                          for u in _consulta_usuarios()],
+            "correo": _estado_correo(),
             "repositorios": list(Repositorio.objects.values(
                 "id", "nombre_completo", "es_demostracion", "es_prueba",
                 "est_registro")),
@@ -93,7 +142,6 @@ def usuarios(request):
     datos = request.data
     nombre = str(datos.get("usuario", "")).strip()
     correo = str(datos.get("correo", "")).strip()
-    contrasena = str(datos.get("contrasena", ""))
     rol = datos.get("rol") or None
     if not nombre:
         return _error("Escriba el nombre de usuario.", "usuario_vacio", MAL)
@@ -102,18 +150,30 @@ def usuarios(request):
                       MAL)
     if rol is not None and rol not in ROLES:
         return _error("Rol no válido.", "rol_no_valido", MAL)
-    problema = _validar_contrasena(contrasena,
-                                   Usuario(username=nombre, email=correo))
-    if problema:
-        return _error(problema, "contrasena_no_valida", MAL)
+    if "contrasena" in datos:
+        return _error("El administrador no asigna contraseñas: el usuario "
+                      "la elige con el enlace que recibe por correo.",
+                      "contrasena_no_permitida", MAL)
+    # El usuario elige su contraseña con el enlace: sin correo no hay enlace.
+    if not correo:
+        return _error("Escriba el correo electrónico: el usuario recibirá en "
+                      "él el enlace para crear su contraseña.",
+                      "correo_vacio", MAL)
+    if not _correo_valido(correo):
+        return _error("El correo electrónico no es válido.", "correo_no_valido",
+                      MAL)
 
     with transaction.atomic():
+        # Sin contraseña utilizable hasta que use el enlace.
         nuevo = Usuario.objects.create_user(username=nombre, email=correo,
-                                            password=contrasena)
+                                            password=None)
         _asignar_rol(nuevo, rol)
+    registro = restablecimiento.enviar_enlace(nuevo, "administrador",
+                                              request.user)
     return Response(
-        _serializar_usuario(_consulta_usuarios().get(pk=nuevo.pk),
-                            request.user),
+        {**_serializar_usuario(_consulta_usuarios().get(pk=nuevo.pk),
+                               request.user),
+         "envio": _resultado_envio(registro)},
         status=status.HTTP_201_CREATED)
 
 
@@ -225,11 +285,15 @@ def usuario_detalle(request, pk):
     if "activo" in datos and es_yo and not datos["activo"]:
         return _error("No puede desactivar su propia cuenta.",
                       "propia_cuenta", MAL)
-    contrasena = str(datos.get("contrasena") or "")
-    if contrasena:
-        problema = _validar_contrasena(contrasena, usuario)
-        if problema:
-            return _error(problema, "contrasena_no_valida", MAL)
+    if "contrasena" in datos:
+        return _error("El administrador no cambia contraseñas: envíe al "
+                      "usuario el enlace para restablecerla.",
+                      "contrasena_no_permitida", MAL)
+    if "correo" in datos:
+        correo = str(datos["correo"] or "").strip()
+        if correo and not _correo_valido(correo):
+            return _error("El correo electrónico no es válido.",
+                          "correo_no_valido", MAL)
 
     # 2. Aplicar los cambios.
     with transaction.atomic():
@@ -238,16 +302,42 @@ def usuario_detalle(request, pk):
         if "activo" in datos:
             usuario.is_active = bool(datos["activo"])
         if "correo" in datos:
-            usuario.email = str(datos["correo"]).strip()
-        if contrasena:
-            usuario.set_password(contrasena)
+            usuario.email = str(datos["correo"] or "").strip()
         usuario.save()
-        # Cuenta desactivada o contraseña cambiada: se cierran sus sesiones.
-        if not usuario.is_active or (contrasena and not es_yo):
+        # Cuenta desactivada: se cierran sus sesiones.
+        if not usuario.is_active:
             Token.objects.filter(user=usuario).delete()
 
     return Response(_serializar_usuario(_consulta_usuarios().get(pk=pk),
                                         request.user))
+
+
+@api_view(["POST"])
+@permission_classes([EsAdministrador])
+def usuario_restablecer(request, pk):
+    """Envía al correo del usuario el enlace para restablecer su contraseña
+    (vale una hora y un solo uso). Queda registrado quién lo pidió."""
+    usuario = Usuario.objects.filter(pk=pk).first()
+    if usuario is None:
+        return _error("Usuario no encontrado.", "no_encontrado", NO_ENCONTRADO)
+    if not usuario.email:
+        return _error(f"{usuario.username} no tiene correo registrado. "
+                      "Regístrelo y guarde los cambios antes de enviar el "
+                      "enlace.", "sin_correo", MAL)
+    if not usuario.is_active:
+        return _error(f"La cuenta {usuario.username} está desactivada: "
+                      "actívela antes de enviar el enlace.", "inactivo", MAL)
+    registro = restablecimiento.enviar_enlace(usuario, "administrador",
+                                              request.user)
+    if not registro.enviado:
+        return _error("No se pudo enviar el correo. Revise la configuración "
+                      "de EMAIL_* en backend/.env y el registro del servidor.",
+                      "envio_fallido", status.HTTP_502_BAD_GATEWAY)
+    return Response({
+        **_resultado_envio(registro),
+        "usuario": _serializar_usuario(_consulta_usuarios().get(pk=pk),
+                                       request.user),
+    })
 
 
 @api_view(["PUT"])

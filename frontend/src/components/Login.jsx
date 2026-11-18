@@ -3,6 +3,7 @@ import { api, sesion } from "../api.js";
 import { Alerta } from "./comunes.jsx";
 
 export default function Login({ alEntrar }) {
+  const [olvido, setOlvido] = useState(false);
   const [usuario, setUsuario] = useState("");
   const [clave, setClave] = useState("");
   const [error, setError] = useState("");
@@ -40,6 +41,9 @@ export default function Login({ alEntrar }) {
           <p className="secundario">Plataforma predictiva · Proyecto de titulación 2026</p>
         </section>
 
+        {olvido ? (
+          <OlvidoContrasena alVolver={() => setOlvido(false)} />
+        ) : (
         <section className="acceso__formulario" aria-labelledby="titulo-login">
           <h1 id="titulo-login">Acceso a la plataforma</h1>
           <p className="secundario">Ingrese sus credenciales para acceder a la plataforma.</p>
@@ -70,9 +74,79 @@ export default function Login({ alEntrar }) {
               {enviando ? "Iniciando sesión…" : "Iniciar sesión"}
             </button>
           </form>
+          <button className="boton-enlace" type="button" onClick={() => setOlvido(true)}>
+            ¿Olvidó su contraseña?
+          </button>
         </section>
+        )}
       </div>
     </div>
+  );
+}
+
+// Pide el enlace de restablecimiento. La respuesta es la misma exista o no
+// una cuenta con ese correo (no se revela qué usuarios existen).
+function OlvidoContrasena({ alVolver }) {
+  const [correo, setCorreo] = useState("");
+  const [respuesta, setRespuesta] = useState(null);
+  const [error, setError] = useState("");
+  const [enviando, setEnviando] = useState(false);
+
+  async function enviar(e) {
+    e.preventDefault();
+    setError("");
+    setEnviando(true);
+    try {
+      setRespuesta(await api.olvideContrasena(correo.trim()));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <section className="acceso__formulario" aria-labelledby="titulo-olvido">
+      <h1 id="titulo-olvido">¿Olvidó su contraseña?</h1>
+      {respuesta ? (
+        <>
+          <p className="gestion-aviso" role="status">{respuesta.mensaje}</p>
+          {!respuesta.correo_configurado && (
+            <p className="secundario nota-pie">
+              El envío de correos no está configurado en el servidor: el enlace se escribe en la consola del
+              servidor. Contacte al administrador.
+            </p>
+          )}
+        </>
+      ) : (
+        <>
+          <p className="secundario">
+            Escriba el correo registrado en su cuenta. Le enviaremos un enlace para elegir una contraseña nueva.
+          </p>
+          <form className="formulario" onSubmit={enviar}>
+            <div className="campo">
+              <label htmlFor="olvido-correo">Correo electrónico</label>
+              <input
+                id="olvido-correo"
+                type="email"
+                autoComplete="email"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
+                required
+                autoFocus
+              />
+            </div>
+            <Alerta>{error}</Alerta>
+            <button className="boton" type="submit" disabled={enviando}>
+              {enviando ? "Enviando…" : "Enviar enlace"}
+            </button>
+          </form>
+        </>
+      )}
+      <button className="boton-enlace" type="button" onClick={alVolver}>
+        ← Volver al inicio de sesión
+      </button>
+    </section>
   );
 }
 

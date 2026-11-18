@@ -52,8 +52,19 @@ export const api = {
     login: (username, password) =>
         solicitar("/auth/token/", { method: "POST", body: JSON.stringify({ username, password }) }),
     yo: () => solicitar("/yo/"),
+    // Restablecimiento de contraseña por correo (sin sesión).
+    olvideContrasena: (correo) =>
+        solicitar("/auth/restablecer/solicitar/", { method: "POST", body: JSON.stringify({ correo }) }),
+    validarEnlace: (uid, token) =>
+        solicitar("/auth/restablecer/validar/", { method: "POST", body: JSON.stringify({ uid, token }) }),
+    restablecerContrasena: (uid, token, contrasena, confirmacion) =>
+        solicitar("/auth/restablecer/confirmar/", {
+            method: "POST",
+            body: JSON.stringify({ uid, token, contrasena, confirmacion }),
+        }),
     predecir: (datos) => solicitar("/predicciones/", { method: "POST", body: JSON.stringify(datos) }),
-    historial: () => solicitar("/predicciones/"),
+    // consulta: "?desde=…&hasta=…&nivel=…" (src/filtrosHistorial.js).
+    historial: (consulta = "") => solicitar(`/predicciones/${consulta}`),
     prediccion: (id) => solicitar(`/predicciones/${id}/`),
     verificar: (id) => solicitar(`/predicciones/${id}/verificar/`, { method: "POST" }),
     // Planificador: estimar un escenario alternativo no guarda nada.
@@ -90,6 +101,8 @@ export const api = {
     // transferirA: cuenta que recibe el historial (análisis, decisiones y accesos).
     eliminarUsuario: (id, transferirA) =>
         solicitar(`/gestion/usuarios/${id}/${transferirA ? `?transferir_a=${encodeURIComponent(transferirA)}` : ""}`, { method: "DELETE" }),
+    // Envía al usuario el enlace para restablecer su contraseña.
+    enviarRestablecimiento: (id) => solicitar(`/gestion/usuarios/${id}/restablecer/`, { method: "POST" }),
     accesosUsuario: (id, repositorios) =>
         solicitar(`/gestion/usuarios/${id}/repositorios/`, { method: "PUT", body: JSON.stringify({ repositorios }) }),
     gestionWorkflows: () => solicitar("/gestion/workflows/"),

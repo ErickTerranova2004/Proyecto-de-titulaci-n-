@@ -11,6 +11,7 @@ import NuevoAnalisis from "./components/NuevoAnalisis.jsx";
 import Panel from "./components/Panel.jsx";
 import Pendientes from "./components/Pendientes.jsx";
 import Planificador from "./components/Planificador.jsx";
+import Restablecer, { enlaceRestablecer } from "./components/Restablecer.jsx";
 import Usuarios from "./components/Usuarios.jsx";
 import Workflows from "./components/Workflows.jsx";
 import { LimiteErrores } from "./limiteErrores.js";
@@ -22,7 +23,15 @@ const SUBTITULO = "Inteligencia para decisiones de despliegue";
 // Perfil del panel según el rol (Panel.jsx usa el mismo diseño para todos).
 const PERFIL_PANEL = { desarrollador: "desarrollador", lider_tecnico: "lider", administrador: "administrador" };
 
+// Pantalla pública del enlace del correo (/restablecer/<uid>/<token>): se
+// muestra con o sin sesión, antes que la plataforma.
 export default function App() {
+  const enlace = enlaceRestablecer(window.location.pathname);
+  if (enlace) return <Restablecer uid={enlace.uid} token={enlace.token} />;
+  return <Plataforma />;
+}
+
+function Plataforma() {
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(Boolean(sesion.token()));
   const [vista, setVista] = useState(null);
@@ -215,7 +224,9 @@ export default function App() {
               {idActual === "historial" && (
                 rol === "desarrollador"
                   ? <Historial modelos={modelos} titulo="Mi historial" descripcion="Desarrollador · sus análisis en sus repositorios asignados" mostrarDesarrollador={false} />
-                  : <Historial modelos={modelos} titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento />
+                  : rol === "administrador"
+                    ? <Historial modelos={modelos} titulo="Historial de análisis" descripcion="Administrador · análisis de todos los repositorios" mostrarSeguimiento conOrigen />
+                    : <Historial modelos={modelos} titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento />
               )}
               {idActual === "usuarios" && <Usuarios />}
               {idActual === "workflows" && <Workflows />}

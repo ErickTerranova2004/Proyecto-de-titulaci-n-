@@ -86,7 +86,8 @@ for _columnas in ER.values():
 
 VISTAS = {"seg_usuario", "seg_grupo", "int_usuario_grupo", "seg_token"}
 TABLAS_PROPIAS = set(ER) - VISTAS | {"trx_seguimiento_lote",
-                                     "trx_pendiente_despliegue"}
+                                     "trx_pendiente_despliegue",
+                                     "trx_restablecimiento_clave"}
 
 # En la implementación y no en el diagrama (hay que añadirlo al ER).
 EXTRA = {
@@ -111,6 +112,12 @@ EXTRA = {
         "nom_rama_ultimo_despliegue": vc(255), "nom_rama_sugerida": vc(255),
         "cod_etag_despliegues": vc(200), "cod_etag_cabeza": vc(200),
         "fec_calculo": TS, **AUDITORIA},
+    # Auditoría del restablecimiento de contraseña por correo.
+    "trx_restablecimiento_clave": {
+        "id_restablecimiento_clave": BIGINT, "id_usuario": INT,
+        "nom_usuario": vc(150), "id_usuario_solicita": INT,
+        "tip_origen": vc(15), "des_correo": vc(254), "es_enviado": BOOL,
+        "tip_medio": vc(10), "fec_cambio_clave": TS, **AUDITORIA},
 }
 
 # Única diferencia de tipo con el diagrama original: Django crea la tabla

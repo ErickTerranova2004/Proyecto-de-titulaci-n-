@@ -214,6 +214,7 @@ Desde la migración `0017_nombres_er` las tablas y columnas propias usan los nom
 | `PrediccionEjecucion` (`Prediccion.ejecuciones_previas`) | `int_prediccion_ejecucion` | `id_prediccion_ejecucion` |
 | `SeguimientoLote` (no está en el ER) | `trx_seguimiento_lote` | `id_seguimiento_lote` |
 | `PendienteDespliegue` (no está en el ER) | `trx_pendiente_despliegue` | `id_pendiente_despliegue` |
+| `RestablecimientoClave` (no está en el ER) | `trx_restablecimiento_clave` | `id_restablecimiento_clave` |
 
 La columna de cada campo es su `db_column` en `backend/riesgo/models.py`; la lista completa, con tipos, está en la prueba `backend/riesgo/tests/test_esquema_er.py`, que compara la base de datos con el diagrama (`ER`) y lo que la implementación tiene y el diagrama original no recoge (`EXTRA`). Índices, restricciones y secuencias se nombran `pk_<tabla>`, `fk_<tabla>_<columna>`, `uk_<tabla>_<columnas>`, `ck_<tabla>_<columna>`, `ix_<tabla>_<columnas>[_like]` y `sq_<tabla>_<columna>` (migración `0018`).
 
@@ -276,6 +277,10 @@ Lo que ve cada rol lo decide la asignación de repositorios (`ACCESO_REPOSITORIO
 El líder técnico (o el administrador) puede fijar una fecha límite al decidir, o añadirla o cambiarla después. El comentario de la decisión es el mensaje que recibe el desarrollador. Una predicción puede tener varias decisiones: **la fecha límite y las marcas valen solo para la última**. Una *asignación* es la última decisión de una predicción con `fecha_limite`; su estado se calcula al consultar, con días locales de `America/Guayaquil` (`timezone.localdate()`): **cumplida** (tiene `cumplida_en`), **vencida** (faltan menos de 0 días), **por vencer** (faltan 0 o 1) o **pendiente**. Cambiar la fecha vuelve a dejar la asignación como no vista.
 
 La alarma funciona dentro de la aplicación: consulta `/api/asignaciones/` cada 60 s y al volver a la pestaña, muestra una campana con contador, un aviso al entrar con la asignación más próxima y recordatorios ("vence mañana", "vence hoy", "vencida"). Si el usuario lo permite tras pulsar un botón, usa notificaciones del navegador para asignaciones nuevas o por vencer. El correo es opcional y está desactivado por defecto (`CORREO_ASIGNACIONES=1`; sin `EMAIL_HOST` se usa el backend de consola).
+
+**Restablecimiento de contraseña.** El administrador no escribe ni cambia contraseñas ajenas: desde «Usuarios y accesos» envía al correo del usuario un enlace `FRONTEND_URL/restablecer/<uid>/<token>` (también al crear la cuenta, que queda sin contraseña utilizable hasta usarlo). El usuario puede pedirlo él mismo con «¿Olvidó su contraseña?» en el inicio de sesión; la respuesta es la misma exista o no el correo. El token es el de Django (`PasswordResetTokenGenerator`): caduca en una hora (`PASSWORD_RESET_TIMEOUT`) y es de un solo uso, porque depende del hash de la contraseña. La nueva contraseña pasa las reglas de `AUTH_PASSWORD_VALIDATORS` y, al guardarla, se cierran las sesiones abiertas de la cuenta. Cada envío (quién lo pidió, a qué correo, por SMTP o consola, si funcionó) y la fecha del cambio quedan en `trx_restablecimiento_clave`. Las rutas públicas (`/api/auth/restablecer/…`) no usan sesión y tienen un límite propio de 20 peticiones por hora e IP.
+
+**Filtros de los historiales.** `GET /api/predicciones/` admite `desde` y `hasta` (AAAA-MM-DD, día de America/Guayaquil, ambos incluidos), `nivel` (`bajo`, `medio`, `alto`), `sin_decision=1`, `origen` (`interactivo`, `lote`) y `orden` (`reciente` por defecto, o `antiguo`). Los usan «Mi historial», «Historial del equipo», el historial del administrador y «Pendientes de decisión»; siempre sobre lo que el rol ya puede ver.
 
 ### Respuesta del desarrollador a una asignación
 

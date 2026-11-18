@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import {
   Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador,
 } from "./comunes.jsx";
+import FiltrosHistorial from "./FiltrosHistorial.jsx";
 import Resultado from "./Resultado.jsx";
+import { consultaHistorial, errorRango, FILTROS_INICIALES, hayFiltros } from "../filtrosHistorial.js";
 import { ordenarPorActividad } from "../ordenHistorial.js";
 
 // Seguimiento de la fecha límite de la última decisión (vista / cumplida).
@@ -24,21 +26,46 @@ export function SeguimientoAsignacion({ decision, nivelOriginal }) {
   );
 }
 
+// Origen de los análisis (solo el administrador ve los del lote).
+const ORIGENES = [
+  ["interactivo", "Análisis en la plataforma"],
+  ["lote", "Análisis en lote"],
+  ["todos", "Todos"],
+];
+
 // El backend ya filtra por rol: el desarrollador recibe sus análisis y el
 // líder los de todos los desarrolladores de sus repositorios asignados.
+// Fechas, origen y orden también se aplican en el backend; por defecto, del
+// más reciente al más antiguo.
 export default function Historial({
   modelos, titulo = "Historial de análisis", descripcion, mostrarDesarrollador = true, mostrarSeguimiento = false,
+  conOrigen = false,
 }) {
+  const inicial = conOrigen ? { ...FILTROS_INICIALES, origen: "interactivo" } : FILTROS_INICIALES;
+  const [filtros, setFiltros] = useState(inicial);
   const [filas, setFilas] = useState(null);
   const [error, setError] = useState("");
+  const [cargando, setCargando] = useState(false);
   const [seleccion, setSeleccion] = useState(null);
+  const peticion = useRef(0);
 
-  // Primero los análisis con decisión del líder (la más reciente arriba) y
-  // después los demás (src/ordenHistorial.js).
-  const cargar = () => api.historial().then((h) => setFilas(ordenarPorActividad(h))).catch((e) => setError(e.message));
-  useEffect(() => {
-    cargar();
-  }, []);
+  function cargar() {
+    if (errorRango(filtros.desde, filtros.hasta)) return;
+    // Solo cuenta la respuesta de la última petición (filtros cambiados rápido).
+    const id = ++peticion.current;
+    setCargando(true);
+    setError("");
+    api
+      .historial(consultaHistorial(filtros))
+      .then((h) => {
+        if (id !== peticion.current) return;
+        setFilas(filtros.orden === "decision" ? ordenarPorActividad(h) : h);
+      })
+      .catch((e) => id === peticion.current && setError(e.message))
+      .finally(() => id === peticion.current && setCargando(false));
+  }
+  useEffect(cargar, [filtros.desde, filtros.hasta, filtros.orden, filtros.origen]);
+  const filtrado = hayFiltros(filtros, inicial.origen);
 
   if (seleccion) {
     return (
@@ -59,14 +86,40 @@ export default function Historial({
       <header className="encabezado">
         <h1 id="titulo-historial">{titulo}</h1>
         <p className="secundario">
-          {descripcion ?? "Análisis visibles según su rol y sus repositorios asignados"}, primero los que tienen decisión del líder técnico.
+          {descripcion ?? "Análisis visibles según su rol y sus repositorios asignados"}.
         </p>
       </header>
+      <div className="filtros-historial__barra">
+        <FiltrosHistorial
+          id="historial"
+          filtros={filtros}
+          alCambiar={setFiltros}
+          origenes={conOrigen ? ORIGENES : undefined}
+        />
+        <div className="panel__acciones">
+          {filtrado && (
+            <button className="boton boton--secundario" type="button" onClick={() => setFiltros(inicial)}>
+              Quitar filtros
+            </button>
+          )}
+          <button className="boton boton--secundario" type="button" onClick={cargar} disabled={cargando}>
+            {cargando ? "Actualizando…" : "Actualizar"}
+          </button>
+        </div>
+      </div>
       <Alerta>{error}</Alerta>
       {!filas && !error && <p role="status" className="secundario">Cargando historial…</p>}
+      {filas && (
+        <p className="secundario" role="status">
+          {filas.length === 1 ? "1 análisis" : `${filas.length} análisis`}
+          {filtrado ? " con los filtros elegidos" : ""}.
+        </p>
+      )}
       {filas && !filas.length && (
         <div className="tarjeta vacio">
-          <p className="secundario">Todavía no hay análisis visibles para su usuario.</p>
+          <p className="secundario">
+            {filtrado ? "No hay análisis con estos filtros." : "Todavía no hay análisis visibles para su usuario."}
+          </p>
         </div>
       )}
       {filas && filas.length > 0 && (

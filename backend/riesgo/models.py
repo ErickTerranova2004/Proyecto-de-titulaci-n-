@@ -586,3 +586,51 @@ class PendienteDespliegue(Auditoria):
 
     def __str__(self):
         return f"{self.workflow}: {self.commits_pendientes} pendientes"
+
+
+class RestablecimientoClave(Auditoria):
+    """Auditoría del restablecimiento de contraseña por correo.
+
+    Una fila por enlace enviado: quién lo pidió (el administrador desde
+    «Usuarios y accesos» o el propio usuario desde «¿Olvidó su contraseña?»),
+    a qué correo, si el envío funcionó y cuándo se cambió la contraseña con
+    él. usu_creacion guarda la cuenta que hizo la petición («anonimo» si la
+    pidió el usuario sin sesión). El enlace no se guarda: el token se
+    calcula con PasswordResetTokenGenerator, caduca en una hora y deja de
+    valer en cuanto la contraseña cambia.
+    """
+
+    ORIGENES = [("administrador", "Enviado por el administrador"),
+                ("usuario", "Pedido por el usuario al iniciar sesión")]
+
+    id = models.BigAutoField(primary_key=True,
+                              db_column="id_restablecimiento_clave")
+    # SET_NULL: si la cuenta se elimina, el registro se conserva con su nombre.
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                on_delete=models.SET_NULL, null=True,
+                                blank=True, related_name="restablecimientos",
+                                db_column="id_usuario")
+    nombre_usuario = models.CharField(max_length=150,
+                                      db_column="nom_usuario")
+    solicitado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        blank=True, related_name="restablecimientos_solicitados",
+        db_column="id_usuario_solicita")
+    origen = models.CharField(max_length=15, choices=ORIGENES,
+                              db_column="tip_origen")
+    correo = models.CharField(max_length=254, db_column="des_correo")
+    enviado = models.BooleanField(default=False, db_column="es_enviado")
+    # Backend de correo usado: «smtp» o «consola» (sin EMAIL_HOST).
+    medio = models.CharField(max_length=10, db_column="tip_medio")
+    solicitado_en = models.DateTimeField(auto_now_add=True,
+                                         db_column="fec_creacion")
+    fec_creacion = None  # solicitado_en
+    cambiada_en = models.DateTimeField(null=True, blank=True,
+                                       db_column="fec_cambio_clave")
+
+    class Meta:
+        db_table = "trx_restablecimiento_clave"
+        ordering = ["-solicitado_en"]
+
+    def __str__(self):
+        return f"{self.nombre_usuario} ({self.origen}) {self.solicitado_en}"

@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.utils import timezone
 
 from riesgo.models import (AccesoRepositorio, Commit, DecisionDespliegue,
-                           EjecucionWorkflow,
-                           Prediccion, Repositorio, VersionModelo, Workflow)
+                           EjecucionWorkflow, Prediccion, Repositorio,
+                           RestablecimientoClave, VersionModelo, Workflow)
 
 # Textos del admin de Django con la marca de la aplicación. "Ver el sitio"
 # vuelve a la aplicación (servida en "/" por el frontend).
@@ -103,3 +103,22 @@ class PrediccionAdmin(admin.ModelAdmin):
                     "creada_en", "ejecucion_real"]
     list_filter = ["nivel", "version_modelo"]
     readonly_fields = [f.name for f in Prediccion._meta.fields]
+
+
+@admin.register(RestablecimientoClave)
+class RestablecimientoClaveAdmin(admin.ModelAdmin):
+    """Auditoría de los enlaces de restablecimiento (solo lectura)."""
+
+    list_display = ["nombre_usuario", "origen", "usu_creacion", "correo",
+                    "medio", "enviado", "solicitado_en", "cambiada_en"]
+    list_filter = ["origen", "medio", "enviado"]
+    search_fields = ["nombre_usuario", "correo"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
