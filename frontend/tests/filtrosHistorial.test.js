@@ -1,7 +1,9 @@
 // Consulta de los filtros de historiales y pendientes (los aplica el backend).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { consultaHistorial, errorRango, FILTROS_INICIALES, hayFiltros, NIVELES_FILTRO } from "../src/filtrosHistorial.js";
+import {
+  consultaHistorial, errorRango, escribirFecha, fechaDesdeTexto, FILTROS_INICIALES, hayFiltros, NIVELES_FILTRO, textoFecha,
+} from "../src/filtrosHistorial.js";
 
 test("sin filtros no se envían parámetros (el backend ordena del más reciente al más antiguo)", () => {
   assert.equal(consultaHistorial(FILTROS_INICIALES), "");
@@ -32,7 +34,25 @@ test("rango no válido", () => {
   assert.equal(errorRango("", ""), "");
   assert.equal(errorRango("2026-11-01", "2026-11-01"), "");
   assert.match(errorRango("2026-11-18", "2026-11-01"), /posterior/);
-  assert.match(errorRango("18/11/2026", ""), /AAAA-MM-DD/);
+  assert.match(errorRango("18/11/2026", ""), /dd\/mm\/aaaa/);
+});
+
+test("fechas en pantalla dd/mm/aaaa ↔ AAAA-MM-DD para el backend", () => {
+  assert.equal(textoFecha("2026-11-18"), "18/11/2026");
+  assert.equal(textoFecha(""), "");
+  assert.equal(fechaDesdeTexto("18/11/2026"), "2026-11-18");
+  assert.equal(fechaDesdeTexto("1/2/2026"), "2026-02-01");
+  assert.equal(fechaDesdeTexto(""), "");
+  for (const malo of ["31/02/2026", "18/13/2026", "18/11/26", "11-18-2026", "00/11/2026"]) {
+    assert.equal(fechaDesdeTexto(malo), null, malo);
+  }
+});
+
+test("al escribir se ponen las barras solas", () => {
+  assert.equal(escribirFecha("18"), "18");
+  assert.equal(escribirFecha("1811"), "18/11");
+  assert.equal(escribirFecha("18112026"), "18/11/2026");
+  assert.equal(escribirFecha("18/11/2026x9"), "18/11/2026");
 });
 
 test("hay filtros activos", () => {

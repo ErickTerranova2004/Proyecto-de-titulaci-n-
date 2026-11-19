@@ -20,9 +20,37 @@ export const FILTROS_INICIALES = { desde: "", hasta: "", nivel: "todos", orden: 
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
+// En pantalla las fechas se escriben dd/mm/aaaa sea cual sea el idioma del
+// navegador; los filtros y el backend usan AAAA-MM-DD.
+export function textoFecha(iso) {
+  if (!iso || !FECHA.test(iso)) return "";
+  const [a, m, d] = iso.split("-");
+  return `${d}/${m}/${a}`;
+}
+
+// "" si el campo está vacío, la fecha AAAA-MM-DD si es válida, null si no.
+export function fechaDesdeTexto(texto) {
+  const t = (texto || "").trim();
+  if (!t) return "";
+  const partes = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(t);
+  if (!partes) return null;
+  const [d, m, a] = partes.slice(1).map(Number);
+  const f = new Date(Date.UTC(a, m - 1, d));
+  if (a < 1900 || f.getUTCFullYear() !== a || f.getUTCMonth() !== m - 1 || f.getUTCDate() !== d) return null;
+  return `${a}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+// Mientras se escribe: solo dígitos y las barras se ponen solas (dd/mm/aaaa).
+export function escribirFecha(texto) {
+  const digitos = (texto || "").replace(/\D/g, "").slice(0, 8);
+  if (digitos.length <= 2) return digitos;
+  if (digitos.length <= 4) return `${digitos.slice(0, 2)}/${digitos.slice(2)}`;
+  return `${digitos.slice(0, 2)}/${digitos.slice(2, 4)}/${digitos.slice(4)}`;
+}
+
 // Mensaje si el rango no es válido; "" si se puede consultar.
 export function errorRango(desde, hasta) {
-  if ((desde && !FECHA.test(desde)) || (hasta && !FECHA.test(hasta))) return "Use fechas con el formato AAAA-MM-DD.";
+  if ((desde && !FECHA.test(desde)) || (hasta && !FECHA.test(hasta))) return "Use fechas con el formato dd/mm/aaaa.";
   if (desde && hasta && desde > hasta) return "La fecha «desde» no puede ser posterior a «hasta».";
   return "";
 }

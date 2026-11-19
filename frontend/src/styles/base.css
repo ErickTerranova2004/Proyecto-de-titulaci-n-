@@ -3448,8 +3448,47 @@ td>.gestion-insignia:first-child {
     gap: var(--esp-2) var(--esp-4);
 }
 
-.filtros-historial input[type="date"] {
-    width: auto;
+/* Fecha dd/mm/aaaa: texto propio + calendario nativo oculto (el formato del
+   input type="date" depende del idioma del navegador). */
+.campo-fecha {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.campo-fecha input[type="text"] {
+    width: 9.5em;
+    padding-right: 2.4em;
+    font-variant-numeric: tabular-nums;
+}
+
+.campo-fecha__calendario {
+    position: absolute;
+    right: 0.3em;
+    display: inline-flex;
+    padding: 0.25em;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.campo-fecha__calendario:hover,
+.campo-fecha__calendario:focus-visible {
+    background: rgba(127, 127, 127, 0.15);
+}
+
+.campo-fecha__nativo {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .filtros-historial__error {
