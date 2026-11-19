@@ -157,23 +157,29 @@ class AsignacionSerializer(serializers.ModelSerializer):
 
 
 class SolicitudEscenarioSerializer(serializers.Serializer):
-    """Condiciones del escenario alternativo (día y hora locales).
+    """Condiciones del escenario alternativo (fecha y hora locales).
 
     Solo se aceptan las condiciones que decide el desarrollador; cualquier
-    otra variable del modelo se rechaza.
+    otra variable del modelo se rechaza. El momento va desde la hora en curso
+    hasta planificador.MAX_DIAS días después.
     """
 
-    dia = serializers.IntegerField(min_value=0, max_value=6)
+    fecha = serializers.DateField()
     hora = serializers.IntegerField(min_value=0, max_value=23)
     es_reintento = serializers.BooleanField()
     tiene_pr = serializers.BooleanField()
 
     def validate(self, datos):
+        from riesgo.services import planificador
+
         extra = sorted(set(self.initial_data) - set(self.fields))
         if extra:
             raise serializers.ValidationError(
                 {campo: "El planificador no permite cambiar esta variable."
                  for campo in extra})
+        error = planificador.validar_momento(datos["fecha"], datos["hora"])
+        if error:
+            raise serializers.ValidationError({"fecha": error})
         return datos
 
 

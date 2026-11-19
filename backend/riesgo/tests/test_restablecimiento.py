@@ -19,7 +19,10 @@ URL_FRONTEND = "https://riesgo.ejemplo.test"
 CLAVE_NUEVA = "Despliegue-Seguro-2026"
 
 
-@override_settings(FRONTEND_URL=URL_FRONTEND)
+# Sin correo configurado aunque backend/.env tenga EMAIL_HOST: las pruebas no
+# dependen del .env (Django guarda los mensajes en mail.outbox, nunca envía).
+@override_settings(FRONTEND_URL=URL_FRONTEND, CORREO_CONFIGURADO=False,
+                   EMAIL_HOST="")
 class RestablecimientoTest(TestCase):
 
     @classmethod

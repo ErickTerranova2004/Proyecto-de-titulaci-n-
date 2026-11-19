@@ -524,8 +524,20 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
     @action(detail=True, methods=["get"])
     def ventanas(self, request, pk=None):
-        """Franjas de menor riesgo de los 7 días siguientes al análisis."""
-        return Response(planificador.mejores_ventanas(self.get_object()))
+        """Hora de menor riesgo de cada uno de los próximos días, desde
+        mañana. ?dias=N (1–14; por defecto PLANIFICADOR_DIAS_VENTANAS)."""
+        dias = None
+        if request.query_params.get("dias"):
+            try:
+                dias = int(request.query_params["dias"])
+            except ValueError:
+                dias = 0
+            if not 1 <= dias <= planificador.MAX_DIAS:
+                return Response(
+                    {"dias": f"Debe ser un número entre 1 y "
+                             f"{planificador.MAX_DIAS}."}, status=400)
+        return Response(planificador.mejores_ventanas(self.get_object(),
+                                                      dias))
 
     @action(detail=True, methods=["post"],
             permission_classes=[EsLiderOAdministrador])

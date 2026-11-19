@@ -70,7 +70,8 @@ export const api = {
     // Planificador: estimar un escenario alternativo no guarda nada.
     estimarEscenario: (id, condiciones) =>
         solicitar(`/predicciones/${id}/escenario/`, { method: "POST", body: JSON.stringify(condiciones) }),
-    ventanas: (id) => solicitar(`/predicciones/${id}/ventanas/`),
+    // Mejores ventanas desde mañana; `dias` opcional (por defecto, el del backend).
+    ventanas: (id, dias) => solicitar(`/predicciones/${id}/ventanas/${dias ? `?dias=${dias}` : ""}`),
     repositorios: () => solicitar("/repositorios/"),
     // Todos los repositorios asignados, aunque no tengan workflows utilizables.
     repositoriosAsignados: () => solicitar("/repositorios/?todos=1"),

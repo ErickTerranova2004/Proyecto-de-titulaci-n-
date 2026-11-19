@@ -195,6 +195,10 @@ FRONTEND_URL = (os.environ.get("FRONTEND_URL")
 # Es de un solo uso: el token depende del hash de la contraseña, que cambia.
 PASSWORD_RESET_TIMEOUT = 3600
 
+# Planificador: días (a partir de mañana) de las «Mejores ventanas».
+PLANIFICADOR_DIAS_VENTANAS = int(
+    os.environ.get("PLANIFICADOR_DIAS_VENTANAS") or "3")
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

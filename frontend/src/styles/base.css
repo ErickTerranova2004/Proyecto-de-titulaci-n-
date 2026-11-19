@@ -3322,6 +3322,77 @@ td>.gestion-insignia:first-child {
     text-transform: capitalize;
 }
 
+/* Día con su fecha (Hoy 18 nov, Mañana 19 nov, Vie 20 nov…). */
+.planificador__dia {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    line-height: 1.2;
+}
+
+.planificador__fecha-dia {
+    font-size: 11px;
+    opacity: 0.75;
+}
+
+/* La ventana de menor riesgo de los próximos días. */
+.planificador__ventana {
+    position: relative;
+}
+
+.planificador__ventana--mejor {
+    border-color: var(--color-bajo);
+    background: var(--dorado-suave);
+    box-shadow: 0 0 0 1px var(--color-bajo);
+}
+
+.planificador__mejor {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 2px 10px;
+    border-radius: var(--radio-full);
+    background: var(--color-dorado);
+    color: var(--sobre-dorado);
+    font-size: var(--texto-xs);
+    font-weight: 700;
+}
+
+/* Variables de tiempo del análisis original frente al escenario. */
+.planificador__tiempo {
+    width: 100%;
+    margin: var(--esp-3) 0;
+    border-collapse: collapse;
+    font-size: var(--texto-sm);
+}
+
+.planificador__tiempo caption {
+    margin-bottom: 6px;
+    text-align: left;
+}
+
+.planificador__tiempo th,
+.planificador__tiempo td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--borde-suave);
+    text-align: left;
+}
+
+.planificador__tiempo thead th {
+    color: var(--tinta-secundaria);
+    font-size: var(--texto-xs);
+    font-weight: 600;
+}
+
+.planificador__tiempo tbody th {
+    font-weight: 500;
+}
+
+.planificador__tiempo td {
+    text-align: right;
+    white-space: nowrap;
+}
+
 @media (max-width: 900px) {
     .planificador__rejilla {
         grid-template-columns: 1fr;
