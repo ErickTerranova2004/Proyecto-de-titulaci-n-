@@ -32,7 +32,10 @@ export default function Pendientes({ modelos }) {
       .then((h) => id === peticion.current && setSinDecision(h))
       .catch((e) => id === peticion.current && setError(e.message));
   }
-  const cargarAsignaciones = () => api.asignaciones().then(setAsignaciones).catch((e) => setError(e.message));
+  // Con llaves: useEffect no debe recibir la promesa como función de limpieza.
+  function cargarAsignaciones() {
+    api.asignaciones().then(setAsignaciones).catch((e) => setError(e.message));
+  }
   function cargar() {
     cargarPendientes();
     cargarAsignaciones();
