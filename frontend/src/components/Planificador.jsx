@@ -16,15 +16,22 @@ const DIAS_LARGOS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sáb
 
 const hora = (h) => `${String(h).padStart(2, "0")}:00`;
 
-function fechaCorta(valor) {
-  // "AAAA-MM-DD" se toma como día local; un ISO con hora, en hora de Ecuador.
+// "AAAA-MM-DD" se toma como día de Ecuador; un ISO con hora, tal cual. Sin
+// fecha válida devuelve null (nunca lanza «Invalid time value»).
+function aFecha(valor) {
+  if (!valor) return null;
   const fecha = /^\d{4}-\d{2}-\d{2}$/.test(valor) ? new Date(`${valor}T12:00:00-05:00`) : new Date(valor);
-  return new Intl.DateTimeFormat("es-EC", { timeZone: ZONA, day: "2-digit", month: "short" }).format(fecha);
+  return Number.isNaN(fecha.getTime()) ? null : fecha;
 }
 
-function diaDe(iso) {
-  const nombre = new Intl.DateTimeFormat("es-EC", { timeZone: ZONA, weekday: "long" }).format(new Date(iso));
-  return nombre;
+function fechaCorta(valor) {
+  const fecha = aFecha(valor);
+  return fecha ? new Intl.DateTimeFormat("es-EC", { timeZone: ZONA, day: "2-digit", month: "short" }).format(fecha) : "";
+}
+
+function diaDe(valor) {
+  const fecha = aFecha(valor);
+  return fecha ? new Intl.DateTimeFormat("es-EC", { timeZone: ZONA, weekday: "long" }).format(fecha) : "";
 }
 
 function puntos(valor) {
@@ -90,6 +97,12 @@ export default function Planificador() {
     setError("");
     try {
       const respuesta = await api.ventanas(id);
+      // Un backend sin reiniciar devuelve el formato anterior (sin fechas).
+      if (!respuesta.condiciones_base?.fecha || respuesta.ventanas.some((v) => !v.fecha)) {
+        throw new Error(
+          "El servidor responde con una versión anterior del planificador. Reinicie el backend y recargue la página.",
+        );
+      }
       setCondicionesBase(respuesta.condiciones_base);
       // Por defecto, hoy a la siguiente hora en punto (no el día del análisis).
       setCondiciones(condicionesIniciales(new Date(), respuesta.condiciones_base));
