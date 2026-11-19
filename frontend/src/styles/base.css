@@ -3448,6 +3448,118 @@ td>.gestion-insignia:first-child {
     gap: var(--esp-2) var(--esp-4);
 }
 
+/* Nuevo análisis: asignación del líder que se está respondiendo. */
+.aviso-asignacion {
+    margin: 0 0 var(--esp-4);
+    padding: var(--esp-3) var(--esp-4);
+    border: 1px solid #c8e6c9;
+    border-left: 4px solid var(--color-dorado);
+    border-radius: var(--radio);
+    background: var(--dorado-suave);
+    color: var(--tinta-principal);
+    box-shadow: var(--sombra-sm);
+}
+
+.aviso-asignacion__cabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--esp-3);
+}
+
+.aviso-asignacion__icono {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radio-full);
+    background: var(--color-dorado);
+    color: var(--sobre-dorado);
+}
+
+.aviso-asignacion__etiqueta {
+    margin: 0;
+    color: var(--dorado-texto);
+    font-size: var(--texto-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.aviso-asignacion__decision {
+    margin: 2px 0 0;
+    font-size: var(--texto-lg);
+    line-height: 1.25;
+}
+
+.aviso-asignacion__estado {
+    margin-left: auto;
+}
+
+.aviso-asignacion__mensaje {
+    margin: var(--esp-3) 0 0;
+    padding: var(--esp-2) var(--esp-3);
+    border-radius: var(--radio-sm);
+    background: var(--color-tarjeta);
+    font-size: var(--texto-base);
+    font-style: italic;
+}
+
+.aviso-asignacion__mensaje p {
+    margin: 0;
+}
+
+.aviso-asignacion__mensaje p::before { content: "«"; }
+.aviso-asignacion__mensaje p::after { content: "»"; }
+
+.aviso-asignacion__datos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--esp-2) var(--esp-4);
+    margin: var(--esp-3) 0 0;
+}
+
+.aviso-asignacion__datos dt {
+    color: var(--tinta-secundaria);
+    font-size: var(--texto-xs);
+}
+
+.aviso-asignacion__datos dd {
+    margin: 2px 0 0;
+    font-size: var(--texto-sm);
+}
+
+.aviso-asignacion__datos time {
+    font-family: inherit;
+}
+
+.aviso-asignacion__plazo {
+    color: var(--tinta-secundaria);
+}
+
+.aviso-asignacion__pie {
+    margin: var(--esp-3) 0 0;
+    padding-top: var(--esp-2);
+    border-top: 1px solid #c8e6c9;
+    color: var(--dorado-texto);
+    font-size: var(--texto-xs);
+}
+
+@media (max-width: 560px) {
+    .aviso-asignacion {
+        padding: var(--esp-3);
+    }
+
+    .aviso-asignacion__cabecera {
+        flex-wrap: wrap;
+    }
+
+    .aviso-asignacion__estado {
+        margin-left: 0;
+    }
+}
+
 /* Fecha dd/mm/aaaa: texto propio + calendario nativo oculto (el formato del
    input type="date" depende del idioma del navegador). */
 .campo-fecha {

@@ -8,11 +8,77 @@ import {
   textoPendientes,
   workflowInicial,
 } from "../pendientes.js";
-import { Alerta, DECISIONES, Fecha } from "./comunes.jsx";
+import { Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, textoPlazo } from "./comunes.jsx";
 import Resultado from "./Resultado.jsx";
 
 // Mismas opciones que acepta el backend (SolicitudPrediccionSerializer.EVENTOS).
 const EVENTOS = ["push", "workflow_dispatch", "release", "pull_request", "schedule", "workflow_run"];
+
+// «17 nov 2026, 16:18»: fecha legible de la asignación (sin estilo monoespaciado).
+function fechaLegible(valor) {
+  if (!valor) return "";
+  return new Date(valor).toLocaleString("es-EC", {
+    day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+}
+
+// Tarjeta con la asignación del líder que este análisis responde.
+function AvisoAsignacion({ asignacion }) {
+  const decision = DECISIONES[asignacion.decision] ?? asignacion.decision;
+  return (
+    <section className="aviso-asignacion" role="status" aria-labelledby="titulo-asignacion">
+      <div className="aviso-asignacion__cabecera">
+        <span className="aviso-asignacion__icono" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+        </span>
+        <div>
+          <p className="aviso-asignacion__etiqueta">Respondiendo a una asignación</p>
+          <h2 id="titulo-asignacion" className="aviso-asignacion__decision">{decision}</h2>
+        </div>
+        {asignacion.estado && (
+          <span className="aviso-asignacion__estado">
+            <EstadoAsignacion estado={asignacion.estado} />
+          </span>
+        )}
+      </div>
+
+      {asignacion.mensaje && (
+        <blockquote className="aviso-asignacion__mensaje">
+          <p>{asignacion.mensaje}</p>
+        </blockquote>
+      )}
+
+      <dl className="aviso-asignacion__datos">
+        <div>
+          <dt>Asignada por</dt>
+          <dd><strong>{asignacion.lider}</strong></dd>
+        </div>
+        <div>
+          <dt>Fecha</dt>
+          <dd><time dateTime={asignacion.creada_en}>{fechaLegible(asignacion.creada_en)}</time></dd>
+        </div>
+        <div>
+          <dt>Fecha límite</dt>
+          <dd>
+            {asignacion.fecha_limite ? (
+              <>
+                <FechaDia valor={asignacion.fecha_limite} />
+                <span className="aviso-asignacion__plazo"> · {textoPlazo(asignacion)}</span>
+              </>
+            ) : (
+              "Sin fecha límite"
+            )}
+          </dd>
+        </div>
+      </dl>
+
+      <p className="aviso-asignacion__pie">Al terminar este análisis, la asignación quedará cumplida.</p>
+    </section>
+  );
+}
 
 // `respuesta`: asignación del líder que este análisis atiende (opcional). Llega
 // con el repositorio, el workflow y la rama del análisis original.
@@ -105,14 +171,7 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
         </p>
       </header>
 
-      {respuesta && (
-        <p className="nota" role="status">
-          Respondiendo a la asignación de <strong>{respuesta.asignacion.lider}</strong> del{" "}
-          <Fecha valor={respuesta.asignacion.creada_en} />: {DECISIONES[respuesta.asignacion.decision]}
-          {respuesta.asignacion.mensaje && <> · «{respuesta.asignacion.mensaje}»</>}. Al terminar este análisis la
-          asignación quedará cumplida.
-        </p>
-      )}
+      {respuesta && <AvisoAsignacion asignacion={respuesta.asignacion} />}
 
       <form className="tarjeta formulario" onSubmit={enviar} aria-describedby="ayuda-nuevo">
         <p id="ayuda-nuevo" className="secundario">
