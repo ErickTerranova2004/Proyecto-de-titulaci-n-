@@ -36,6 +36,18 @@ if not SECRET_KEY:
 ALLOWED_HOSTS = [h for h in os.environ.get(
     "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h]
 
+# Modo red local (p. ej. abrir la plataforma o el enlace de restablecimiento
+# desde un celular en la misma Wi-Fi): IP_RED_LOCAL=192.168.x.y añade esa IP a
+# ALLOWED_HOSTS, CORS y CSRF, y FRONTEND_URL apunta a http://IP:PUERTO_FRONTEND
+# salvo que FRONTEND_URL se fije aparte. scripts/iniciar_demo.ps1 -RedLocal
+# la define al arrancar (sin tocar este archivo ni el .env).
+IP_RED_LOCAL = os.environ.get("IP_RED_LOCAL", "").strip()
+PUERTO_FRONTEND = os.environ.get("PUERTO_FRONTEND", "5174").strip() or "5174"
+ORIGENES_RED_LOCAL = ([f"http://{IP_RED_LOCAL}:{PUERTO_FRONTEND}",
+                       f"http://{IP_RED_LOCAL}:8000"] if IP_RED_LOCAL else [])
+if IP_RED_LOCAL and IP_RED_LOCAL not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(IP_RED_LOCAL)
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -138,6 +150,10 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [o for o in os.environ.get(
     "CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",") if o]
+CORS_ALLOWED_ORIGINS += [o for o in ORIGENES_RED_LOCAL
+                         if o not in CORS_ALLOWED_ORIGINS]
+# El administrador de Django (/admin, vía el proxy de Vite) desde otra IP.
+CSRF_TRUSTED_ORIGINS = list(ORIGENES_RED_LOCAL)
 
 CACHES = {
     "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
@@ -190,7 +206,8 @@ CORREO_CONFIGURADO = bool(EMAIL_HOST)
 # Dirección del frontend: el enlace del correo de restablecimiento apunta a
 # FRONTEND_URL/restablecer/<uid>/<token>.
 FRONTEND_URL = (os.environ.get("FRONTEND_URL")
-                or "http://localhost:5174").rstrip("/")
+                or (f"http://{IP_RED_LOCAL}:{PUERTO_FRONTEND}" if IP_RED_LOCAL
+                    else "http://localhost:5174")).rstrip("/")
 # Validez del enlace de restablecimiento (PasswordResetTokenGenerator): 1 hora.
 # Es de un solo uso: el token depende del hash de la contraseña, que cambia.
 PASSWORD_RESET_TIMEOUT = 3600

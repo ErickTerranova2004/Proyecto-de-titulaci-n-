@@ -2,8 +2,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  ajustarHora, avisoVentanas, condicionesIniciales, diaSemana, diasDisponibles, enumerar, horaMinima, momentoLocal,
-  nombreDia, sumarDias, textoPuntos,
+  ajustarHora, avisoVentanas, condicionesIniciales, diaSemana, diasDisponibles, enumerar, horaMinima, masReciente,
+  momentoLocal, nombreDia, ordenarRepositorios, sumarDias, textoPuntos,
 } from "../src/planificador.js";
 
 // Instante a partir de una hora de Ecuador (UTC−5).
@@ -79,6 +79,31 @@ test("aviso solo si ninguna ventana cambia el nivel del análisis base", () => {
   assert.equal(avisoVentanas([...altas.slice(0, 2), { probabilidad: 0.4, nivel: "medio" }], base), null);
   assert.equal(avisoVentanas([], base), null);
   assert.equal(avisoVentanas(altas, undefined), null);
+});
+
+test("repositorios: primero los de análisis más recientes del usuario", () => {
+  const analisis = [
+    { repositorio: "org/viejo", usuario: "ana", creada_en: "2026-11-01T10:00:00Z" },
+    { repositorio: "org/nuevo", usuario: "ana", creada_en: "2026-11-19T10:00:00Z" },
+    { repositorio: "org/medio", usuario: "ana", creada_en: "2026-11-10T10:00:00Z" },
+    { repositorio: "org/viejo", usuario: "ana", creada_en: "2026-11-05T10:00:00Z" },
+    // De otra persona (líder técnico): después de los propios aunque sea más reciente.
+    { repositorio: "org/ajeno", usuario: "luis", creada_en: "2026-11-20T10:00:00Z" },
+    { repositorio: "org/medio", usuario: "luis", creada_en: "2026-11-20T11:00:00Z" },
+  ];
+  assert.deepEqual(ordenarRepositorios(analisis, "ana"), ["org/nuevo", "org/medio", "org/viejo", "org/ajeno"]);
+  assert.deepEqual(ordenarRepositorios([], "ana"), []);
+});
+
+test("análisis más reciente de un repositorio y workflow", () => {
+  const analisis = [
+    { id: 1, repositorio: "org/a", workflow_path: "deploy.yml", creada_en: "2026-11-01T10:00:00Z" },
+    { id: 2, repositorio: "org/a", workflow_path: "release.yml", creada_en: "2026-11-15T10:00:00Z" },
+    { id: 3, repositorio: "org/a", workflow_path: "deploy.yml", creada_en: "2026-11-10T10:00:00Z" },
+  ];
+  assert.equal(masReciente(analisis, "org/a").id, 2);
+  assert.equal(masReciente(analisis, "org/a", "deploy.yml").id, 3);
+  assert.equal(masReciente(analisis, "org/b"), null);
 });
 
 test("enumeración de factores", () => {

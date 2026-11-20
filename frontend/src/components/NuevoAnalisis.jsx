@@ -82,7 +82,10 @@ function AvisoAsignacion({ asignacion }) {
 
 // `respuesta`: asignación del líder que este análisis atiende (opcional). Llega
 // con el repositorio, el workflow y la rama del análisis original.
-export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
+// `alAnalizar(prediccion)`: avisa del análisis terminado (el Planificador lo
+// preselecciona). `alPlanificar(prediccion)`: abre el Planificador con él; sin
+// esta función (roles sin Planificador) no se muestra el botón.
+export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnalizar, alPlanificar }) {
   const [repos, setRepos] = useState(null);
   const [datos, setDatos] = useState({
     repositorio: respuesta?.repositorio ?? "",
@@ -146,7 +149,9 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
         ? { ...datos, atiende_decision: respuesta.asignacion.id, respuesta_desarrollador: cambios }
         : datos;
       if (confirmar) enviados = { ...enviados, confirmar_desplegado: true };
-      setResultado(await api.predecir(enviados));
+      const nuevo = await api.predecir(enviados);
+      setResultado(nuevo);
+      alAnalizar?.(nuevo);
       if (respuesta) alResponder?.();
     } catch (err) {
       if (err.estado === 409 && err.datos?.codigo === "commit_ya_desplegado") setAviso(err.datos);
@@ -332,6 +337,16 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
       {resultado && (
         <div ref={refResultado}>
           <Resultado prediccion={resultado} modelos={modelos} />
+          {alPlanificar && (
+            <div className="tarjeta nuevo__planificar">
+              <p className="secundario">
+                ¿Y si despliega en otro momento? El Planificador estima el riesgo de este mismo análisis en otro día u hora.
+              </p>
+              <button className="boton" type="button" onClick={() => alPlanificar(resultado)}>
+                Abrir en el planificador
+              </button>
+            </div>
+          )}
         </div>
       )}
     </section>

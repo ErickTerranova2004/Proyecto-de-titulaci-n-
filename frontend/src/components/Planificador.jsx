@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
 import {
-  ajustarHora, avisoVentanas, condicionesIniciales, diasDisponibles, enumerar, fechaGuion, horaMinima, NOMBRES_DIA,
-  nombreDia, PRIMERA_HORA, textoPuntos, ULTIMA_HORA, ZONA,
+  ajustarHora, avisoVentanas, condicionesIniciales, diasDisponibles, enumerar, fechaGuion, horaMinima, masReciente,
+  NOMBRES_DIA, nombreDia, ordenarRepositorios, PRIMERA_HORA, textoPuntos, ULTIMA_HORA, ZONA,
 } from "../planificador.js";
-import { Alerta, NivelRiesgo, porcentaje } from "./comunes.jsx";
+import { Alerta, NivelRiesgo, porcentaje, UsuarioContexto } from "./comunes.jsx";
 
 // Planificador de despliegue: estima el riesgo del mismo cambio con otras
 // condiciones que decide el desarrollador (fecha, hora, reintento y pull
@@ -40,7 +40,10 @@ function conSigno(valor) {
   return `${valor > 0 ? "+" : valor < 0 ? "−" : ""}${Math.abs(valor).toFixed(3)}`;
 }
 
-export default function Planificador() {
+// `inicial`: { id, repositorio, workflow_path } del último «Nuevo análisis»;
+// se preselecciona al abrir el Planificador.
+export default function Planificador({ inicial }) {
+  const usuario = useContext(UsuarioContexto)?.usuario;
   const [analisis, setAnalisis] = useState(null);
   const [repositorio, setRepositorio] = useState("");
   const [workflow, setWorkflow] = useState("");
@@ -57,29 +60,44 @@ export default function Planificador() {
     api.historial().then(setAnalisis).catch((e) => setError(e.message));
   }, []);
 
-  const repositorios = useMemo(
-    () => [...new Set((analisis || []).map((a) => a.repositorio))].sort(),
+  // Preselección del último análisis (aunque el historial no lo incluya, el
+  // backend lo encuentra por su id).
+  useEffect(() => {
+    if (!analisis || !inicial?.id) return;
+    setRepositorio(inicial.repositorio);
+    setWorkflow(inicial.workflow_path);
+    elegirBase(String(inicial.id));
+  }, [analisis]);
+
+  const repositorios = useMemo(() => {
+    const lista = ordenarRepositorios(todos, usuario);
+    return inicial?.repositorio && !lista.includes(inicial.repositorio) ? [inicial.repositorio, ...lista] : lista;
+  }, [todos, usuario]);
+  // El último análisis cuenta aunque el historial cargado no lo traiga.
+  const todos = useMemo(
+    () => (inicial?.id && analisis && !analisis.some((a) => a.id === inicial.id) ? [inicial, ...analisis] : analisis || []),
     [analisis],
   );
   const workflows = useMemo(
-    () => [...new Set((analisis || []).filter((a) => a.repositorio === repositorio).map((a) => a.workflow_path))].sort(),
-    [analisis, repositorio],
+    () => [...new Set(todos.filter((a) => a.repositorio === repositorio).map((a) => a.workflow_path))].sort(),
+    [todos, repositorio],
   );
   const candidatos = useMemo(
-    () => (analisis || []).filter((a) => a.repositorio === repositorio && a.workflow_path === workflow),
-    [analisis, repositorio, workflow],
+    () => todos
+      .filter((a) => a.repositorio === repositorio && a.workflow_path === workflow)
+      .sort((a, b) => (b.creada_en || "").localeCompare(a.creada_en || "")),
+    [todos, repositorio, workflow],
   );
 
   function elegirRepositorio(valor) {
     setRepositorio(valor);
-    const lista = [...new Set(analisis.filter((a) => a.repositorio === valor).map((a) => a.workflow_path))].sort();
-    elegirWorkflow(valor, lista[0] || "");
+    // El workflow del análisis más reciente de ese repositorio.
+    elegirWorkflow(valor, masReciente(todos, valor)?.workflow_path || "");
   }
 
   function elegirWorkflow(repo, valor) {
     setWorkflow(valor);
-    // El historial viene del más reciente al más antiguo.
-    const primero = analisis.find((a) => a.repositorio === repo && a.workflow_path === valor);
+    const primero = masReciente(todos, repo, valor);
     elegirBase(primero ? String(primero.id) : "");
   }
 
@@ -89,7 +107,7 @@ export default function Planificador() {
     setVentanas(null);
     setCondicionesBase(null);
     setCondiciones(null);
-    setBase(analisis?.find((a) => String(a.id) === id) || null);
+    setBase(todos.find((a) => String(a.id) === id) || null);
     if (!id) return;
     setError("");
     try {

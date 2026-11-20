@@ -40,6 +40,8 @@ function Plataforma() {
   const [ventanaCerrada, setVentanaCerrada] = useState(false);
   const [atendiendo, setAtendiendo] = useState(null);
   const [respuesta, setRespuesta] = useState(null);
+  // Último «Nuevo análisis» terminado: el Planificador lo preselecciona.
+  const [ultimoAnalisis, setUltimoAnalisis] = useState(null);
   const usuarioRef = useRef(null);
   usuarioRef.current = usuario;
 
@@ -53,6 +55,7 @@ function Plataforma() {
     setVentanaCerrada(false);
     setAtendiendo(null);
     setRespuesta(null);
+    setUltimoAnalisis(null);
   }
 
   const cargarUsuario = () =>
@@ -217,9 +220,18 @@ function Plataforma() {
                   modelos={modelos}
                   respuesta={respuesta}
                   alResponder={() => alarma.recargar()}
+                  alAnalizar={setUltimoAnalisis}
+                  alPlanificar={
+                    secciones.some((s) => s.id === "planificador")
+                      ? (prediccion) => {
+                        setUltimoAnalisis(prediccion);
+                        irA("planificador");
+                      }
+                      : undefined
+                  }
                 />
               )}
-              {idActual === "planificador" && <Planificador />}
+              {idActual === "planificador" && <Planificador key={ultimoAnalisis?.id ?? "sin-analisis"} inicial={ultimoAnalisis} />}
               {idActual === "pendientes" && <Pendientes modelos={modelos} />}
               {idActual === "historial" && (
                 rol === "desarrollador"

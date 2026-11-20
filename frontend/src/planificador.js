@@ -90,6 +90,31 @@ export function avisoVentanas(ventanas, base) {
   return { variacion: (Math.max(...probs) - Math.min(...probs)) * 100 };
 }
 
+// Repositorios del selector: primero los que tienen análisis más recientes del
+// usuario; después, los demás (análisis de otros), también por recencia.
+export function ordenarRepositorios(analisis, usuario) {
+  const ultimo = new Map();
+  for (const a of analisis || []) {
+    const propio = !usuario || a.usuario === usuario;
+    const previo = ultimo.get(a.repositorio);
+    const candidato = { propio, fecha: a.creada_en || "" };
+    if (!previo || (candidato.propio && !previo.propio)
+        || (candidato.propio === previo.propio && candidato.fecha > previo.fecha)) {
+      ultimo.set(a.repositorio, candidato);
+    }
+  }
+  return [...ultimo.entries()]
+    .sort(([na, a], [nb, b]) => (b.propio - a.propio) || b.fecha.localeCompare(a.fecha) || na.localeCompare(nb))
+    .map(([nombre]) => nombre);
+}
+
+// Análisis más reciente de un repositorio (y workflow, si se indica).
+export function masReciente(analisis, repositorio, workflow) {
+  return (analisis || [])
+    .filter((a) => a.repositorio === repositorio && (!workflow || a.workflow_path === workflow))
+    .reduce((mejor, a) => (!mejor || (a.creada_en || "") > (mejor.creada_en || "") ? a : mejor), null);
+}
+
 // "a, b y c".
 export function enumerar(textos) {
   if (textos.length <= 1) return textos.join("");

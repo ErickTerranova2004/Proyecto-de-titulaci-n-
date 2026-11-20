@@ -3322,6 +3322,20 @@ td>.gestion-insignia:first-child {
     text-transform: capitalize;
 }
 
+/* Nuevo análisis: enlace al Planificador bajo el resultado. */
+.nuevo__planificar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--esp-3);
+    margin-top: var(--esp-3);
+}
+
+.nuevo__planificar p {
+    margin: 0;
+}
+
 /* Día con su fecha (Hoy 18 nov, Mañana 19 nov, Vie 20 nov…). */
 .planificador__dia {
     display: inline-flex;
