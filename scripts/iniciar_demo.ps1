@@ -43,9 +43,20 @@ if (-not (Test-Path $python)) { throw "No se encontró $python. Cree el entorno 
 if (-not (Test-Path (Join-Path $backend ".env"))) { throw "Falta backend\.env (copie backend\.env.example)." }
 if (-not (Test-Path (Join-Path $frontend "node_modules"))) { throw "Ejecute 'npm ci' en la carpeta frontend." }
 
+function Pids-EnPuerto([int]$puerto) {
+    # netstat, no Get-NetTCPConnection: con dos procesos escuchando en el mismo
+    # puerto (Windows lo permite), Get-NetTCPConnection solo devuelve uno.
+    $pids = @(netstat -ano -p TCP | Select-String "^\s*TCP\s+\S+:$puerto\s+\S+\s+LISTENING\s+(\d+)\s*$" |
+        ForEach-Object { [int]$_.Matches[0].Groups[1].Value })
+    # Además, cualquier servidor de este proyecto lanzado para ese puerto.
+    $patron = if ($puerto -eq $PuertoBackend) { "manage\.py\s+runserver\s+\S*:$puerto" } else { "vite.*--port\s+$puerto" }
+    $pids += @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -and $_.CommandLine -match $patron } | Select-Object -ExpandProperty ProcessId)
+    return @($pids | Where-Object { $_ -gt 0 } | Sort-Object -Unique)
+}
+
 function Detener-Puerto([int]$puerto) {
-    $pids = @(Get-NetTCPConnection -LocalPort $puerto -State Listen -ErrorAction SilentlyContinue |
-        Select-Object -ExpandProperty OwningProcess -Unique | Where-Object { $_ -gt 0 })
+    $pids = Pids-EnPuerto $puerto
     foreach ($id in $pids) {
         $proceso = Get-CimInstance Win32_Process -Filter "ProcessId=$id" -ErrorAction SilentlyContinue
         if (-not $proceso) { continue }
@@ -59,10 +70,12 @@ function Detener-Puerto([int]$puerto) {
         }
     }
     for ($i = 0; $i -lt 10; $i++) {
-        if (-not (Get-NetTCPConnection -LocalPort $puerto -State Listen -ErrorAction SilentlyContinue)) { return }
+        $quedan = Pids-EnPuerto $puerto
+        if (-not $quedan) { return }
         Start-Sleep -Milliseconds 500
     }
-    throw "El puerto $puerto sigue ocupado. Ciérrelo a mano y vuelva a intentarlo."
+    throw ("El puerto $puerto sigue ocupado por los procesos $($quedan -join ', '). " +
+           "Ciérrelos (PowerShell como administrador: Stop-Process -Id $($quedan -join ', ') -Force) y vuelva a intentarlo.")
 }
 
 function Ip-Local {
