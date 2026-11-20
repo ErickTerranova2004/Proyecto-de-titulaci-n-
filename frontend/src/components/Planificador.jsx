@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
 import {
-  ajustarHora, condicionesIniciales, diasDisponibles, horaMinima, PRIMERA_HORA, ULTIMA_HORA, ZONA,
+  ajustarHora, avisoVentanas, condicionesIniciales, diasDisponibles, enumerar, fechaGuion, horaMinima, NOMBRES_DIA,
+  nombreDia, PRIMERA_HORA, textoPuntos, ULTIMA_HORA, ZONA,
 } from "../planificador.js";
 import { Alerta, NivelRiesgo, porcentaje } from "./comunes.jsx";
 
@@ -11,7 +12,6 @@ import { Alerta, NivelRiesgo, porcentaje } from "./comunes.jsx";
 // convierte a UTC, que es lo que usa el modelo, y recalcula para ese momento
 // las variables que dependen del tiempo. Estimar no guarda nada.
 
-const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const DIAS_LARGOS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
 
 const hora = (h) => `${String(h).padStart(2, "0")}:00`;
@@ -34,10 +34,7 @@ function diaDe(valor) {
   return fecha ? new Intl.DateTimeFormat("es-EC", { timeZone: ZONA, weekday: "long" }).format(fecha) : "";
 }
 
-function puntos(valor) {
-  const signo = valor > 0 ? "+" : valor < 0 ? "−" : "±";
-  return `${signo}${Math.abs(valor).toFixed(1)} puntos`;
-}
+const puntos = textoPuntos;
 
 function conSigno(valor) {
   return `${valor > 0 ? "+" : valor < 0 ? "−" : ""}${Math.abs(valor).toFixed(3)}`;
@@ -205,11 +202,12 @@ export default function Planificador() {
                     type="button"
                     className="planificador__dia"
                     aria-pressed={condiciones.fecha === d.fecha}
-                    aria-label={`${d.relativo ? `${d.relativo}, ` : ""}${DIAS_LARGOS[d.dia]} ${fechaCorta(d.fecha)}`}
+                    aria-label={`${nombreDia(d.fecha)}${d.hoy ? " (hoy)" : ""}`}
                     onClick={() => cambiar("fecha", d.fecha)}
                   >
-                    <span>{d.relativo || DIAS[d.dia]}</span>
-                    <span className="planificador__fecha-dia">{fechaCorta(d.fecha)}</span>
+                    <span>{NOMBRES_DIA[d.dia]}</span>
+                    <span className="planificador__fecha-dia">{fechaGuion(d.fecha)}</span>
+                    {d.hoy && <span className="planificador__hoy">(hoy)</span>}
                   </button>
                 ))}
               </div>
@@ -288,16 +286,26 @@ export default function Planificador() {
             {hora(PRIMERA_HORA)} y las {hora(ULTIMA_HORA)} (hora de Ecuador), con el resto de condiciones como en el
             análisis base. «Mejor opción» marca la de menor riesgo.
           </p>
+          <AvisoSinMejora ventanas={ventanas} />
           <ol className="planificador__ventanas">
             {ventanas.ventanas.map((v) => (
               <li key={v.momento_local} className={`planificador__ventana${v.mejor ? " planificador__ventana--mejor" : ""}`}>
                 {v.mejor && <span className="planificador__mejor">Mejor opción</span>}
                 <p className="planificador__cuando">
-                  <strong>{DIAS_LARGOS[v.dia]}</strong> {fechaCorta(v.fecha)} · {hora(v.hora)}
+                  <strong>{NOMBRES_DIA[v.dia]}</strong> {fechaGuion(v.fecha)} · {hora(v.hora)}
                 </p>
                 <p>
                   {porcentaje(v.probabilidad)} <NivelRiesgo nivel={v.nivel} />
                 </p>
+                {v.diferencia_puntos !== undefined && (
+                  <p
+                    className={`planificador__diferencia planificador__cambio--${
+                      v.diferencia_puntos > 0 ? "sube" : v.diferencia_puntos < 0 ? "baja" : "igual"
+                    }`}
+                  >
+                    {puntos(v.diferencia_puntos)} <span className="secundario">frente al análisis base</span>
+                  </p>
+                )}
                 <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => usarVentana(v)}>
                   Usar este escenario
                 </button>
@@ -307,6 +315,22 @@ export default function Planificador() {
         </div>
       )}
     </section>
+  );
+}
+
+// Si ninguna ventana cambia el nivel del análisis base, elegir otro momento
+// no basta: el riesgo viene de otros factores del cambio.
+function AvisoSinMejora({ ventanas }) {
+  const aviso = avisoVentanas(ventanas.ventanas, ventanas.base);
+  if (!aviso) return null;
+  const variacion = aviso.variacion.toLocaleString("es-EC", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const factores = (ventanas.factores_base || []).map((f) => f.descripcion.charAt(0).toLowerCase() + f.descripcion.slice(1));
+  return (
+    <p className="alerta alerta--aviso planificador__aviso" role="status">
+      Cambiar el día o la hora apenas modifica el riesgo de este despliegue (variación máxima: {variacion} puntos).
+      {factores.length > 0 && <> El riesgo depende sobre todo de: <strong>{enumerar(factores)}</strong>.</>} Se recomienda
+      corregir esos factores y volver a analizar antes de elegir una fecha.
+    </p>
   );
 }
 

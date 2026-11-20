@@ -288,6 +288,27 @@ class PlanificadorApiTest(TestCase):
         self.assertEqual(mejores[0]["probabilidad"],
                          min(v["probabilidad"] for v in ventanas))
 
+    def test_diferencia_con_el_analisis_base_y_factores_principales(self):
+        cuerpo = self._ventanas(datetime(2026, 11, 18, 10, 0))
+        base = cuerpo["base"]
+        self.assertAlmostEqual(base["probabilidad"],
+                               self.prediccion["probabilidad"], places=12)
+        self.assertEqual(base["nivel"], self.prediccion["nivel"])
+        for v in cuerpo["ventanas"]:
+            self.assertAlmostEqual(
+                v["diferencia_puntos"],
+                (v["probabilidad"] - base["probabilidad"]) * 100, places=1)
+        factores = cuerpo["factores_base"]
+        self.assertEqual(len(factores), 3)
+        self.assertEqual(len({f["variable"] for f in factores}), 3)
+        self.assertTrue(all(f["descripcion"] for f in factores))
+        # Primero las que suben el riesgo, de mayor a menor peso.
+        positivas = [f["contribucion"] for f in factores
+                     if f["contribucion"] > 0]
+        self.assertEqual(positivas, sorted(positivas, reverse=True))
+        self.assertEqual(factores[:len(positivas)],
+                         [f for f in factores if f["contribucion"] > 0])
+
     def test_cada_ventana_es_la_hora_de_menor_riesgo_del_dia(self):
         ventanas = self._ventanas(datetime(2026, 11, 18, 10, 0))["ventanas"]
         primera = ventanas[0]

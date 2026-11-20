@@ -54,9 +54,46 @@ export function diasDisponibles(ahora = new Date(), cantidad = DIAS_SELECTOR) {
   const primero = actual.hora + 1 <= 23 ? actual.fecha : sumarDias(actual.fecha, 1);
   return Array.from({ length: cantidad }, (_, i) => {
     const fecha = sumarDias(primero, i);
-    const distancia = fecha === actual.fecha ? 0 : fecha === sumarDias(actual.fecha, 1) ? 1 : null;
-    return { fecha, dia: diaSemana(fecha), relativo: ["Hoy", "Mañana"][distancia] ?? "" };
+    return { fecha, dia: diaSemana(fecha), hoy: fecha === actual.fecha };
   });
+}
+
+export const NOMBRES_DIA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+// "AAAA-MM-DD" → "19-nov".
+export function fechaGuion(fecha) {
+  const [, m, d] = fecha.split("-").map(Number);
+  return `${d}-${MESES[m - 1]}`;
+}
+
+// "Jueves 19-nov".
+export function nombreDia(fecha) {
+  return `${NOMBRES_DIA[diaSemana(fecha)]} ${fechaGuion(fecha)}`;
+}
+
+// Puntos porcentuales con coma decimal: "−0,4 puntos", "+1,2 puntos".
+export function textoPuntos(valor) {
+  const redondeado = Math.round(valor * 10) / 10;
+  const signo = redondeado > 0 ? "+" : redondeado < 0 ? "−" : "±";
+  const numero = Math.abs(redondeado).toLocaleString("es-EC", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return `${signo}${numero} puntos`;
+}
+
+// Aviso de «Mejores ventanas»: solo si ninguna ventana cambia el nivel del
+// análisis base. `variacion`: puntos entre la ventana de menor y la de mayor
+// riesgo.
+export function avisoVentanas(ventanas, base) {
+  if (!ventanas?.length || !base?.nivel) return null;
+  if (ventanas.some((v) => v.nivel !== base.nivel)) return null;
+  const probs = ventanas.map((v) => v.probabilidad);
+  return { variacion: (Math.max(...probs) - Math.min(...probs)) * 100 };
+}
+
+// "a, b y c".
+export function enumerar(textos) {
+  if (textos.length <= 1) return textos.join("");
+  return `${textos.slice(0, -1).join(", ")} y ${textos[textos.length - 1]}`;
 }
 
 // Al cambiar de día, la hora no puede quedar antes de la mínima de ese día.

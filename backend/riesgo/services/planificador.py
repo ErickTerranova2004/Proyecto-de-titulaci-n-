@@ -194,6 +194,7 @@ def mejores_ventanas(prediccion, dias=None):
     """
     dias = dias or settings.PLANIFICADOR_DIAS_VENTANAS
     version = prediccion.version_modelo
+    prob_base = probabilidades([prediccion.variables], version)[0]
     reintento = bool(prediccion.variables.get("es_reintento"))
     pr = bool(prediccion.variables.get("tiene_pr"))
     refs = referencias(prediccion)
@@ -211,12 +212,31 @@ def mejores_ventanas(prediccion, dias=None):
                          "fecha": fecha.isoformat(),
                          "dia": fecha.weekday(), "hora": momento.hour,
                          "es_reintento": reintento, "tiene_pr": pr,
-                         "mejor": False, **_resumen(prob, version)})
+                         "mejor": False,
+                         "diferencia_puntos": round((prob - prob_base) * 100,
+                                                    2),
+                         **_resumen(prob, version)})
     if ventanas:
         min(ventanas, key=lambda v: v["probabilidad"])["mejor"] = True
     return {"condiciones_base": condiciones_base(prediccion),
+            "base": _resumen(prob_base, version),
+            "factores_base": factores_principales(prediccion),
             "desde": desde.isoformat(), "dias": dias,
             "ventanas": ventanas}
+
+
+def factores_principales(prediccion, n=3):
+    """Las n variables con más peso SHAP en el análisis base.
+
+    Primero las que suben el riesgo (lo que conviene corregir); si hay menos
+    de n, se completan con las de mayor peso absoluto.
+    """
+    shap_base = contribuciones(prediccion.variables, prediccion.version_modelo)
+    por_peso = sorted(shap_base.items(), key=lambda x: -abs(x[1]))
+    elegidas = [v for v, s in por_peso if s > 0][:n]
+    elegidas += [v for v, _ in por_peso if v not in elegidas][:n - len(elegidas)]
+    return [{"variable": v, "descripcion": DESCRIPCIONES.get(v, v),
+             "contribucion": round(shap_base[v], 4)} for v in elegidas]
 
 
 def validar_momento(fecha, hora):
