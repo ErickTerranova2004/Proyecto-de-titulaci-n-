@@ -69,15 +69,16 @@ export default function Planificador({ inicial }) {
     elegirBase(String(inicial.id));
   }, [analisis]);
 
-  const repositorios = useMemo(() => {
-    const lista = ordenarRepositorios(todos, usuario);
-    return inicial?.repositorio && !lista.includes(inicial.repositorio) ? [inicial.repositorio, ...lista] : lista;
-  }, [todos, usuario]);
   // El último análisis cuenta aunque el historial cargado no lo traiga.
+  // (Debe declararse antes de los cálculos que lo usan.)
   const todos = useMemo(
     () => (inicial?.id && analisis && !analisis.some((a) => a.id === inicial.id) ? [inicial, ...analisis] : analisis || []),
     [analisis],
   );
+  const repositorios = useMemo(() => {
+    const lista = ordenarRepositorios(todos, usuario);
+    return inicial?.repositorio && !lista.includes(inicial.repositorio) ? [inicial.repositorio, ...lista] : lista;
+  }, [todos, usuario]);
   const workflows = useMemo(
     () => [...new Set(todos.filter((a) => a.repositorio === repositorio).map((a) => a.workflow_path))].sort(),
     [todos, repositorio],
