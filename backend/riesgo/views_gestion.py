@@ -92,7 +92,7 @@ def _serializar_usuario(u, actual, ultimos=None):
         "alta": u.date_joined,
         "repositorios": sorted(
             ({"id": a.repositorio_id, "nombre": a.repositorio.nombre_completo}
-             for a in u.accesos.all()),
+             for a in u.accesos.all() if a.est_registro == "A"),
             key=lambda r: r["nombre"].lower()),
         "es_actual": u.id == actual.id,
         # Con historial solo se elimina traspasándolo a otra cuenta.
@@ -212,10 +212,11 @@ def traspasar_historial(usuario, destino):
     # El administrador ve todos los repositorios: no necesita accesos.
     if rol_principal(destino) != "administrador":
         actuales = set(destino.accesos.values_list("repositorio_id", flat=True))
+        # Solo los accesos activos: los desactivados no se vuelven a dar.
         nuevos = [AccesoRepositorio(usuario=destino, repositorio_id=r,
                                     asignado_por=destino)
-                  for r in usuario.accesos.values_list("repositorio_id",
-                                                       flat=True)
+                  for r in usuario.accesos.filter(est_registro="A")
+                  .values_list("repositorio_id", flat=True)
                   if r not in actuales]
         AccesoRepositorio.objects.bulk_create(nuevos)
         resumen["repositorios"] = len(nuevos)
@@ -360,13 +361,21 @@ def usuario_repositorios(request, pk):
                       "repositorio_no_existe", MAL)
 
     with transaction.atomic():
-        usuario.accesos.exclude(repositorio_id__in=ids).delete()
-        actuales = set(usuario.accesos.values_list("repositorio_id",
-                                                   flat=True))
+        # Solo se quitan los accesos activos: los desactivados (casos de
+        # prueba) no se muestran en la interfaz y se conservan por auditoría.
+        usuario.accesos.filter(est_registro="A").exclude(
+            repositorio_id__in=ids).delete()
+        actuales = set(usuario.accesos.filter(est_registro="A").values_list(
+            "repositorio_id", flat=True))
+        # Volver a asignar un repositorio con el acceso desactivado lo
+        # reactiva (hay una fila por usuario y repositorio).
+        usuario.accesos.filter(est_registro="I", repositorio_id__in=ids).update(
+            est_registro="A", asignado_por=request.user)
+        inactivos = set(usuario.accesos.values_list("repositorio_id", flat=True))
         AccesoRepositorio.objects.bulk_create([
             AccesoRepositorio(usuario=usuario, repositorio_id=i,
                               asignado_por=request.user)
-            for i in ids - actuales])
+            for i in ids - actuales - inactivos])
     return Response(_serializar_usuario(_consulta_usuarios().get(pk=pk),
                                         request.user))
 

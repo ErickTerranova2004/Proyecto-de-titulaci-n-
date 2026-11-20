@@ -300,10 +300,14 @@ def integraciones(request):
         "restantes": limite.get("remaining"),
         "reinicio": limite.get("reset"),
         "error": error,
-        "repositorios_registrados": Repositorio.objects.count(),
+        # Solo lo activo (est_registro='A'): sin los repositorios inactivos
+        # ni los datos desactivados de los casos de prueba.
+        "repositorios_registrados": Repositorio.objects.filter(
+            est_registro="A").count(),
         "workflows_validados": Workflow.objects.filter(
-            despliegue_validado=True).count(),
-        "ejecuciones_almacenadas": EjecucionWorkflow.objects.count(),
+            despliegue_validado=True, est_registro="A").count(),
+        "ejecuciones_almacenadas": EjecucionWorkflow.objects.filter(
+            est_registro="A").count(),
         "ultima_extraccion": ultima,
     }})
 
@@ -667,7 +671,7 @@ class AsignacionViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_queryset(self):
         return (asignaciones.ultimas_decisiones(
                     predicciones_visibles(self.request.user))
-                .filter(asignaciones.ES_ASIGNACION)
+                .filter(asignaciones.ES_ASIGNACION, est_registro="A")
                 .select_related("usuario", "prediccion__usuario",
                                 "prediccion__workflow__repositorio",
                                 "prediccion_respuesta")
@@ -720,7 +724,8 @@ def resumen_admin(request):
     for usuario in get_user_model().objects.prefetch_related("groups"):
         usuarios[rol_principal(usuario) or "sin_rol"] += 1
     usuarios["total"] = sum(usuarios.values())
-    workflows = Workflow.objects.all()
+    # Sin los workflows desactivados (p. ej. los de los casos de prueba).
+    workflows = Workflow.objects.filter(est_registro="A")
     validados = workflows.filter(despliegue_validado=True)
     return Response({
         "usuarios": usuarios,
