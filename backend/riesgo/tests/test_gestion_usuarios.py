@@ -72,6 +72,25 @@ class EliminarUsuarioTest(TestCase):
         self.assertEqual(Prediccion.objects.get(id=id_).decisiones.get().usuario,
                          self.admin)
 
+    def test_transferir_a_no_numerico_responde_400(self):
+        with mock.patch.object(github, "GitHubClient", ClienteFalso):
+            self.cliente(self.dev).post("/api/predicciones/", DATOS,
+                                        format="json")
+        for valor in ("admin", "1.5", "-3", "1;drop", "%20x"):
+            with self.subTest(transferir_a=valor):
+                r = self.cliente(self.admin).delete(
+                    f"/api/gestion/usuarios/{self.dev.id}/?transferir_a={valor}")
+                self.assertEqual(r.status_code, 400, r.content)
+                self.assertEqual(r.json()["codigo"], "destino_no_valido")
+                self.assertIn("id numérico", r.json()["detail"])
+        # Nada cambió: la cuenta y su análisis siguen.
+        self.assertTrue(User.objects.filter(id=self.dev.id).exists())
+        self.assertEqual(Prediccion.objects.filter(usuario=self.dev).count(), 1)
+        # Con espacios alrededor de un id válido sí funciona.
+        r = self.cliente(self.admin).delete(
+            f"/api/gestion/usuarios/{self.dev.id}/?transferir_a=%20{self.dev2.id}%20")
+        self.assertEqual(r.status_code, 200, r.content)
+
     def test_traspaso_a_cuenta_no_valida(self):
         with mock.patch.object(github, "GitHubClient", ClienteFalso):
             self.cliente(self.dev).post("/api/predicciones/", DATOS,

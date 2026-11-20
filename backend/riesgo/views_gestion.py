@@ -240,8 +240,12 @@ def _eliminar_usuario(usuario, es_yo, destino_id=None):
     analisis = Prediccion.con_sombra.filter(usuario=usuario).count()
     decisiones = usuario.decisiones.count()
     destino = None
-    if destino_id not in (None, ""):
-        destino = Usuario.objects.filter(pk=destino_id).first()
+    destino_id = (destino_id or "").strip()
+    if destino_id and not destino_id.isdigit():
+        return _error("transferir_a debe ser el id numérico de la cuenta que "
+                      "recibe el historial.", "destino_no_valido", MAL)
+    if destino_id:
+        destino = Usuario.objects.filter(pk=int(destino_id)).first()
         if destino is None:
             return _error("La cuenta que recibiría el historial no existe.",
                           "destino_no_encontrado", MAL)
