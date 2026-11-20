@@ -237,7 +237,7 @@ function Plataforma() {
                 rol === "desarrollador"
                   ? <Historial modelos={modelos} titulo="Mi historial" descripcion="Desarrollador · sus análisis en sus repositorios asignados" mostrarDesarrollador={false} />
                   : rol === "administrador"
-                    ? <Historial modelos={modelos} titulo="Historial de análisis" descripcion="Administrador · análisis de todos los repositorios" mostrarSeguimiento conOrigen />
+                    ? <Historial modelos={modelos} titulo="Historial de análisis" descripcion="Administrador · análisis de todos los repositorios" mostrarSeguimiento conOrigen conNivel />
                     : <Historial modelos={modelos} titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento conNivel />
               )}
               {idActual === "usuarios" && <Usuarios />}

@@ -40,6 +40,20 @@ test("el historial del equipo muestra el desplegable de nivel (Todos, Bajo, Medi
   assert.match(conNivel, /Nivel de riesgo/);
   for (const texto of ["Todos", "Bajo", "Medio", "Alto"]) assert.match(conNivel, new RegExp(`>${texto}<`));
   assert.doesNotMatch(renderToString(h(Historial, { titulo: "Mi historial" })), /Nivel de riesgo/);
+  // Historial del administrador: nivel junto al origen.
+  const admin = renderToString(h(Historial, { titulo: "Historial de análisis", conNivel: true, conOrigen: true }));
+  assert.match(admin, /Nivel de riesgo/);
+  assert.match(admin, /Origen/);
+});
+
+test("App activa el nivel en el historial del equipo y en el del administrador", async () => {
+  const { readFileSync } = await import("node:fs");
+  const app = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
+  const historiales = app.match(/<Historial [^>]*\/>/g);
+  const de = (titulo) => historiales.find((linea) => linea.includes(`titulo="${titulo}"`));
+  assert.match(de("Historial del equipo"), /\bconNivel\b/);
+  assert.match(de("Historial de análisis"), /\bconNivel\b/);
+  assert.doesNotMatch(de("Mi historial"), /\bconNivel\b/);
 });
 
 test("el Planificador se renderiza sin análisis inicial y con uno preseleccionado", async () => {
