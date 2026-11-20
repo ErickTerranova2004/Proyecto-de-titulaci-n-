@@ -40,6 +40,8 @@ const ORIGENES = [
 export default function Historial({
   modelos, titulo = "Historial de análisis", descripcion, mostrarDesarrollador = true, mostrarSeguimiento = false,
   conOrigen = false,
+  // Desplegable de nivel de riesgo (Todos, Bajo, Medio, Alto); lo filtra el backend.
+  conNivel = false,
 }) {
   const inicial = conOrigen ? { ...FILTROS_INICIALES, origen: "interactivo" } : FILTROS_INICIALES;
   const [filtros, setFiltros] = useState(inicial);
@@ -64,7 +66,7 @@ export default function Historial({
       .catch((e) => id === peticion.current && setError(e.message))
       .finally(() => id === peticion.current && setCargando(false));
   }
-  useEffect(cargar, [filtros.desde, filtros.hasta, filtros.orden, filtros.origen]);
+  useEffect(cargar, [filtros.desde, filtros.hasta, filtros.orden, filtros.origen, filtros.nivel]);
   const filtrado = hayFiltros(filtros, inicial.origen);
 
   if (seleccion) {
@@ -94,6 +96,7 @@ export default function Historial({
           id="historial"
           filtros={filtros}
           alCambiar={setFiltros}
+          conNivel={conNivel}
           origenes={conOrigen ? ORIGENES : undefined}
         />
         <div className="panel__acciones">

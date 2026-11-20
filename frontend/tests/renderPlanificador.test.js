@@ -34,6 +34,14 @@ async function cargar(componente) {
   }
 }
 
+test("el historial del equipo muestra el desplegable de nivel (Todos, Bajo, Medio, Alto)", async () => {
+  const Historial = await cargar("Historial");
+  const conNivel = renderToString(h(Historial, { titulo: "Historial del equipo", conNivel: true }));
+  assert.match(conNivel, /Nivel de riesgo/);
+  for (const texto of ["Todos", "Bajo", "Medio", "Alto"]) assert.match(conNivel, new RegExp(`>${texto}<`));
+  assert.doesNotMatch(renderToString(h(Historial, { titulo: "Mi historial" })), /Nivel de riesgo/);
+});
+
 test("el Planificador se renderiza sin análisis inicial y con uno preseleccionado", async () => {
   const Planificador = await cargar("Planificador");
   assert.match(renderToString(h(Planificador, {})), /Planificador de despliegue/);
