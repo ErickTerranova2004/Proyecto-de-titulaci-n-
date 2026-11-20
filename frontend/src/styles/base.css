@@ -3774,3 +3774,213 @@ td>.gestion-insignia:first-child {
         flex-direction: column;
     }
 }
+
+/* ------------------------------------------------ Informes de cumplimiento */
+.informe-enviado {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--esp-2);
+    font-size: var(--texto-sm);
+}
+
+.enviar-informe {
+    display: grid;
+    gap: var(--esp-2);
+    width: 100%;
+    margin-top: var(--esp-2);
+}
+
+.enviar-informe textarea {
+    width: 100%;
+    font: inherit;
+}
+
+.enviar-informe__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--esp-2);
+}
+
+.informe-enlace {
+    margin-top: var(--esp-1);
+}
+
+.informe-nuevo {
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: var(--radio-full);
+    background: var(--color-acento);
+    color: var(--sobre-acento);
+    font-family: var(--fuente);
+    font-size: var(--texto-xs);
+    font-weight: 700;
+}
+
+.informe-fila--nuevo td {
+    background: var(--acento-suave);
+}
+
+.informe__barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--esp-2);
+    margin-bottom: var(--esp-3);
+}
+
+.informe__documento {
+    max-width: 960px;
+}
+
+.informe__encabezado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--esp-3);
+    padding-bottom: var(--esp-3);
+    border-bottom: 2px solid var(--color-acento);
+}
+
+.informe__plataforma {
+    margin: 0;
+    color: var(--color-acento);
+    font-size: var(--texto-sm);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.informe__encabezado h1 {
+    margin: 4px 0 0;
+    font-size: var(--texto-xl);
+}
+
+.informe__emision {
+    margin: 0;
+    font-size: var(--texto-sm);
+}
+
+.informe__seccion {
+    margin-top: var(--esp-4);
+    break-inside: avoid;
+}
+
+.informe__seccion h2 {
+    margin: 0 0 var(--esp-2);
+    color: var(--color-acento);
+    font-size: var(--texto-lg);
+}
+
+.informe__datos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--esp-2) var(--esp-4);
+    margin: var(--esp-3) 0 0;
+}
+
+.informe__fila dt {
+    color: var(--tinta-secundaria);
+    font-size: var(--texto-xs);
+}
+
+.informe__fila dd {
+    margin: 2px 0 0;
+}
+
+.informe__tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--texto-sm);
+}
+
+.informe__tabla th,
+.informe__tabla td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--borde-suave);
+    text-align: left;
+    vertical-align: top;
+}
+
+.informe__tabla thead th {
+    background: var(--relleno-suave);
+    color: var(--tinta-secundaria);
+    font-size: var(--texto-xs);
+}
+
+.informe__tabla tbody th {
+    font-weight: 500;
+}
+
+.informe__diferencia {
+    margin: var(--esp-2) 0 0;
+}
+
+.informe__diferencia--baja strong,
+.informe__shap--baja { color: var(--acento-texto); }
+.informe__diferencia--sube strong,
+.informe__shap--sube { color: var(--alto-texto); }
+
+.informe__texto {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.informe__decidir fieldset {
+    display: grid;
+    gap: var(--esp-2);
+    margin-top: var(--esp-3);
+    padding: var(--esp-3);
+    border: 1px solid var(--borde-fuerte);
+    border-radius: var(--radio-sm);
+}
+
+.informe__opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--esp-2) var(--esp-4);
+}
+
+.informe__opcion {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Imprimir: solo el documento del informe, sin menú ni botones. */
+@media print {
+    .lateral,
+    .barra-superior,
+    .no-imprimir,
+    .ventana-asignaciones {
+        display: none !important;
+    }
+
+    body,
+    .app,
+    .principal,
+    .contenido {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    .informe__documento {
+        max-width: none;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .informe__seccion h2,
+    .informe__plataforma {
+        color: #0d47a1 !important;
+    }
+
+    @page {
+        margin: 16mm;
+    }
+}

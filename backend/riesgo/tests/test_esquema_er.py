@@ -87,7 +87,9 @@ for _columnas in ER.values():
 VISTAS = {"seg_usuario", "seg_grupo", "int_usuario_grupo", "seg_token"}
 TABLAS_PROPIAS = set(ER) - VISTAS | {"trx_seguimiento_lote",
                                      "trx_pendiente_despliegue",
-                                     "trx_restablecimiento_clave"}
+                                     "trx_restablecimiento_clave",
+                                     "trx_informe_cumplimiento",
+                                     "trx_descarga_informe"}
 
 # En la implementación y no en el diagrama (hay que añadirlo al ER).
 EXTRA = {
@@ -118,6 +120,17 @@ EXTRA = {
         "nom_usuario": vc(150), "id_usuario_solicita": INT,
         "tip_origen": vc(15), "des_correo": vc(254), "es_enviado": BOOL,
         "tip_medio": vc(10), "fec_cambio_clave": TS, **AUDITORIA},
+    # Informe de cumplimiento del desarrollador al líder y sus descargas.
+    "trx_informe_cumplimiento": {
+        "id_informe_cumplimiento": BIGINT, "id_decision_despliegue": BIGINT,
+        "id_prediccion_original": BIGINT, "id_prediccion_nueva": BIGINT,
+        "id_usuario_desarrollador": INT, "id_usuario_lider": INT,
+        "des_comentario_desarrollador": TEXT, "es_correo_enviado": BOOL,
+        "fec_lectura_lider": TS, "id_decision_final": BIGINT, **AUDITORIA},
+    "trx_descarga_informe": {
+        "id_descarga_informe": BIGINT, "id_informe_cumplimiento": BIGINT,
+        "id_usuario": INT, "nom_usuario": vc(150), "tip_formato": vc(10),
+        **AUDITORIA},
 }
 
 # Única diferencia de tipo con el diagrama original: Django crea la tabla

@@ -634,3 +634,88 @@ class RestablecimientoClave(Auditoria):
 
     def __str__(self):
         return f"{self.nombre_usuario} ({self.origen}) {self.solicitado_en}"
+
+
+class InformeCumplimiento(Auditoria):
+    """Informe del desarrollador al líder técnico tras cumplir una asignación
+    con un nuevo análisis (services/informes.py).
+
+    Uno por asignación. Liga la asignación (decisión con fecha límite), el
+    análisis original, el nuevo, el desarrollador que lo envía y el líder que
+    hizo la indicación. La decisión final del líder se registra como una
+    decisión más sobre el análisis nuevo (así sale también en historiales y
+    pendientes) y se enlaza aquí.
+    """
+
+    id = models.BigAutoField(primary_key=True,
+                              db_column="id_informe_cumplimiento")
+    asignacion = models.OneToOneField(
+        DecisionDespliegue, on_delete=models.PROTECT, related_name="informe",
+        db_column="id_decision_despliegue")
+    prediccion_original = models.ForeignKey(
+        Prediccion, on_delete=models.PROTECT, related_name="+",
+        db_column="id_prediccion_original")
+    prediccion_nueva = models.ForeignKey(
+        Prediccion, on_delete=models.PROTECT, related_name="+",
+        db_column="id_prediccion_nueva")
+    desarrollador = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+        related_name="informes_enviados", db_column="id_usuario_desarrollador")
+    lider = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+        related_name="informes_recibidos", db_column="id_usuario_lider")
+    # Qué cambió el desarrollador (obligatorio).
+    comentario = models.TextField(max_length=2000,
+                                  db_column="des_comentario_desarrollador")
+    enviado_en = models.DateTimeField(auto_now_add=True,
+                                      db_column="fec_creacion")
+    fec_creacion = None  # enviado_en
+    # Aviso por correo al líder (solo si el correo está configurado).
+    correo_enviado = models.BooleanField(default=False,
+                                         db_column="es_correo_enviado")
+    # Primera vez que el líder destinatario lo abrió.
+    leido_en = models.DateTimeField(null=True, blank=True,
+                                    db_column="fec_lectura_lider")
+    decision_final = models.ForeignKey(
+        DecisionDespliegue, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="+", db_column="id_decision_final")
+
+    class Meta:
+        db_table = "trx_informe_cumplimiento"
+        ordering = ["-enviado_en", "-id"]
+
+    @property
+    def numero(self):
+        return f"IC-{self.id:05d}"
+
+    def __str__(self):
+        return f"{self.numero} {self.desarrollador} → {self.lider}"
+
+
+class DescargaInforme(Auditoria):
+    """Auditoría de las descargas del PDF de un informe de cumplimiento."""
+
+    id = models.BigAutoField(primary_key=True,
+                              db_column="id_descarga_informe")
+    informe = models.ForeignKey(InformeCumplimiento, on_delete=models.PROTECT,
+                                related_name="descargas",
+                                db_column="id_informe_cumplimiento")
+    # SET_NULL: si la cuenta se elimina, la fila se conserva con su nombre.
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                on_delete=models.SET_NULL, null=True,
+                                blank=True, related_name="+",
+                                db_column="id_usuario")
+    nombre_usuario = models.CharField(max_length=150,
+                                      db_column="nom_usuario")
+    formato = models.CharField(max_length=10, default="pdf",
+                               db_column="tip_formato")
+    descargado_en = models.DateTimeField(auto_now_add=True,
+                                         db_column="fec_creacion")
+    fec_creacion = None  # descargado_en
+
+    class Meta:
+        db_table = "trx_descarga_informe"
+        ordering = ["-descargado_en"]
+
+    def __str__(self):
+        return f"{self.informe_id} por {self.nombre_usuario}"

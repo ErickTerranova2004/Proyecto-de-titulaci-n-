@@ -3,36 +3,12 @@
 // esbuild (dependencia de Vite) y se renderiza en el servidor; los efectos no
 // se ejecutan, así que no hace falta la API.
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { pathToFileURL } from "node:url";
 import { test } from "node:test";
-import { build } from "esbuild";
 import { createElement as h } from "react";
 import { renderToString } from "react-dom/server";
+import { cargarComponente } from "./compilarComponente.js";
 
-async function cargar(componente) {
-  const salida = await build({
-    entryPoints: [new URL(`../src/components/${componente}.jsx`, import.meta.url).pathname.replace(/^\/(\w:)/, "$1")],
-    bundle: true,
-    format: "esm",
-    platform: "node",
-    jsx: "automatic",
-    write: false,
-    external: ["react", "react-dom", "react/jsx-runtime"],
-    logLevel: "silent",
-  });
-  // Junto a node_modules del frontend para que resuelva «react».
-  const carpeta = mkdtempSync(join(new URL("..", import.meta.url).pathname.replace(/^\/(\w:)/, "$1"), "node_modules", ".render-"));
-  const archivo = join(carpeta, `${componente}.mjs`);
-  writeFileSync(archivo, salida.outputFiles[0].text);
-  try {
-    return (await import(pathToFileURL(archivo).href)).default;
-  } finally {
-    rmSync(carpeta, { recursive: true, force: true });
-  }
-}
+const cargar = async (componente) => (await cargarComponente(componente)).default;
 
 test("el historial del equipo muestra el desplegable de nivel (Todos, Bajo, Medio, Alto)", async () => {
   const Historial = await cargar("Historial");

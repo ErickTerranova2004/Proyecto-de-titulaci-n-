@@ -14,3 +14,4 @@ anthropic==2.9.0  # análisis de IA con Claude (proveedor por defecto)
 google-genai==2.34.0  # proveedor alternativo (IA_PROVEEDOR=gemini)
 xgboost==3.4.1
 matplotlib==3.11.2  # solo para las figuras del entrenamiento
+reportlab==4.5.1  # PDF de los informes de cumplimiento

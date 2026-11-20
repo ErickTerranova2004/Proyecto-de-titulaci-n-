@@ -9,6 +9,7 @@ import {
   workflowInicial,
 } from "../pendientes.js";
 import { Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, textoPlazo } from "./comunes.jsx";
+import EnviarInforme from "./EnviarInforme.jsx";
 import Resultado from "./Resultado.jsx";
 
 // Mismas opciones que acepta el backend (SolicitudPrediccionSerializer.EVENTOS).
@@ -337,6 +338,15 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
       {resultado && (
         <div ref={refResultado}>
           <Resultado prediccion={resultado} modelos={modelos} />
+          {respuesta && (
+            <div className="tarjeta nuevo__planificar">
+              <p className="secundario">
+                La asignación de <strong>{respuesta.asignacion.lider}</strong> quedó cumplida con este análisis. Envíele
+                un informe con los cambios que hizo para que registre su decisión final.
+              </p>
+              <EnviarInforme asignacion={{ id: respuesta.asignacion.id, respuesta_desarrollador: cambios }} />
+            </div>
+          )}
           {alPlanificar && (
             <div className="tarjeta nuevo__planificar">
               <p className="secundario">

@@ -88,6 +88,19 @@ class SolicitudFechaLimiteSerializer(serializers.Serializer):
     fecha_limite = serializers.DateField(validators=[validar_fecha_limite])
 
 
+def informe_de(decision):
+    """Informe de cumplimiento enviado para la asignación, o None."""
+    try:
+        informe = decision.informe
+    except DecisionDespliegue.informe.RelatedObjectDoesNotExist:
+        return None
+    if informe is None or informe.est_registro != "A":
+        return None
+    return {"id": informe.id, "numero": informe.numero,
+            "enviado_en": informe.enviado_en,
+            "decision_final": informe.decision_final_id is not None}
+
+
 def respuesta(decision):
     """Nuevo análisis con el que el desarrollador atendió la decisión."""
     nueva = decision.prediccion_respuesta
@@ -101,16 +114,21 @@ class DecisionSerializer(serializers.ModelSerializer):
     usuario = serializers.CharField(source="usuario.username")
     estado = serializers.SerializerMethodField()
     prediccion_respuesta = serializers.SerializerMethodField()
+    informe = serializers.SerializerMethodField()
 
     class Meta:
         model = DecisionDespliegue
         fields = ["id", "decision", "recomendacion", "acepta_recomendacion",
                   "comentario", "usuario", "creada_en",
                   "fecha_limite", "vista_por_desarrollador_en", "cumplida_en",
-                  "estado", "prediccion_respuesta", "respuesta_desarrollador"]
+                  "estado", "prediccion_respuesta", "respuesta_desarrollador",
+                  "informe"]
 
     def get_estado(self, decision):
         return asignaciones.estado(decision)
+
+    def get_informe(self, decision):
+        return informe_de(decision)
 
     def get_prediccion_respuesta(self, decision):
         return respuesta(decision)
@@ -133,6 +151,7 @@ class AsignacionSerializer(serializers.ModelSerializer):
     dias_restantes = serializers.SerializerMethodField()
     estado = serializers.SerializerMethodField()
     vista = serializers.SerializerMethodField()
+    informe = serializers.SerializerMethodField()
 
     class Meta:
         model = DecisionDespliegue
@@ -141,10 +160,13 @@ class AsignacionSerializer(serializers.ModelSerializer):
                   "fecha_limite", "dias_restantes", "estado", "vista",
                   "vista_por_desarrollador_en", "cumplida_en", "creada_en",
                   "nivel_original", "prediccion_respuesta",
-                  "respuesta_desarrollador"]
+                  "respuesta_desarrollador", "informe"]
 
     def get_prediccion_respuesta(self, decision):
         return respuesta(decision)
+
+    def get_informe(self, decision):
+        return informe_de(decision)
 
     def get_dias_restantes(self, decision):
         return asignaciones.dias_restantes(decision)

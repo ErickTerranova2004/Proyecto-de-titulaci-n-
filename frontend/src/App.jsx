@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { api, CLAVE_SESION, sesion, urlAdmin } from "./api.js";
 import { Campana, useAsignaciones, VentanaAsignaciones } from "./components/Alarma.jsx";
 import AtenderAsignacion from "./components/AtenderAsignacion.jsx";
-import { Alerta, UsuarioContexto } from "./components/comunes.jsx";
+import { AbrirInformeContexto, Alerta, UsuarioContexto } from "./components/comunes.jsx";
 import Historial from "./components/Historial.jsx";
+import InformeDetalle from "./components/InformeDetalle.jsx";
+import InformesRecibidos from "./components/InformesRecibidos.jsx";
 import Integraciones from "./components/Integraciones.jsx";
 import Login from "./components/Login.jsx";
 import Modelos from "./components/Modelos.jsx";
@@ -14,6 +16,7 @@ import Planificador from "./components/Planificador.jsx";
 import Restablecer, { enlaceRestablecer } from "./components/Restablecer.jsx";
 import Usuarios from "./components/Usuarios.jsx";
 import Workflows from "./components/Workflows.jsx";
+import { informeDelEnlace } from "./informes.js";
 import { LimiteErrores } from "./limiteErrores.js";
 import { NOMBRES_ROL, rolPrincipal, seccionesDe } from "./roles.js";
 import { debeReiniciar, escucharSesion } from "./sesion.js";
@@ -42,6 +45,9 @@ function Plataforma() {
   const [respuesta, setRespuesta] = useState(null);
   // Último «Nuevo análisis» terminado: el Planificador lo preselecciona.
   const [ultimoAnalisis, setUltimoAnalisis] = useState(null);
+  // Informe de cumplimiento abierto (también desde el enlace del correo,
+  // ?informe=<id>, que se abre al iniciar sesión).
+  const [informeAbierto, setInformeAbierto] = useState(() => informeDelEnlace(window.location.search));
   const usuarioRef = useRef(null);
   usuarioRef.current = usuario;
 
@@ -110,9 +116,24 @@ function Plataforma() {
     setUsuario(null);
     setModelos([]);
     reiniciarVista();
+    cerrarInforme();
+  }
+
+  function cerrarInforme() {
+    setInformeAbierto(null);
+    // Sin ?informe= en la barra de direcciones (recargar no lo vuelve a abrir).
+    if (informeDelEnlace(window.location.search) !== null) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }
+
+  function abrirInforme(id) {
+    setAtendiendo(null);
+    setInformeAbierto(id);
   }
 
   function irA(id) {
+    cerrarInforme();
     setAtendiendo(null);
     if (id !== "nuevo") setRespuesta(null);
     setVista(id);
@@ -145,6 +166,7 @@ function Plataforma() {
 
   return (
     <UsuarioContexto.Provider value={usuario}>
+    <AbrirInformeContexto.Provider value={abrirInforme}>
     <div className="app">
       <aside className="lateral">
         <header className="lateral__cabecera">
@@ -165,7 +187,7 @@ function Plataforma() {
                 key={id}
                 type="button"
                 className="menu__boton"
-                aria-current={!atendiendo && idActual === id ? "page" : undefined}
+                aria-current={!atendiendo && !informeAbierto && idActual === id ? "page" : undefined}
                 onClick={() => irA(id)}
               >
                 <svg viewBox="0 0 24 24" className="menu__icono" aria-hidden="true"><path d={icono} /></svg>
@@ -185,15 +207,17 @@ function Plataforma() {
       </aside>
 
       <div className="principal">
-        <header className="barra-superior"><div><span className="barra-superior__seccion">{rol ? NOMBRES_ROL[rol] : "Gestión de riesgo"}</span><span className="barra-superior__separador" aria-hidden="true">/</span><strong>{atendiendo ? "Atender asignación" : (actual ? actual.texto : "")}</strong></div><div className="panel__acciones">{rol === "desarrollador" && <Campana pendientes={alarma.pendientes} alAbrir={verAsignaciones} />}<span className="barra-superior__perfil">{usuario.usuario}</span></div></header><main className="contenido">
+        <header className="barra-superior"><div><span className="barra-superior__seccion">{rol ? NOMBRES_ROL[rol] : "Gestión de riesgo"}</span><span className="barra-superior__separador" aria-hidden="true">/</span><strong>{informeAbierto ? "Informe de cumplimiento" : atendiendo ? "Atender asignación" : (actual ? actual.texto : "")}</strong></div><div className="panel__acciones">{rol === "desarrollador" && <Campana pendientes={alarma.pendientes} alAbrir={verAsignaciones} />}<span className="barra-superior__perfil">{usuario.usuario}</span></div></header><main className="contenido">
           {!rol && (
             <Alerta>Su cuenta no tiene un rol asignado. Contacte al administrador.</Alerta>
           )}
           {rol === "desarrollador" && !ventanaCerrada && alarma.pendientes.length > 0 && (
             <VentanaAsignaciones alarma={alarma} alAtender={atender} alCerrar={() => setVentanaCerrada(true)} />
           )}
-          <LimiteErrores claveReinicio={atendiendo ? `atender-${atendiendo.id}` : idActual}>
-          {atendiendo ? (
+          <LimiteErrores claveReinicio={informeAbierto ? `informe-${informeAbierto}` : atendiendo ? `atender-${atendiendo.id}` : idActual}>
+          {informeAbierto ? (
+            <InformeDetalle key={informeAbierto} id={informeAbierto} alVolver={cerrarInforme} />
+          ) : atendiendo ? (
             <AtenderAsignacion
               key={atendiendo.id}
               asignacion={atendiendo}
@@ -240,6 +264,11 @@ function Plataforma() {
                     ? <Historial modelos={modelos} titulo="Historial de análisis" descripcion="Administrador · análisis de todos los repositorios" mostrarSeguimiento conOrigen conNivel />
                     : <Historial modelos={modelos} titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento conNivel />
               )}
+              {idActual === "informes" && (
+                rol === "administrador"
+                  ? <InformesRecibidos titulo="Informes de cumplimiento" descripcion="Administrador · informes de todos los desarrolladores y líderes" mostrarLider />
+                  : <InformesRecibidos titulo="Informes recibidos" descripcion="Líder técnico · informes de cumplimiento de sus indicaciones, del más reciente al más antiguo" />
+              )}
               {idActual === "usuarios" && <Usuarios />}
               {idActual === "workflows" && <Workflows />}
               {idActual === "modelos" && <Modelos modelos={modelos} esAdmin alCambiar={cargarModelos} />}
@@ -251,6 +280,7 @@ function Plataforma() {
 
       </div>
     </div>
+    </AbrirInformeContexto.Provider>
     </UsuarioContexto.Provider>
   );
 }

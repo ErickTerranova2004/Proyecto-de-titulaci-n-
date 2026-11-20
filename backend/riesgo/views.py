@@ -380,7 +380,7 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
     def get_queryset(self):
         consulta = predicciones_visibles(self.request.user).prefetch_related(
-            "ejecuciones_previas", "decisiones__usuario")
+            "ejecuciones_previas", "decisiones__usuario", "decisiones__informe")
         repositorio = self.request.query_params.get("repositorio")
         if repositorio:
             consulta = consulta.filter(
@@ -553,13 +553,8 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         solicitud = SolicitudDecisionSerializer(data=request.data)
         solicitud.is_valid(raise_exception=True)
         datos = solicitud.validated_data
-        recomendada = DecisionDespliegue.SEGUN_RECOMENDACION.get(
-            prediccion.recomendacion)
-        decision = prediccion.decisiones.create(
-            usuario=request.user, recomendacion=prediccion.recomendacion,
-            acepta_recomendacion=(None if recomendada is None
-                                  else datos["decision"] == recomendada),
-            **datos)
+        decision = asignaciones.registrar_decision(prediccion, request.user,
+                                                   **datos)
         logger.info("Decisión %s sobre la predicción %s por %s",
                     decision.decision, prediccion.id, request.user.username)
         if decision.fecha_limite:
@@ -674,7 +669,7 @@ class AsignacionViewSet(mixins.ListModelMixin, GenericViewSet):
                 .filter(asignaciones.ES_ASIGNACION, est_registro="A")
                 .select_related("usuario", "prediccion__usuario",
                                 "prediccion__workflow__repositorio",
-                                "prediccion_respuesta")
+                                "prediccion_respuesta", "informe")
                 .order_by(F("fecha_limite").asc(nulls_last=True), "id"))
 
     def _marcar(self, request, campo):
@@ -692,6 +687,12 @@ class AsignacionViewSet(mixins.ListModelMixin, GenericViewSet):
         if cambios:
             decision.save(update_fields=sorted(cambios))
         return Response(AsignacionSerializer(decision).data)
+
+    @action(detail=True, methods=["post"])
+    def informe(self, request, pk=None):
+        """El desarrollador envía al líder el informe de cumplimiento."""
+        from riesgo.views_informes import enviar_informe
+        return enviar_informe(request, self.get_object())
 
     @action(detail=True, methods=["post"])
     def vista(self, request, pk=None):

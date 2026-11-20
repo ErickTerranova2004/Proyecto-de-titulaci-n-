@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from riesgo import views, views_clave, views_gestion
+from riesgo import views, views_clave, views_gestion, views_informes
 from riesgo.sesion import iniciar_sesion
 
 router = DefaultRouter()
@@ -13,6 +13,7 @@ router.register("repositorios", views.RepositorioViewSet,
                 basename="repositorio")
 router.register("asignaciones", views.AsignacionViewSet,
                 basename="asignacion")
+router.register("informes", views_informes.InformeViewSet, basename="informe")
 
 urlpatterns = [
     path("admin/", admin.site.urls),

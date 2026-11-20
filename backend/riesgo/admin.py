@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.utils import timezone
 
 from riesgo.models import (AccesoRepositorio, Commit, DecisionDespliegue,
-                           EjecucionWorkflow, Prediccion, Repositorio,
+                           DescargaInforme, EjecucionWorkflow,
+                           InformeCumplimiento, Prediccion, Repositorio,
                            RestablecimientoClave, VersionModelo, Workflow)
 
 # Textos del admin de Django con la marca de la aplicación. "Ver el sitio"
@@ -122,3 +123,30 @@ class RestablecimientoClaveAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+class SoloLectura(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(InformeCumplimiento)
+class InformeCumplimientoAdmin(SoloLectura):
+    """Informes de cumplimiento (solo lectura)."""
+
+    list_display = ["numero", "desarrollador", "lider", "enviado_en",
+                    "correo_enviado", "leido_en", "decision_final"]
+    list_filter = ["correo_enviado"]
+
+
+@admin.register(DescargaInforme)
+class DescargaInformeAdmin(SoloLectura):
+    """Auditoría de las descargas del PDF de los informes (solo lectura)."""
+
+    list_display = ["informe", "nombre_usuario", "formato", "descargado_en"]

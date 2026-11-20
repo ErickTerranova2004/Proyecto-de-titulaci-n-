@@ -5,6 +5,9 @@ import { createContext, useContext } from "react";
 // Usuario autenticado (respuesta de /api/yo/) disponible para todas las vistas.
 export const UsuarioContexto = createContext(null);
 
+// Abre un informe de cumplimiento por su id (lo da App). Null fuera de App.
+export const AbrirInformeContexto = createContext(null);
+
 export function useRoles() {
   const roles = useContext(UsuarioContexto)?.roles ?? [];
   return {

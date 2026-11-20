@@ -48,6 +48,28 @@ async function solicitar(ruta, opciones = {}) {
     return datos;
 }
 
+// Descarga binaria con el token (p. ej. el PDF de un informe). Devuelve
+// { blob, nombre } con el nombre de Content-Disposition.
+async function descargar(ruta) {
+    const cabeceras = {};
+    const token = sesion.token();
+    if (token) cabeceras.Authorization = `Token ${token}`;
+    let respuesta;
+    try {
+        respuesta = await fetch(`${BASE_API}${ruta}`, { headers: cabeceras });
+    } catch {
+        throw errorApi("El servidor no responde.", 0);
+    }
+    if (respuesta.status === 401) sesion.cerrar();
+    if (!respuesta.ok) {
+        const datos = await respuesta.json().catch(() => ({}));
+        throw errorApi(datos.detail || `Error ${respuesta.status}`, respuesta.status, datos);
+    }
+    const disposicion = respuesta.headers.get("Content-Disposition") || "";
+    const nombre = /filename="?([^";]+)"?/.exec(disposicion)?.[1] || "descarga";
+    return { blob: await respuesta.blob(), nombre };
+}
+
 export const api = {
     login: (username, password) =>
         solicitar("/auth/token/", { method: "POST", body: JSON.stringify({ username, password }) }),
@@ -87,6 +109,16 @@ export const api = {
     marcarVista: (id) => solicitar(`/asignaciones/${id}/vista/`, { method: "POST" }),
     marcarCumplida: (id) => solicitar(`/asignaciones/${id}/cumplida/`, { method: "POST" }),
     marcarEntendida: (id) => solicitar(`/asignaciones/${id}/entendida/`, { method: "POST" }),
+    // Informes de cumplimiento (desarrollador → líder técnico).
+    enviarInforme: (asignacionId, comentario) =>
+        solicitar(`/asignaciones/${asignacionId}/informe/`, { method: "POST", body: JSON.stringify({ comentario }) }),
+    // consulta: "?desde=…&hasta=…&orden=antiguo" (src/informes.js).
+    informes: (consulta = "") => solicitar(`/informes/${consulta}`),
+    informe: (id) => solicitar(`/informes/${id}/`),
+    decidirInforme: (id, datos) =>
+        solicitar(`/informes/${id}/decision/`, { method: "POST", body: JSON.stringify(datos) }),
+    // El backend registra quién lo descargó.
+    pdfInforme: (id) => descargar(`/informes/${id}/pdf/`),
     resumenAdmin: () => solicitar("/resumen-admin/"),
     integraciones: () => solicitar("/integraciones/"),
     sincronizar: (id) => solicitar(`/repositorios/${id}/sincronizar/`, { method: "POST" }),

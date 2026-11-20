@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import {
-  Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador, textoPlazo,
+  AbrirInformeContexto, Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador, textoPlazo,
 } from "./comunes.jsx";
 import FiltrosHistorial from "./FiltrosHistorial.jsx";
 import Resultado from "./Resultado.jsx";
@@ -15,6 +15,7 @@ const ORDENES_PENDIENTES = ORDENES.filter(([id]) => id !== "decision");
 // Nivel, fechas y orden los aplica el backend (sin_decision=1); por defecto,
 // todos los niveles, del más reciente al más antiguo.
 export default function Pendientes({ modelos }) {
+  const abrirInforme = useContext(AbrirInformeContexto);
   const [sinDecision, setSinDecision] = useState(null);
   const [asignaciones, setAsignaciones] = useState(null);
   const [error, setError] = useState("");
@@ -194,6 +195,11 @@ export default function Pendientes({ modelos }) {
                           {a.prediccion_respuesta
                             ? <RespuestaDesarrollador nivelOriginal={a.nivel_original} respuesta={a.prediccion_respuesta} comentario={a.respuesta_desarrollador} />
                             : <span className="secundario">{a.cumplida_en ? "Marcada sin nuevo análisis" : "—"}</span>}
+                          {a.informe && abrirInforme && (
+                            <button className="boton boton--pequeno informe-enlace" type="button" onClick={() => abrirInforme(a.informe.id)}>
+                              Informe {a.informe.numero}{!a.informe.decision_final && " · decidir"}
+                            </button>
+                          )}
                         </td>
                         <td>
                           <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => abrir(a.prediccion)} disabled={abriendo}>

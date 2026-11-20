@@ -24,7 +24,8 @@ from rest_framework.response import Response
 
 from riesgo.models import (PATRON_DESPLIEGUE, ROLES, AccesoRepositorio,
                            DecisionDespliegue, Prediccion, Repositorio,
-                           RestablecimientoClave, Workflow)
+                           InformeCumplimiento, RestablecimientoClave,
+                           Workflow)
 from riesgo.permissions import EsAdministrador, rol_principal
 from riesgo.services import github, restablecimiento
 from riesgo.views import _error, _error_github
@@ -207,6 +208,10 @@ def traspasar_historial(usuario, destino):
             validado_por=usuario).update(validado_por=destino),
         "accesos_asignados": AccesoRepositorio.objects.filter(
             asignado_por=usuario).update(asignado_por=destino),
+        # Informes de cumplimiento enviados y recibidos (PROTECT).
+        "informes": InformeCumplimiento.objects.filter(
+            desarrollador=usuario).update(desarrollador=destino)
+        + InformeCumplimiento.objects.filter(lider=usuario).update(lider=destino),
         "repositorios": 0,
     }
     # El administrador ve todos los repositorios: no necesita accesos.
