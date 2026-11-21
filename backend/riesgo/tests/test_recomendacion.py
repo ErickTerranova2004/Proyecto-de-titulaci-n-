@@ -111,7 +111,7 @@ class EstadoRepositorioTest(TestCase):
     cliente = test_api.ApiTest.cliente
     predecir = test_api.ApiTest.predecir
 
-    def test_inactivo_conserva_historial_pero_no_admite_analisis(self):
+    def test_inactivo_conserva_sus_datos_pero_no_admite_analisis(self):
         anterior = self.predecir(self.dev).json()
         Repositorio.objects.filter(id=self.repo.id).update(est_registro="I")
         r = self.predecir(self.dev)
@@ -122,9 +122,11 @@ class EstadoRepositorioTest(TestCase):
             nombres = [x["nombre_completo"] for x in
                        self.cliente(self.dev).get(url).json()]
             self.assertNotIn("acme/tienda", nombres)
-        # Su historial sigue visible.
+        # Sus análisis se conservan, pero ya no salen en los historiales
+        # (limpieza de repositorios inactivos, docs/estado_proyecto.md).
+        self.assertTrue(Prediccion.objects.filter(id=anterior["id"]).exists())
         historial = self.cliente(self.dev).get("/api/predicciones/").json()
-        self.assertEqual([p["id"] for p in historial], [anterior["id"]])
+        self.assertEqual(historial, [])
 
     def test_prueba_fuera_de_metricas_y_dashboards(self):
         analisis = self.predecir(self.dev).json()

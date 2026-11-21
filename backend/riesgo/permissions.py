@@ -50,11 +50,14 @@ def repositorios_visibles(usuario):
 
 def predicciones_visibles(usuario):
     """Análisis que ve el usuario. Los desactivados (est_registro='I', p. ej.
-    los de los casos de prueba) no salen en historiales, paneles, pendientes,
-    asignaciones ni en el Planificador; se conservan para la auditoría."""
+    los de los casos de prueba) y todos los de repositorios inactivos
+    (también los del lote, que solo cuentan para la historia del modelo v1)
+    no salen en historiales, paneles, pendientes, asignaciones ni en el
+    Planificador; se conservan para la auditoría y la supervisión."""
     consulta = Prediccion.objects.select_related(
         "usuario", "version_modelo", "workflow__repositorio", "commit",
-        "ejecucion_real").filter(est_registro="A")
+        "ejecucion_real").filter(est_registro="A",
+                                 workflow__repositorio__est_registro="A")
     if es_admin(usuario):
         return consulta
     # El líder técnico y el desarrollador solo ven los análisis hechos en la

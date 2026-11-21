@@ -163,6 +163,46 @@ cd frontend; npx vite --port 5174
 - `riesgo_despliegue_20261112_033644_antes_quitar_prueba.dump`
 - `riesgo_despliegue_20261117_103250_antes_sombra.dump`
 - `riesgo_despliegue_20261117_105450_antes_ocultar_v1_1.dump`
+- `riesgo_despliegue_20261120_165221_antes_desactivar_prueba.dump`
+- `riesgo_despliegue_20261120_174326_antes_informe_cumplimiento.dump`
+- `riesgo_despliegue_20261120_195916_antes_limpiar_repos_inactivos.dump`
+
+### Limpieza de repositorios inactivos (20-nov-2026)
+
+**Por qué estaban ahí.** Al cargar el dataset GHALogs v1.1 (20-oct-2026) sus
+workflows se dieron por validados automáticamente («Validado automáticamente a
+partir del dataset final de la tesis…»). La regla de entonces comprobaba que
+el workflow ejecutara pasos reales de despliegue, pero **no el entorno**: no
+distinguía producción de staging, dev, QA, previews o demos, y se le escapó
+algún GitHub Pages. Al activar v2 esos 436 repositorios pasaron a
+`est_registro='I'`, pero sus workflows siguieron activos y validados, y los
+171 análisis interactivos hechos sobre ellos (cuenta admin, 20 a 30-oct)
+seguían saliendo en el historial del administrador (p. ej. `deploy-staging.yml`
+de avrae/avrae, `deploy-pages.yml` de bdunderscore/modular-avatar y
+`dev-deploy-inbound-mail.yml` de novuhq/novu).
+
+**Corrección** (`manage.py limpiar_repos_inactivos`, sin borrar nada; sin
+`--aplicar` solo informa y es idempotente):
+1. `est_registro='I'` en lo que cuelga de los repositorios inactivos: 641
+   workflows, 171 análisis interactivos, 3 decisiones/asignaciones, 499 enlaces
+   análisis–ejecución y 3 accesos. No había informes de cumplimiento ni
+   análisis en lote o en sombra en esos repositorios (el lote solo analiza los
+   repositorios activos del dataset v2).
+2. Ningún análisis de un repositorio inactivo sale en los historiales,
+   paneles, pendientes, asignaciones ni en el Planificador
+   (`permissions.predicciones_visibles` filtra el repositorio activo). Los
+   análisis en lote y en sombra se conservarían igualmente para la historia
+   del modelo (supervisión y comparación en sombra no usan ese filtro).
+3. `despliegue_validado=False` en los 107 workflows que por el nombre no son de
+   producción (staging, stage, stg, pages, dev, develop, preview, qa, uat,
+   sandbox, demo, o solo pruebas sin palabra de despliegue), salvo si el
+   nombre también dice prod/production/live. Excepciones comprobadas como
+   producción: el repositorio de demostración, `mozilla/probe-scraper`
+   (`build-test-deploy.yml`), `dailybruin/flamingo` (`test_and_deploy.yml`) y
+   `Explorer-Consulting/SchoolFeedBackWebAPI` (`gimi_develop_feedback-api.yml`:
+   se dispara con `develop` pero despliega al slot `Production`). Los 107 eran
+   de repositorios inactivos.
+4. Respaldo previo: `riesgo_despliegue_20261120_195916_antes_limpiar_repos_inactivos.dump`.
 
 ## 3. Decisiones tomadas
 
@@ -180,6 +220,7 @@ cd frontend; npx vite --port 5174
 | Las predicciones en sombra se excluyen en el gestor por defecto | Ninguna consulta existente puede contarlas como análisis de usuarios por descuido |
 | Ocultar v1.1 en lugar de borrarla | Hay predicciones que la referencian (PROTECT) y la comparación en sombra queda documentada en el informe |
 | Sin botón «Verificar resultado real» | La verificación ya es automática (página y lote); el botón confundía |
+| Los análisis de repositorios inactivos no salen en las vistas de los roles | Eran del dataset v1.1 validado sin regla de entorno; se conservan (est_registro='I') para la auditoría y la historia del modelo |
 
 ## 4. Pendientes (por prioridad)
 
