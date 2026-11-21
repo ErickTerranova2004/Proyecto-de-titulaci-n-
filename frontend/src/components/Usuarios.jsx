@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api.js";
+import { COLUMNAS_USUARIOS } from "../columnasTablas.js";
+import { consultaPaginada, PAGINACION_INICIAL } from "../paginacion.js";
 import { textoEnvio } from "../restablecer.js";
 import { NOMBRES_ROL } from "../roles.js";
 import { candidatosTraspaso, motivoNoEliminar, tieneHistorial } from "../traspaso.js";
 import { Alerta, Fecha } from "./comunes.jsx";
 import { Aviso, Dialogo, Filtros, Indicador } from "./gestion.jsx";
+import { TablaPaginada } from "./TablaDesplazable.jsx";
 
 // Gestión de cuentas: rol, estado, correo y repositorios asignados. El
 // administrador no escribe contraseñas: envía al usuario un enlace por correo
@@ -40,38 +43,110 @@ function textoRepositorios(u) {
   return `${n} ${n === 1 ? "repositorio" : "repositorios"}`;
 }
 
+// Celdas de la tabla de cuentas (orden en src/columnasTablas.js).
+function celdasUsuario(gestionar) {
+  return {
+    usuario: (u) => (
+      <div className="gestion-persona">
+        <span className="gestion-avatar" aria-hidden="true">{u.usuario.slice(0, 2).toUpperCase()}</span>
+        <div>
+          <strong>
+            {u.usuario}
+            {u.es_actual && <span className="gestion-insignia">Usted</span>}
+          </strong>
+          <span className="secundario">
+            {u.correo || <span className="gestion-estado gestion-estado--pendiente">Sin correo</span>}
+          </span>
+        </div>
+      </div>
+    ),
+    rol: (u) => (
+      <span className={`gestion-insignia gestion-insignia--${u.rol || "sin-rol"}`}>
+        {u.rol ? NOMBRES_ROL[u.rol] : "Sin rol"}
+      </span>
+    ),
+    estado: (u) => (
+      <>
+        <span className={`gestion-estado gestion-estado--${u.activo ? "ok" : "apagado"}`}>
+          {u.activo ? "Activo" : "Inactivo"}
+        </span>
+        {u.rol && !u.clave_definida && (
+          <span className="gestion-estado gestion-estado--pendiente" title="Aún no eligió su contraseña con el enlace del correo">
+            Contraseña pendiente
+          </span>
+        )}
+      </>
+    ),
+    repositorios: (u) => textoRepositorios(u),
+    acceso: (u) => (u.ultimo_acceso ? <Fecha valor={u.ultimo_acceso} /> : <span className="secundario">Nunca</span>),
+    acciones: (u) => (
+      <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => gestionar(u)}>
+        Gestionar<span className="solo-lector"> la cuenta de {u.usuario}</span>
+      </button>
+    ),
+  };
+}
+
 export default function Usuarios() {
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [filtro, setFiltro] = useState("todos");
+  const [filtro, setFiltroBase] = useState("todos");
   const [busqueda, setBusqueda] = useState("");
+  // La búsqueda se envía al backend 300 ms después de dejar de escribir.
+  const [busquedaEnviada, setBusquedaEnviada] = useState("");
+  const [paginacion, setPaginacion] = useState(PAGINACION_INICIAL);
   const [editando, setEditando] = useState(null);
   const [creando, setCreando] = useState(false);
+  const peticion = useRef(0);
 
+  function setFiltro(valor) {
+    setFiltroBase(valor);
+    setPaginacion((p) => ({ ...p, pagina: 1 }));
+  }
+
+  useEffect(() => {
+    const espera = setTimeout(() => {
+      setBusquedaEnviada(busqueda.trim());
+      setPaginacion((p) => ({ ...p, pagina: 1 }));
+    }, 300);
+    return () => clearTimeout(espera);
+  }, [busqueda]);
+
+  // Todas las cuentas (indicadores, avisos y diálogos) y la página de la
+  // tabla, filtrada y paginada en el backend.
   function cargar() {
+    const id = ++peticion.current;
     setCargando(true);
     setError("");
+    const consulta = new URLSearchParams({ filtro });
+    if (busquedaEnviada) consulta.set("q", busquedaEnviada);
     api
-      .gestionUsuarios()
-      .then(setDatos)
-      .catch((e) => setError(e.message))
-      .finally(() => setCargando(false));
+      .gestionUsuarios(consultaPaginada(`?${consulta}`, paginacion))
+      .then((d) => id === peticion.current && setDatos(d))
+      .catch((e) => id === peticion.current && setError(e.message))
+      .finally(() => id === peticion.current && setCargando(false));
   }
-  useEffect(cargar, []);
+  useEffect(cargar, [filtro, busquedaEnviada, paginacion.pagina, paginacion.porPagina]);
 
   function avisar(texto) {
     setAviso(texto);
     setTimeout(() => setAviso(""), 3500);
   }
 
+  // Una cuenta editada se actualiza en las dos listas; una nueva recarga la
+  // página (puede caer en otra página o no cumplir el filtro).
   function reemplazar(u) {
+    if (!datos?.usuarios.some((x) => x.id === u.id)) {
+      cargar();
+      return;
+    }
+    const cambiar = (lista) => lista.map((x) => (x.id === u.id ? u : x));
     setDatos((d) => ({
       ...d,
-      usuarios: d.usuarios.some((x) => x.id === u.id)
-        ? d.usuarios.map((x) => (x.id === u.id ? u : x))
-        : [...d.usuarios, u].sort((a, b) => a.usuario.localeCompare(b.usuario)),
+      usuarios: cambiar(d.usuarios),
+      tabla: d.tabla && { ...d.tabla, resultados: cambiar(d.tabla.resultados) },
     }));
   }
 
@@ -80,15 +155,7 @@ export default function Usuarios() {
     () => Object.fromEntries(FILTROS.map(([id]) => [id, usuarios.filter((u) => cumple(u, id)).length])),
     [usuarios],
   );
-  const texto = busqueda.trim().toLowerCase();
-  const visibles = usuarios.filter(
-    (u) =>
-      cumple(u, filtro) &&
-      (!texto ||
-        u.usuario.toLowerCase().includes(texto) ||
-        u.correo.toLowerCase().includes(texto) ||
-        u.nombre.toLowerCase().includes(texto)),
-  );
+  const tabla = datos?.tabla;
   const sinRepos = usuarios.filter((u) => CON_ACCESOS.includes(u.rol) && !u.repositorios.length).length;
   // Sin correo no se les puede enviar el enlace para restablecer la contraseña.
   const sinCorreo = usuarios.filter((u) => !u.correo && u.activo);
@@ -162,66 +229,20 @@ export default function Usuarios() {
               </label>
             </div>
 
-            {!visibles.length ? (
-              <p className="secundario">No hay usuarios que coincidan con el filtro.</p>
+            {!tabla || !tabla.total ? (
+              <p className="secundario">{tabla ? "No hay usuarios que coincidan con el filtro." : "Cargando usuarios…"}</p>
             ) : (
-              <div className="tabla-contenedor">
-                <table>
-                  <caption className="solo-lector">Usuarios de la plataforma</caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Usuario</th>
-                      <th scope="col">Rol</th>
-                      <th scope="col">Repositorios</th>
-                      <th scope="col">Estado</th>
-                      <th scope="col">Último acceso</th>
-                      <th scope="col"><span className="solo-lector">Acciones</span></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visibles.map((u) => (
-                      <tr key={u.id}>
-                        <td>
-                          <div className="gestion-persona">
-                            <span className="gestion-avatar" aria-hidden="true">{u.usuario.slice(0, 2).toUpperCase()}</span>
-                            <div>
-                              <strong>
-                                {u.usuario}
-                                {u.es_actual && <span className="gestion-insignia">Usted</span>}
-                              </strong>
-                              <span className="secundario">
-                                {u.correo || <span className="gestion-estado gestion-estado--pendiente">Sin correo</span>}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={`gestion-insignia gestion-insignia--${u.rol || "sin-rol"}`}>
-                            {u.rol ? NOMBRES_ROL[u.rol] : "Sin rol"}
-                          </span>
-                        </td>
-                        <td>{textoRepositorios(u)}</td>
-                        <td>
-                          <span className={`gestion-estado gestion-estado--${u.activo ? "ok" : "apagado"}`}>
-                            {u.activo ? "Activo" : "Inactivo"}
-                          </span>
-                          {u.rol && !u.clave_definida && (
-                            <span className="gestion-estado gestion-estado--pendiente" title="Aún no eligió su contraseña con el enlace del correo">
-                              Contraseña pendiente
-                            </span>
-                          )}
-                        </td>
-                        <td>{u.ultimo_acceso ? <Fecha valor={u.ultimo_acceso} /> : <span className="secundario">Nunca</span>}</td>
-                        <td>
-                          <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => setEditando(u)}>
-                            Gestionar<span className="solo-lector"> la cuenta de {u.usuario}</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <TablaPaginada
+                id="usuarios"
+                titulo="Usuarios de la plataforma"
+                columnas={COLUMNAS_USUARIOS}
+                celdas={celdasUsuario(setEditando)}
+                datos={tabla}
+                sustantivo="cuentas"
+                cargando={cargando}
+                alCambiarPagina={setPaginacion}
+                tarjeta={false}
+              />
             )}
           </section>
         </>
@@ -263,7 +284,7 @@ export default function Usuarios() {
               );
               cargar(); // la cuenta que recibe el historial también cambia
             } else {
-              setDatos((d) => ({ ...d, usuarios: d.usuarios.filter((x) => x.id !== u.id) }));
+              cargar();
               avisar(`Usuario ${u.usuario} eliminado.`);
             }
           }}

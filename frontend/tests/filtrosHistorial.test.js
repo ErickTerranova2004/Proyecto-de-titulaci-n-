@@ -8,7 +8,10 @@ import {
 test("sin filtros no se envían parámetros (el backend ordena del más reciente al más antiguo)", () => {
   assert.equal(consultaHistorial(FILTROS_INICIALES), "");
   assert.equal(consultaHistorial(), "");
-  assert.equal(consultaHistorial({ ...FILTROS_INICIALES, orden: "decision" }), "");
+});
+
+test("el orden «con decisión primero» lo aplica el backend", () => {
+  assert.equal(consultaHistorial({ ...FILTROS_INICIALES, orden: "decision" }), "?orden=decision");
 });
 
 test("rango de fechas, nivel, origen y orden", () => {

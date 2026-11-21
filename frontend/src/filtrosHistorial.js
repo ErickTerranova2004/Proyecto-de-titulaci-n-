@@ -8,8 +8,8 @@ export const NIVELES_FILTRO = [
   ["alto", "Alto"],
 ];
 
-// «decision» no la ordena el backend: reordena en pantalla lo recibido
-// (src/ordenHistorial.js), primero los análisis con la decisión más reciente.
+// «decision»: primero los análisis con la decisión más reciente. Lo ordena el
+// backend (para que la paginación lo respete).
 export const ORDENES = [
   ["reciente", "Más recientes primero"],
   ["antiguo", "Más antiguos primero"],
@@ -64,7 +64,7 @@ export function consultaHistorial({ desde, hasta, nivel, orden, origen, sinDecis
   if (sinDecision) p.set("sin_decision", "1");
   if (origen && origen !== "todos") p.set("origen", origen);
   // El backend ya devuelve «reciente» por defecto.
-  if (orden === "antiguo") p.set("orden", "antiguo");
+  if (orden === "antiguo" || orden === "decision") p.set("orden", orden);
   const texto = p.toString();
   return texto ? `?${texto}` : "";
 }

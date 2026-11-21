@@ -105,7 +105,8 @@ export const api = {
         solicitar(`/predicciones/${id}/decision/`, { method: "POST", body: JSON.stringify(datos) }),
     fijarFechaLimite: (id, fecha_limite) =>
         solicitar(`/predicciones/${id}/fecha-limite/`, { method: "POST", body: JSON.stringify({ fecha_limite }) }),
-    asignaciones: () => solicitar("/asignaciones/"),
+    // Sin consulta, la lista completa (alarma); con "?pagina=…", una página.
+    asignaciones: (consulta = "") => solicitar(`/asignaciones/${consulta}`),
     marcarVista: (id) => solicitar(`/asignaciones/${id}/vista/`, { method: "POST" }),
     marcarCumplida: (id) => solicitar(`/asignaciones/${id}/cumplida/`, { method: "POST" }),
     marcarEntendida: (id) => solicitar(`/asignaciones/${id}/entendida/`, { method: "POST" }),
@@ -126,7 +127,8 @@ export const api = {
         solicitar("/repositorios/registrar/", { method: "POST", body: JSON.stringify(datos) }),
 
     // Gestión de usuarios, accesos y workflows (solo administrador).
-    gestionUsuarios: () => solicitar("/gestion/usuarios/"),
+    // consulta "?pagina=…&filtro=…&q=…": añade `tabla`, la página filtrada.
+    gestionUsuarios: (consulta = "") => solicitar(`/gestion/usuarios/${consulta}`),
     crearUsuario: (datos) =>
         solicitar("/gestion/usuarios/", { method: "POST", body: JSON.stringify(datos) }),
     editarUsuario: (id, datos) =>

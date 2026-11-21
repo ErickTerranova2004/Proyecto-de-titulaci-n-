@@ -20,7 +20,10 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import ValidationError as ErrorValidacion
 from rest_framework.response import Response
+
+from riesgo import paginacion
 
 from riesgo.models import (PATRON_DESPLIEGUE, ROLES, AccesoRepositorio,
                            DecisionDespliegue, Prediccion, Repositorio,
@@ -126,19 +129,54 @@ def _asignar_rol(usuario, rol):
     usuario.save(update_fields=["is_staff"])
 
 
+FILTROS_USUARIOS = ("todos", "administrador", "lider_tecnico", "desarrollador",
+                    "sin_rol", "sin_correo", "inactivos")
+
+
+def filtrar_usuarios(usuarios, filtro="todos", texto=""):
+    """Filtro por rol o estado y búsqueda por usuario, nombre o correo, sobre
+    los usuarios ya serializados (mismas reglas que la interfaz)."""
+    if filtro not in FILTROS_USUARIOS:
+        raise ErrorValidacion({"filtro": "Filtro no válido."})
+    texto = (texto or "").strip().lower()
+
+    def cumple(u):
+        if filtro == "sin_rol" and u["rol"]:
+            return False
+        if filtro == "sin_correo" and u["correo"]:
+            return False
+        if filtro == "inactivos" and u["activo"]:
+            return False
+        if filtro in ROLES and u["rol"] != filtro:
+            return False
+        return not texto or any(texto in (u[c] or "").lower()
+                                for c in ("usuario", "nombre", "correo"))
+    return [u for u in usuarios if cumple(u)]
+
+
 @api_view(["GET", "POST"])
 @permission_classes([EsAdministrador])
 def usuarios(request):
     if request.method == "GET":
         ultimos = _ultimos_restablecimientos()
-        return Response({
-            "usuarios": [_serializar_usuario(u, request.user, ultimos)
-                         for u in _consulta_usuarios()],
+        todos = [_serializar_usuario(u, request.user, ultimos)
+                 for u in _consulta_usuarios()]
+        respuesta = {
+            # Todas las cuentas: indicadores, avisos y diálogos.
+            "usuarios": todos,
             "correo": _estado_correo(),
             "repositorios": list(Repositorio.objects.values(
                 "id", "nombre_completo", "es_demostracion", "es_prueba",
                 "est_registro")),
-        })
+        }
+        parametros = request.query_params
+        if paginacion.pedida(parametros):
+            # Tabla: filtrada, ordenada por usuario y paginada.
+            respuesta["tabla"] = paginacion.paginar(
+                filtrar_usuarios(todos, parametros.get("filtro") or "todos",
+                                 parametros.get("q")),
+                parametros, lambda filas: filas)
+        return Response(respuesta)
 
     datos = request.data
     nombre = str(datos.get("usuario", "")).strip()

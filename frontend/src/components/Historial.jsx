@@ -5,8 +5,10 @@ import {
 } from "./comunes.jsx";
 import FiltrosHistorial from "./FiltrosHistorial.jsx";
 import Resultado from "./Resultado.jsx";
+import { TablaPaginada } from "./TablaDesplazable.jsx";
+import { columnasHistorial } from "../columnasTablas.js";
 import { consultaHistorial, errorRango, FILTROS_INICIALES, hayFiltros } from "../filtrosHistorial.js";
-import { ordenarPorActividad } from "../ordenHistorial.js";
+import { consultaPaginada, PAGINACION_INICIAL } from "../paginacion.js";
 
 // Seguimiento de la fecha límite de la última decisión (vista / cumplida).
 export function SeguimientoAsignacion({ decision, nivelOriginal }) {
@@ -35,8 +37,8 @@ const ORIGENES = [
 
 // El backend ya filtra por rol: el desarrollador recibe sus análisis y el
 // líder los de todos los desarrolladores de sus repositorios asignados.
-// Fechas, origen y orden también se aplican en el backend; por defecto, del
-// más reciente al más antiguo.
+// Fechas, origen, orden y paginación también se aplican en el backend; por
+// defecto, del más reciente al más antiguo y 25 por página.
 export default function Historial({
   modelos, titulo = "Historial de análisis", descripcion, mostrarDesarrollador = true, mostrarSeguimiento = false,
   conOrigen = false,
@@ -44,12 +46,20 @@ export default function Historial({
   conNivel = false,
 }) {
   const inicial = conOrigen ? { ...FILTROS_INICIALES, origen: "interactivo" } : FILTROS_INICIALES;
-  const [filtros, setFiltros] = useState(inicial);
-  const [filas, setFilas] = useState(null);
+  const [filtros, setFiltrosBase] = useState(inicial);
+  const [paginacion, setPaginacion] = useState(PAGINACION_INICIAL);
+  const [datos, setDatos] = useState(null);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const [seleccion, setSeleccion] = useState(null);
   const peticion = useRef(0);
+  const columnas = columnasHistorial({ mostrarSeguimiento, mostrarDesarrollador });
+
+  // Cambiar un filtro vuelve a la primera página.
+  function setFiltros(nuevos) {
+    setFiltrosBase(nuevos);
+    setPaginacion((p) => ({ ...p, pagina: 1 }));
+  }
 
   function cargar() {
     if (errorRango(filtros.desde, filtros.hasta)) return;
@@ -58,16 +68,36 @@ export default function Historial({
     setCargando(true);
     setError("");
     api
-      .historial(consultaHistorial(filtros))
-      .then((h) => {
-        if (id !== peticion.current) return;
-        setFilas(filtros.orden === "decision" ? ordenarPorActividad(h) : h);
-      })
+      .historial(consultaPaginada(consultaHistorial(filtros), paginacion))
+      .then((d) => id === peticion.current && setDatos(d))
       .catch((e) => id === peticion.current && setError(e.message))
       .finally(() => id === peticion.current && setCargando(false));
   }
-  useEffect(cargar, [filtros.desde, filtros.hasta, filtros.orden, filtros.origen, filtros.nivel]);
+  useEffect(cargar, [filtros.desde, filtros.hasta, filtros.orden, filtros.origen, filtros.nivel,
+    paginacion.pagina, paginacion.porPagina]);
   const filtrado = hayFiltros(filtros, inicial.origen);
+  const filas = datos ? datos.resultados : null;
+
+  const celdas = {
+    fecha: (p) => <Fecha valor={p.creada_en} />,
+    repositorio: (p) => <strong className="celda-recortada" title={p.repositorio}>{p.repositorio}</strong>,
+    riesgo: (p) => <NivelRiesgo nivel={p.nivel} />,
+    probabilidad: (p) => <span className="destacado">{porcentaje(p.probabilidad)}</span>,
+    decision: (p) => {
+      const texto = p.decisiones?.length ? DECISIONES[p.decisiones[0].decision] : "Sin decisión";
+      return <span className="celda-recortada celda-recortada--decision" title={texto}>{texto}</span>;
+    },
+    limite: (p) => <FechaDia valor={p.decisiones?.[0]?.fecha_limite} />,
+    seguimiento: (p) => <SeguimientoAsignacion decision={p.decisiones?.[0]} nivelOriginal={p.nivel} />,
+    desarrollador: (p) => <span className="secundario">{p.usuario}</span>,
+    workflow: (p) => <span className="secundario" title={p.workflow_path}>{p.workflow_path.replace(".github/workflows/", "")}</span>,
+    commit: (p) => <code>{p.head_sha.slice(0, 7)}</code>,
+    acciones: (p) => (
+      <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => setSeleccion(p)}>
+        Ver detalle<span className="solo-lector"> del análisis {p.id}</span>
+      </button>
+    ),
+  };
 
   if (seleccion) {
     return (
@@ -111,13 +141,7 @@ export default function Historial({
         </div>
       </div>
       <Alerta>{error}</Alerta>
-      {!filas && !error && <p role="status" className="secundario">Cargando historial…</p>}
-      {filas && (
-        <p className="secundario" role="status">
-          {filas.length === 1 ? "1 análisis" : `${filas.length} análisis`}
-          {filtrado ? " con los filtros elegidos" : ""}.
-        </p>
-      )}
+      {!datos && !error && <p role="status" className="secundario">Cargando historial…</p>}
       {filas && !filas.length && (
         <div className="tarjeta vacio">
           <p className="secundario">
@@ -126,51 +150,16 @@ export default function Historial({
         </div>
       )}
       {filas && filas.length > 0 && (
-        <div className="tarjeta tarjeta--tabla">
-          <div className="tabla-contenedor">
-            <table>
-              <caption className="solo-lector">{titulo}</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Fecha</th>
-                  <th scope="col">Repositorio</th>
-                  <th scope="col">Workflow</th>
-                  <th scope="col">Commit</th>
-                  <th scope="col">Riesgo</th>
-                  <th scope="col" className="numero">Probabilidad</th>
-                  <th scope="col">Decisión</th>
-                  {mostrarSeguimiento && <th scope="col">Fecha límite</th>}
-                  {mostrarSeguimiento && <th scope="col">Seguimiento</th>}
-                  {mostrarDesarrollador && <th scope="col">Desarrollador</th>}
-                  <th scope="col"><span className="solo-lector">Acciones</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filas.map((p) => (
-                  <tr key={p.id}>
-                    <td><Fecha valor={p.creada_en} /></td>
-                    <td><strong>{p.repositorio}</strong></td>
-                    <td className="secundario" title={p.workflow_path}>
-                      {p.workflow_path.replace(".github/workflows/", "")}
-                    </td>
-                    <td><code>{p.head_sha.slice(0, 7)}</code></td>
-                    <td><NivelRiesgo nivel={p.nivel} /></td>
-                    <td className="numero destacado">{porcentaje(p.probabilidad)}</td>
-                    <td>{p.decisiones?.length ? DECISIONES[p.decisiones[0].decision] : "Sin decisión"}</td>
-                    {mostrarSeguimiento && <td><FechaDia valor={p.decisiones?.[0]?.fecha_limite} /></td>}
-                    {mostrarSeguimiento && <td><SeguimientoAsignacion decision={p.decisiones?.[0]} nivelOriginal={p.nivel} /></td>}
-                    {mostrarDesarrollador && <td className="secundario">{p.usuario}</td>}
-                    <td>
-                      <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => setSeleccion(p)}>
-                        Ver detalle<span className="solo-lector"> del análisis {p.id}</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <TablaPaginada
+          id="historial"
+          titulo={titulo}
+          columnas={columnas}
+          celdas={celdas}
+          datos={datos}
+          sustantivo={filtrado ? "análisis con los filtros elegidos" : "análisis"}
+          cargando={cargando}
+          alCambiarPagina={setPaginacion}
+        />
       )}
     </section>
   );

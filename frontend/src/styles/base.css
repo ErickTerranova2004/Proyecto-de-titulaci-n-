@@ -3775,6 +3775,171 @@ td>.gestion-insignia:first-child {
     }
 }
 
+/* ------------------------------------------------ Tablas largas */
+/* Altura máxima = ventana menos la barra superior (64 px), el margen del
+   contenido y las dos barras de paginación: la tabla tiene su propio scroll
+   vertical y los encabezados quedan fijos. */
+.tabla-desplazable {
+    --alto-fuera-de-la-tabla: 64px + 56px + 2 * 52px;
+    position: relative;
+}
+
+.tabla-desplazable__arriba {
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 14px;
+    border-bottom: 1px solid var(--borde-suave);
+}
+
+.tabla-desplazable__arriba[hidden] {
+    display: none;
+}
+
+.tabla-desplazable__arriba > div {
+    height: 1px;
+}
+
+.tabla-desplazable__cuerpo {
+    max-height: calc(100vh - (var(--alto-fuera-de-la-tabla)));
+    min-height: 160px;
+    overflow: auto;
+}
+
+.tabla-desplazable__cuerpo:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: -2px;
+}
+
+.tabla-desplazable thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--color-tarjeta);
+    box-shadow: inset 0 -1px 0 var(--borde-suave);
+}
+
+/* Columna de acciones fija a la derecha (siempre a mano al desplazar). */
+.tabla-desplazable--acciones-fijas th.col-acciones,
+.tabla-desplazable--acciones-fijas td.col-acciones {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    background: var(--color-tarjeta);
+    box-shadow: inset 1px 0 0 var(--borde-suave);
+}
+
+.tabla-desplazable--acciones-fijas thead th.col-acciones {
+    z-index: 3;
+}
+
+.tabla-desplazable--acciones-fijas tbody tr:hover td.col-acciones {
+    background: var(--relleno-suave);
+}
+
+/* Textos largos recortados con «…» (el completo, en el title): así fecha,
+   repositorio, riesgo, probabilidad y decisión caben en 1366 px. */
+.celda-recortada {
+    display: inline-block;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+}
+
+.celda-recortada--decision {
+    max-width: 170px;
+}
+
+.tabla-desplazable td.col-fecha,
+.tabla-desplazable td.col-enviado {
+    font-size: var(--texto-xs);
+}
+
+/* Paginación (arriba y abajo de la tabla). */
+.paginacion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--esp-2) var(--esp-3);
+    padding: 10px 16px;
+}
+
+.paginacion--arriba {
+    border-bottom: 1px solid var(--borde-suave);
+}
+
+.paginacion--abajo {
+    border-top: 1px solid var(--borde-suave);
+}
+
+.paginacion__total {
+    margin: 0;
+    font-size: var(--texto-sm);
+}
+
+.paginacion__paginas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.paginacion__boton {
+    min-width: 34px;
+    padding: 5px 9px;
+    border: 1px solid var(--borde-fuerte);
+    border-radius: var(--radio-sm);
+    background: var(--color-tarjeta);
+    color: var(--tinta-principal);
+    font: inherit;
+    font-size: var(--texto-sm);
+    cursor: pointer;
+}
+
+.paginacion__boton:hover:not(:disabled) {
+    background: var(--relleno-hover);
+}
+
+.paginacion__boton[aria-current="page"] {
+    background: var(--color-acento);
+    border-color: var(--color-acento);
+    color: var(--sobre-acento);
+    font-weight: 700;
+}
+
+.paginacion__boton:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.paginacion__salto {
+    padding: 0 4px;
+    color: var(--tinta-tenue);
+}
+
+.paginacion__por-pagina {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--texto-sm);
+}
+
+.paginacion__por-pagina select {
+    width: auto;
+    padding: 4px 8px;
+}
+
+@media (max-width: 640px) {
+    .paginacion__texto {
+        display: none;
+    }
+}
+
 /* ------------------------------------------------ Informes de cumplimiento */
 .informe-enviado {
     display: inline-flex;

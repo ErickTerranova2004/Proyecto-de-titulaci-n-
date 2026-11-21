@@ -16,6 +16,7 @@ from rest_framework.viewsets import GenericViewSet, mixins
 from riesgo.models import (AccesoRepositorio, DecisionDespliegue,
                            EjecucionWorkflow, Prediccion, Repositorio,
                            VersionModelo, Workflow)
+from riesgo import paginacion
 from riesgo.permissions import (EsAdministrador, EsLiderOAdministrador,
                                 PuedePredecir, predicciones_visibles,
                                 repositorios_visibles, rol_principal, roles,
@@ -335,8 +336,11 @@ def filtrar_historial(consulta, parametros):
     - sin_decision=1: solo los análisis que esperan la decisión del líder.
     - origen: interactivo o lote (solo cambia algo para el administrador;
       el resto ya ve solo los interactivos).
-    - orden: «reciente» (por defecto, del más reciente al más antiguo) o
-      «antiguo».
+    - orden: «reciente» (por defecto, del más reciente al más antiguo),
+      «antiguo» o «decision» (primero los análisis con decisión, de la
+      decisión más reciente a la más antigua; después el resto, del más
+      reciente al más antiguo). Va en el backend para que la paginación lo
+      respete.
     """
     desde = _fecha_parametro(parametros, "desde")
     hasta = _fecha_parametro(parametros, "hasta")
@@ -366,10 +370,13 @@ def filtrar_historial(consulta, parametros):
         consulta = consulta.filter(origen=origen)
 
     orden = parametros.get("orden") or "reciente"
-    if orden not in ("reciente", "antiguo"):
-        raise ValidationError({"orden": "Use reciente o antiguo."})
+    if orden not in ("reciente", "antiguo", "decision"):
+        raise ValidationError({"orden": "Use reciente, antiguo o decision."})
     if orden == "antiguo":
         return consulta.order_by("creada_en", "id")
+    if orden == "decision":
+        return consulta.annotate(ultima_decision=Max("decisiones__creada_en")).order_by(
+            F("ultima_decision").desc(nulls_last=True), "-creada_en", "-id")
     return consulta.order_by("-creada_en", "-id")
 
 
@@ -388,6 +395,16 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         if self.action == "list":
             consulta = filtrar_historial(consulta, self.request.query_params)
         return consulta
+
+    def list(self, request):
+        """Lista completa o, con ?pagina=N (y ?por_pagina=25|50|100), una
+        página con el total (paginacion.py)."""
+        consulta = self.get_queryset()
+        if paginacion.pedida(request.query_params):
+            return Response(paginacion.paginar(
+                consulta, request.query_params,
+                lambda filas: PrediccionSerializer(filas, many=True).data))
+        return Response(PrediccionSerializer(consulta, many=True).data)
 
     def create(self, request):
         solicitud = SolicitudPrediccionSerializer(data=request.data)
@@ -671,6 +688,16 @@ class AsignacionViewSet(mixins.ListModelMixin, GenericViewSet):
                                 "prediccion__workflow__repositorio",
                                 "prediccion_respuesta", "informe")
                 .order_by(F("fecha_limite").asc(nulls_last=True), "id"))
+
+    def list(self, request):
+        """Lista completa (la alarma del desarrollador) o, con ?pagina=N,
+        una página (tabla de «Pendientes de decisión»)."""
+        consulta = self.get_queryset()
+        if paginacion.pedida(request.query_params):
+            return Response(paginacion.paginar(
+                consulta, request.query_params,
+                lambda filas: AsignacionSerializer(filas, many=True).data))
+        return Response(AsignacionSerializer(consulta, many=True).data)
 
     def _marcar(self, request, campo):
         decision = self.get_object()

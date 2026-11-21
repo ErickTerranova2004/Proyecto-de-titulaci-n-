@@ -1,31 +1,72 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
+import { columnasInformes } from "../columnasTablas.js";
 import { errorRango, FILTROS_INICIALES, hayFiltros } from "../filtrosHistorial.js";
 import { consultaInformes, ORDENES_INFORMES } from "../informes.js";
+import { consultaPaginada, PAGINACION_INICIAL } from "../paginacion.js";
 import { textoPuntos } from "../planificador.js";
 import { AbrirInformeContexto, Alerta, Fecha, NivelRiesgo } from "./comunes.jsx";
 import FiltrosHistorial from "./FiltrosHistorial.jsx";
+import { TablaPaginada } from "./TablaDesplazable.jsx";
 
 // «Informes recibidos» (líder técnico) e «Informes de cumplimiento»
-// (administrador). Fechas y orden los aplica el backend; por defecto, del más
-// reciente al más antiguo.
+// (administrador). Fechas, orden y paginación los aplica el backend; por
+// defecto, del más reciente al más antiguo, 25 por página.
 export default function InformesRecibidos({ titulo = "Informes recibidos", descripcion, mostrarLider = false }) {
   const abrir = useContext(AbrirInformeContexto);
-  const [filtros, setFiltros] = useState(FILTROS_INICIALES);
-  const [lista, setLista] = useState(null);
+  const [filtros, setFiltrosBase] = useState(FILTROS_INICIALES);
+  const [paginacion, setPaginacion] = useState(PAGINACION_INICIAL);
+  const [datos, setDatos] = useState(null);
   const [error, setError] = useState("");
+  const [cargando, setCargando] = useState(false);
   const peticion = useRef(0);
+  const columnas = columnasInformes({ mostrarLider });
+
+  function setFiltros(nuevos) {
+    setFiltrosBase(nuevos);
+    setPaginacion((p) => ({ ...p, pagina: 1 }));
+  }
 
   function cargar() {
     if (errorRango(filtros.desde, filtros.hasta)) return;
     const id = ++peticion.current;
     setError("");
+    setCargando(true);
     api
-      .informes(consultaInformes(filtros))
-      .then((datos) => id === peticion.current && setLista(datos))
-      .catch((e) => id === peticion.current && setError(e.message));
+      .informes(consultaPaginada(consultaInformes(filtros), paginacion))
+      .then((d) => id === peticion.current && setDatos(d))
+      .catch((e) => id === peticion.current && setError(e.message))
+      .finally(() => id === peticion.current && setCargando(false));
   }
-  useEffect(cargar, [filtros.desde, filtros.hasta, filtros.orden]);
+  useEffect(cargar, [filtros.desde, filtros.hasta, filtros.orden, paginacion.pagina, paginacion.porPagina]);
+
+  // El líder ve marcados los que aún no abrió.
+  const nuevo = (i) => !i.leido_en && !mostrarLider;
+  const celdas = {
+    enviado: (i) => <Fecha valor={i.enviado_en} />,
+    repositorio: (i) => (
+      <>
+        <strong className="celda-recortada" title={i.repositorio}>{i.repositorio}</strong>
+        <br />
+        <span className="secundario celda-recortada" title={i.workflow}>{i.workflow.replace(".github/workflows/", "")}</span>
+      </>
+    ),
+    riesgo: (i) => <><NivelRiesgo nivel={i.nivel_original} /> → <NivelRiesgo nivel={i.nivel_nuevo} /></>,
+    diferencia: (i) => textoPuntos(i.diferencia_puntos),
+    decision: (i) => (i.decision_final
+      ? <span className="celda-recortada celda-recortada--decision" title={i.decision_final.texto}>{i.decision_final.texto}</span>
+      : <span className="secundario">Pendiente</span>),
+    numero: (i) => (
+      <span className="font-mono">{i.numero}{nuevo(i) && <span className="informe-nuevo"> Nuevo</span>}</span>
+    ),
+    desarrollador: (i) => i.desarrollador,
+    lider: (i) => i.lider,
+    acciones: (i) => (
+      <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => abrir?.(i.id)}>
+        Abrir<span className="solo-lector"> el informe {i.numero}</span>
+      </button>
+    ),
+  };
 
   return (
     <section className="vista" aria-labelledby="titulo-informes">
@@ -41,53 +82,29 @@ export default function InformesRecibidos({ titulo = "Informes recibidos", descr
               Quitar filtros
             </button>
           )}
-          <button className="boton boton--secundario" type="button" onClick={cargar}>Actualizar</button>
+          <button className="boton boton--secundario" type="button" onClick={cargar} disabled={cargando}>
+            {cargando ? "Actualizando…" : "Actualizar"}
+          </button>
         </div>
       </div>
       <Alerta>{error}</Alerta>
-      {!lista && !error && <p role="status" className="secundario">Cargando informes…</p>}
-      {lista && lista.length === 0 && (
+      {!datos && !error && <p role="status" className="secundario">Cargando informes…</p>}
+      {datos && datos.total === 0 && (
         <p className="secundario">
           {hayFiltros(filtros) ? "No hay informes con los filtros elegidos." : "Aún no hay informes de cumplimiento."}
         </p>
       )}
-      {lista && lista.length > 0 && (
-        <div className="tabla-contenedor">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">N.º</th>
-                <th scope="col">Enviado</th>
-                <th scope="col">Repositorio</th>
-                <th scope="col">Desarrollador</th>
-                {mostrarLider && <th scope="col">Líder</th>}
-                <th scope="col">Riesgo</th>
-                <th scope="col">Diferencia</th>
-                <th scope="col">Decisión final</th>
-                <th scope="col"><span className="solo-lector">Acciones</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {lista.map((i) => (
-                <tr key={i.id} className={!i.leido_en && !mostrarLider ? "informe-fila--nuevo" : undefined}>
-                  <td className="font-mono">{i.numero}{!i.leido_en && !mostrarLider && <span className="informe-nuevo"> Nuevo</span>}</td>
-                  <td><Fecha valor={i.enviado_en} /></td>
-                  <td><strong>{i.repositorio}</strong><br /><span className="secundario">{i.workflow}</span></td>
-                  <td>{i.desarrollador}</td>
-                  {mostrarLider && <td>{i.lider}</td>}
-                  <td><NivelRiesgo nivel={i.nivel_original} /> → <NivelRiesgo nivel={i.nivel_nuevo} /></td>
-                  <td>{textoPuntos(i.diferencia_puntos)}</td>
-                  <td>{i.decision_final ? i.decision_final.texto : <span className="secundario">Pendiente</span>}</td>
-                  <td>
-                    <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => abrir?.(i.id)}>
-                      Abrir<span className="solo-lector"> el informe {i.numero}</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {datos && datos.total > 0 && (
+        <TablaPaginada
+          id="informes"
+          titulo={titulo}
+          columnas={columnas}
+          celdas={celdas}
+          datos={datos}
+          sustantivo="informes"
+          cargando={cargando}
+          alCambiarPagina={setPaginacion}
+        />
       )}
     </section>
   );

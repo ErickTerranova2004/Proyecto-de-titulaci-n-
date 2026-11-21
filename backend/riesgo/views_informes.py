@@ -16,6 +16,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from riesgo import paginacion
 from riesgo.models import DecisionDespliegue
 from riesgo.permissions import PuedePredecir
 from riesgo.services import informes
@@ -84,7 +85,12 @@ class InformeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         return consulta.order_by("-enviado_en", "-id")
 
     def list(self, request):
-        return Response([informes.resumen(i) for i in self.get_queryset()])
+        consulta = self.get_queryset()
+        if paginacion.pedida(request.query_params):
+            return Response(paginacion.paginar(
+                consulta, request.query_params,
+                lambda filas: [informes.resumen(i) for i in filas]))
+        return Response([informes.resumen(i) for i in consulta])
 
     def retrieve(self, request, pk=None):
         informe = self.get_object()
