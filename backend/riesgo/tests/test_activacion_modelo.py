@@ -174,3 +174,42 @@ class XGBoostAlternativoTest(TestCase):
         estado = self.api.get("/api/resumen-admin/").json()["modelo"]
         self.assertEqual(estado, {"activo": "v2", "recomendado": "v2",
                                   "aviso": False, "activo_sin_corte": False})
+
+
+class ProteccionTest(TestCase):
+    """Ninguno de los dos modelos se desactiva por error: no hay acción de
+    desactivar y el admin de Django es de solo lectura para las versiones."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from django.contrib.auth.models import User
+        call_command("registrar_modelo", stdout=StringIO())
+        call_command("registrar_modelo", "--modelo", "v2-xgb", "--sin-activar",
+                     stdout=StringIO())
+        cls.rf = VersionModelo.objects.get(version="v2")
+        cls.super = User.objects.create_superuser("raiz", password="x")
+
+    def test_admin_de_django_de_solo_lectura(self):
+        self.client.force_login(self.super)
+        url = f"/admin/riesgo/versionmodelo/{self.rf.id}/change/"
+        r = self.client.post(url, {"version": "v2", "activo": "", "est_registro": "I"})
+        self.assertIn(r.status_code, (403, 200))
+        self.rf.refresh_from_db()
+        self.assertEqual((self.rf.activo, self.rf.est_registro), (True, "A"))
+        self.assertEqual(self.client.post(
+            f"/admin/riesgo/versionmodelo/{self.rf.id}/delete/",
+            {"post": "yes"}).status_code, 403)
+        self.assertTrue(VersionModelo.objects.filter(id=self.rf.id).exists())
+        self.assertEqual(self.client.get(
+            "/admin/riesgo/versionmodelo/add/").status_code, 403)
+        # El historial de activaciones se consulta, no se edita.
+        self.assertEqual(self.client.get(
+            "/admin/riesgo/activacionmodelo/").status_code, 200)
+
+    def test_la_api_no_tiene_accion_de_desactivar(self):
+        admin = test_api.ApiTest._usuario("admin", "administrador", [])
+        api = test_api.ApiTest.cliente(self, admin)
+        for accion in ("desactivar", ""):
+            r = api.post(f"/api/modelos/{self.rf.id}/{accion}", {}, format="json")
+            self.assertIn(r.status_code, (404, 405))
+        self.assertEqual(VersionModelo.objects.get(activo=True).version, "v2")

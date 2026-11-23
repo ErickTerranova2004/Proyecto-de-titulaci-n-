@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.utils import timezone
 
-from riesgo.models import (AccesoRepositorio, Commit, DecisionDespliegue,
-                           DescargaInforme, EjecucionWorkflow,
-                           InformeCumplimiento, Prediccion, Repositorio,
-                           RestablecimientoClave, VersionModelo, Workflow)
+from riesgo.models import (AccesoRepositorio, ActivacionModelo, Commit,
+                           DecisionDespliegue, DescargaInforme,
+                           EjecucionWorkflow, InformeCumplimiento, Prediccion,
+                           Repositorio, RestablecimientoClave, VersionModelo,
+                           Workflow)
 
 # Textos del admin de Django con la marca de la aplicación. "Ver el sitio"
 # vuelve a la aplicación (servida en "/" por el frontend).
@@ -93,9 +94,34 @@ class DecisionDespliegueAdmin(admin.ModelAdmin):
                        "prediccion_respuesta", "respuesta_desarrollador"]
 
 
+class SoloLectura(admin.ModelAdmin):
+    """Sin alta, cambios ni borrado desde el admin de Django."""
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(VersionModelo)
-class VersionModeloAdmin(admin.ModelAdmin):
-    list_display = ["version", "nombre_modelo", "activo", "registrado_en"]
+class VersionModeloAdmin(SoloLectura):
+    """Solo lectura: el modelo principal se cambia en la pantalla Modelos
+    (escribiendo el nombre de la versión y con registro en
+    trx_activacion_modelo); aquí se podría desactivar sin control."""
+
+    list_display = ["version", "nombre_modelo", "activo", "est_registro",
+                    "registrado_en"]
+
+
+@admin.register(ActivacionModelo)
+class ActivacionModeloAdmin(SoloLectura):
+    list_display = ["activado_en", "version_modelo", "version_anterior",
+                    "nombre_usuario", "origen"]
+    list_filter = ["origen", "version_modelo"]
 
 
 @admin.register(Prediccion)
