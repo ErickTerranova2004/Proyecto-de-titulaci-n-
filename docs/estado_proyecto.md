@@ -61,8 +61,10 @@ de corte y mismas variables). Se puede elegir cualquiera en cada análisis.
   procedimiento que el principal, reproducible), archivos
   `modelos/modelo_riesgo_v2_xgb.*`, registrado con
   `registrar_modelo --modelo v2-xgb --sin-activar` (23-nov). Mismos límites
-  de nivel (tasa base 0,097 y el doble); SHAP en log-odds (no comparable con
-  el de Random Forest).
+  de nivel (tasa base 0,097 y el doble). Sus factores SHAP se presentan en
+  puntos de probabilidad, como los de Random Forest (explicador
+  intervencional sobre la probabilidad, con 200 filas del dataset de fondo;
+  `predictor._cargar`).
 - **v1 y v1.1 retiradas** (`est_registro = 'I'`; v1.1 migración 0022, v1
   migración 0029, 23-nov): no salen en Modelos, Supervisión, Comparación ni
   selectores, no se pueden activar y el lote ya no las evalúa en sombra. Sus
@@ -81,7 +83,9 @@ de corte y mismas variables). Se puede elegir cualquiera en cada análisis.
   modelo se muestra en el detalle, historiales (con filtro «Modelo»),
   pendientes, informes de cumplimiento y PDF.
 - **Cambiar el principal**: solo en Modelos, escribiendo el nombre de la
-  versión; queda en `trx_activacion_modelo`. No hay acción de desactivar y
+  versión; queda en `trx_activacion_modelo`. El principal solo decide el
+  modelo por defecto de cada análisis: **el lote, la sombra y la comparación
+  usan siempre Random Forest** (`modelos.modelo_lote()`). No hay acción de desactivar y
   el admin de Django es de solo lectura para las versiones. El panel del
   administrador avisa en rojo si el activo no tiene fecha de corte o es de
   un corte anterior al más reciente.
@@ -248,6 +252,8 @@ arrancarla desde el asistente.
 - `riesgo_despliegue_20261123_132420_antes_ocultar_v1.dump`
 - `riesgo_despliegue_20261123_132730_antes_registrar_xgboost.dump`
 - `riesgo_despliegue_20261123_154254_antes_sombra_xgboost.dump`
+- `riesgo_despliegue_20261123_160523_antes_volver_a_random_forest.dump`
+- `riesgo_despliegue_20261123_161545_antes_corregir_lote_xgboost.dump`
 
 ### Limpieza de repositorios inactivos (20-nov-2026)
 
@@ -357,6 +363,22 @@ de avrae/avrae, `deploy-pages.yml` de bdunderscore/modular-avatar y
     la lógica, no el navegador real.
 
 **Hecho del 18 al 23-nov**
+- **Correcciones del 23-nov (tarde)**: «Comparar ambos» con resumen de la
+  diferencia arriba y los dos modelos lado a lado (uno debajo del otro en
+  pantallas estrechas); sin el mensaje técnico de la tasa por nivel (ahora
+  se muestra la tasa real del modelo con despliegues verificados, desde 20
+  casos); factores SHAP de XGBoost en puntos de probabilidad (gráfico y texto
+  de la IA). Incidente: entre las 15:59 y las 16:00 `revision_admin` dejó
+  XGBoost como principal y la pasada del lote de las 16:00 analizó 32
+  ejecuciones con XGBoost; se volvió a Random Forest (16:05, respaldo
+  `..._160523_antes_volver_a_random_forest.dump`), esas 32 se rehicieron
+  con Random Forest y las de XGBoost pasaron a ser su sombra (respaldo
+  `..._161545_antes_corregir_lote_xgboost.dump`), y el lote usa ya siempre
+  Random Forest. Los tres análisis interactivos de XGBoost de esa prueba
+  (5994, 5995, 5997) tienen los factores recalculados en probabilidad; su
+  texto de IA cita todavía valores en log-odds. «Comparar ambos» falló en
+  esa prueba porque el backend no se había reiniciado (corría desde las
+  13:12); la pantalla ahora lo avisa.
 - **Dos modelos (23-nov, tarde)**: registro de la comparación v2 frente a
   v1 (`informes/comparacion_sombra_v1.md`); v1 retirada (migración 0029);
   XGBoost del dataset v2 registrado como alternativo; elección del modelo en
