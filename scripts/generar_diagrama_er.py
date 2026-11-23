@@ -51,10 +51,12 @@ AUDITORIA = ("est_registro", "usu_creacion", "fec_creacion",
 DISPOSICION = [
     ["seg_token", "seg_usuario", "int_usuario_grupo", "seg_grupo",
      "trx_seguimiento_lote", "trx_pendiente_despliegue"],
-    ["int_acceso_repositorio", "mae_workflow", "trx_ejecucion_workflow"],
+    ["int_acceso_repositorio", "mae_workflow", "trx_ejecucion_workflow",
+     "trx_restablecimiento_clave"],
     ["mae_repositorio", "trx_commit", "trx_prediccion",
      "int_prediccion_ejecucion"],
     ["mae_version_modelo", "trx_decision_despliegue"],
+    ["trx_informe_cumplimiento", "trx_descarga_informe"],
 ]
 
 # Vistas de seguridad sobre las tablas de Django (migración 0018).
@@ -252,6 +254,13 @@ def dibujar_tabla(d, tabla, columnas, k, x, y):
     return {"caja": caja, "x": x, "y": y, "alto": alto, "filas": filas_id}
 
 
+def ultima_migracion():
+    """Número de la última migración de riesgo aplicada en la base."""
+    with connection.cursor() as c:
+        c.execute("SELECT max(name) FROM django_migrations WHERE app = 'riesgo'")
+        return (c.fetchone()[0] or "")[:4]
+
+
 def generar():
     columnas, claves = leer_esquema()
     d = Diagrama()
@@ -347,7 +356,7 @@ def generar():
             "verticalAlign=middle;strokeColor=none;fillColor=none;",
             X0, 18, 1500, 40)
     d.celda(d.id("sub"), f"Actualizado desde el esquema de la base de datos "
-            f"(migración 0019) · {date.today().isoformat()} · seg_*: vistas "
+            f"(migración {ultima_migracion()}) · {date.today().isoformat()} · seg_*: vistas "
             "de solo lectura sobre las tablas de usuarios de Django",
             "text;html=1;fontSize=14;fontFamily=Helvetica;fontColor=#52606D;"
             "align=left;verticalAlign=middle;strokeColor=none;fillColor=none;",

@@ -5,7 +5,7 @@ aplicaciones empresariales». Django/DRF + React/Vite, PostgreSQL, Random
 Forest/XGBoost + SHAP, análisis de texto con Claude (Haiku 5.5; Gemini como
 alternativa).
 
-Actualizado: 2026-11-17 · rama `feature/100-repos-desplegados` (publicada en
+Actualizado: 2026-11-23 · rama `feature/100-repos-desplegados` (publicada en
 `origin`, **sin merge a `main`**).
 
 ## 1. Reglas acordadas (obligatorias)
@@ -16,7 +16,8 @@ Actualizado: 2026-11-17 · rama `feature/100-repos-desplegados` (publicada en
    `v(){ grep "^$1=" backend/.env | cut -d= -f2- | tr -d '\r'; }`.
 3. **Commit sí; push y merge solo cuando se pidan.** Nunca merge a `main`
    sin orden expresa. Antes de cada push: comprobar que no se suben `.env`,
-   `logs/`, respaldos (`*.dump`) ni secretos (tokens, claves, contraseñas).
+   `logs/`, respaldos (`*.dump`), PDF ni secretos (tokens, claves,
+   contraseñas). El repositorio de GitHub es **público**.
 4. **Respaldo antes de tocar la base de datos**: `pg_dump -Fc` en
    `C:\Users\Administrator\Desktop\tesis_respaldos\` (fuera del repositorio)
    antes de cualquier migración o cambio de datos.
@@ -114,7 +115,43 @@ Actualizado: 2026-11-17 · rama `feature/100-repos-desplegados` (publicada en
   rol.
 - «Último acceso» se registra al iniciar sesión (`riesgo/sesion.py`).
 - El administrador puede eliminar cuentas con historial traspasándolo a otra
-  cuenta activa del mismo rol o administradora.
+  cuenta activa del mismo rol o administradora (`transferir_a` no numérico →
+  400).
+- **Navegación con URL** (`frontend/src/rutas.js`, `navegacion.jsx`,
+  `estadoUrl.js`; API History, sin React Router): una ruta por pantalla
+  (`/panel`, `/nuevo-analisis`, `/planificador`, `/historial`,
+  `/analisis/<id>`, `/pendientes`, `/informes`, `/informes/<id>`, `/usuarios`,
+  `/workflows`, `/modelos`, `/integraciones`, `/restablecer/<uid>/<token>`);
+  atrás/adelante y F5 funcionan; filtros, orden y página van en la dirección.
+  Sin sesión se pide el login y se vuelve a la dirección pedida; sin permiso
+  se va al panel del rol. El enlace antiguo `?informe=<id>` redirige a
+  `/informes/<id>`. Vite con `appType: "spa"` (también en `vite preview`).
+- **Filtros uniformes** (backend, junto con la paginación) en Mi historial,
+  Historial del equipo, Historial de análisis y Pendientes: desde/hasta
+  (dd/mm/aaaa), nivel, decisión (la última; no en Pendientes), repositorio,
+  orden, origen (solo administrador) y «Quitar filtros». Informes recibidos y
+  de cumplimiento: desde/hasta, nivel de riesgo actual, resultado del cambio
+  (bajó/se mantuvo/subió, comparando niveles), decisión final (incluida
+  «Pendiente»), repositorio y orden.
+- **Paginación en el backend** opcional (`?pagina=N&por_pagina=25|50|100`,
+  `riesgo/paginacion.py`); tablas largas con barra horizontal arriba y
+  encabezados fijos.
+- **Restablecimiento de contraseña por correo** (Gmail con contraseña de
+  aplicación; enlace de una hora y un solo uso; auditoría en
+  `trx_restablecimiento_clave`).
+- **Informe de cumplimiento** del desarrollador al líder técnico
+  (`trx_informe_cumplimiento`, descargas en PDF/otros formatos registradas en
+  `trx_descarga_informe`). Las decisiones solo se toman sobre análisis de
+  desarrolladores (el líder no ve los del lote).
+- **Planificador**: último análisis preseleccionado (`?analisis=<id>`),
+  escenarios desde hoy, «Mejores ventanas» desde mañana
+  (`PLANIFICADOR_DIAS_VENTANAS`) con «Mejor opción» y diferencia en puntos,
+  sin el cuadro amarillo; nota de la hora UTC bajo «Variables de tiempo».
+- **Nuevo análisis**: si el commit ya se desplegó, tarjeta azul informativa
+  («Este cambio ya se desplegó hoy a las 10:05 y terminó correctamente.»),
+  sin número de ejecución ni términos en inglés, con enlace discreto «Ver la
+  ejecución en GitHub» (interpretación del texto cortado «Enlace discreto»;
+  pendiente de confirmar).
 
 ### Base de datos y diagrama ER
 - Nombres del ER (`docs/modelo_er.png`): tablas `mae_`, `trx_`, `int_`
@@ -130,8 +167,12 @@ Actualizado: 2026-11-17 · rama `feature/100-repos-desplegados` (publicada en
   (única con `id_version_modelo`: una sombra por versión y predicción).
 - `backend/riesgo/tests/test_esquema_er.py` compara la base con el ER
   columna por columna.
-- Diagrama actualizado: `docs/modelo_er_actualizado.drawio` y `.png`,
-  generados con `backend\venv\Scripts\python.exe scripts\generar_diagrama_er.py --png`.
+- Migraciones hasta la 0026: `trx_restablecimiento_clave` (0023–0024),
+  `trx_informe_cumplimiento` y `trx_descarga_informe` (0025–0026), con los
+  mismos nombres ER y columnas de auditoría.
+- Diagrama actualizado (23-nov, con las tres tablas anteriores):
+  `docs/modelo_er_actualizado.drawio` y `.png`, generados con
+  `backend\venv\Scripts\python.exe scripts\generar_diagrama_er.py --png`.
 - Equivalencias y diferencias documentadas en `docs/arquitectura.md`.
 
 ### Tarea programada (análisis en lote)
@@ -151,11 +192,29 @@ Actualizado: 2026-11-17 · rama `feature/100-repos-desplegados` (publicada en
   (mismos parámetros).
 
 ### Levantar la plataforma
-```powershell
-cd backend; venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000 --noreload
-cd frontend; npx vite --port 5174
-```
-(o `scripts\iniciar_demo.ps1`). Requiere PostgreSQL encendido.
+`powershell -ExecutionPolicy Bypass -File scripts\iniciar_demo.ps1`
+(`-RedLocal` para abrirla desde el celular). Detiene lo que escuche en 8000
+y 5174 (con netstat), aplica migraciones y abre backend y frontend en dos
+ventanas. Requiere PostgreSQL encendido. El usuario la gestiona: no
+arrancarla desde el asistente.
+
+### Compartir el proyecto con otra persona
+- Manual paso a paso: `docs/manual_instalacion.md`.
+- `scripts\exportar_datos.ps1`: `pg_dump -Fc` con fecha en
+  `..\tesis_respaldos\` (se niega a escribir dentro del repositorio; sin
+  sesiones ni tokens). `scripts\importar_datos.ps1 -Respaldo <archivo>`: crea
+  la base si no existe, se detiene si ya tiene datos (`-Reemplazar` la
+  respalda antes), `pg_restore --no-owner --no-privileges` y `migrate`.
+  Probados el 23-nov restaurando en una base de ensayo (mismos conteos).
+- El respaldo se comparte **solo por un medio privado**, nunca por GitHub.
+  Cada persona crea su `backend\.env` con sus propias claves.
+- Fuera del repositorio y no necesarios para usar la plataforma:
+  `informes/cache_filtrado/` (≈ 49 MB; solo para reconstruir el dataset v2)
+  y `Datos/runs.json.gz` (Zenodo; solo v1/v1.1).
+- `DJANGO_SECRET_KEY` renovada el 23-nov (cierra las sesiones del admin de
+  Django e invalida los enlaces de restablecimiento pendientes; las sesiones
+  de la plataforma usan tokens de DRF guardados en la base y no dependen de
+  esa clave).
 
 ### Respaldos recientes (`tesis_respaldos\`)
 - `riesgo_despliegue_20261112_002918_antes_nombres_er.dump`
@@ -221,10 +280,20 @@ de avrae/avrae, `deploy-pages.yml` de bdunderscore/modular-avatar y
 | Ocultar v1.1 en lugar de borrarla | Hay predicciones que la referencian (PROTECT) y la comparación en sombra queda documentada en el informe |
 | Sin botón «Verificar resultado real» | La verificación ya es automática (página y lote); el botón confundía |
 | Los análisis de repositorios inactivos no salen en las vistas de los roles | Eran del dataset v1.1 validado sin regla de entorno; se conservan (est_registro='I') para la auditoría y la historia del modelo |
+| Navegación con la API History, sin React Router | Sin dependencias nuevas; las rutas son pocas y fijas |
+| Filtros y paginación en el backend | Con paginación, filtrar en el navegador solo vería una página |
+| «Resultado del cambio» de los informes por nivel, no por probabilidad | Es lo que ve el líder; una variación pequeña de probabilidad no es una mejora |
+| El respaldo de la base nunca va a GitHub | El repositorio es público y la base tiene cuentas, correos y contraseñas cifradas |
 
 ## 4. Pendientes (por prioridad)
 
 **Alta**
+0. **v1 quedó activo el 23-nov a las 10:36** (Modelos → «Activar», cuenta
+   `admin`; v2 inactivo). No hay predicciones con v1 desde entonces, pero el
+   lote falla en cada pasada («El modelo v1 … no tiene fecha_corte», código
+   1 desde las 12:00) y los análisis nuevos usarían v1. Decidir si se
+   reactiva v2 (respaldo antes). Exportar la base para compartirla solo
+   después de corregirlo.
 1. **Merge de `feature/100-repos-desplegados` a `main`**: todo está
    publicado en la rama; esperar orden expresa.
 2. **Demostración con despliegues reales**: analizar EfileProxyServer
@@ -259,11 +328,31 @@ de avrae/avrae, `deploy-pages.yml` de bdunderscore/modular-avatar y
    revisar si alguna es sospechosa.
 10. `datos_prueba/casos_prueba_30.md` nombra a las cuentas `prueba_*`
     eliminadas (registro histórico; se dejó tal cual).
+11. `datos_prueba/usuarios_prueba.md` publica en el repositorio (público) las
+    contraseñas de prueba de las cuentas `revision_*`, que también vienen en
+    el respaldo que se comparte. Cambiarlas antes de exponer la plataforma
+    fuera del equipo.
+12. Confirmar el punto 5 del 23-nov («Enlace discreto», texto cortado): se
+    implementó un enlace «Ver la ejecución en GitHub».
+13. Probar en el navegador la navegación con URL (atrás/adelante, F5,
+    login con regreso a la dirección pedida); las pruebas automáticas cubren
+    la lógica, no el navegador real.
+
+**Hecho del 18 al 23-nov**
+- Restablecimiento de contraseña por correo, filtros por fecha dd/mm/aaaa,
+  informe de cumplimiento, paginación en el backend, limpieza de
+  repositorios inactivos, navegación con URL, filtros uniformes, mejoras del
+  Planificador y del aviso de commit desplegado (ver §2 Plataforma).
+- `iniciar_demo.ps1`: detecta con netstat todos los procesos del puerto (con
+  dos backends a la vez `Get-NetTCPConnection` solo devolvía uno).
+- Datos de los casos de prueba desactivados; Vite 5.4.21.
+- Scripts para compartir la base, manual de instalación para otra persona,
+  `DJANGO_SECRET_KEY` nueva y diagrama ER con las tablas nuevas (23-nov).
 
 **Hecho el 17-nov**
 - Claude (Haiku 5.5) redacta el análisis; los tokens y la duración de cada
   llamada se guardan en `jsn_analisis_ia.uso`.
-- Script `scriptsnalisis_programados.cmd` (análisis interactivos reales
+- Script `scripts\analisis_programados.cmd` (análisis interactivos reales
   repartidos en el tiempo, como `revision_dev`). Hoy hubo dos ejecuciones
   solapadas (08:50 y 10:03): 43 análisis (ids 1388–1430), 18 commits
   analizados dos veces. Se detuvo a las 10:32 con 21 de 40.
