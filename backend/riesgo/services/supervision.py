@@ -199,3 +199,42 @@ def comparacion():
         "remuestreos": REMUESTREOS,
         "modelos": resultado,
     }
+
+
+# Casos mínimos para mostrar la tasa real de un nivel en el resultado.
+MIN_CASOS_TASA = 20
+
+
+def tasas_reales(version):
+    """Tasa de despliegues no completados por nivel con despliegues reales
+    (las mismas predicciones que la supervisión de la versión: las suyas
+    posteriores al corte y, si no es el modelo del lote, sus predicciones en
+    sombra). {nivel: {"evaluables", "no_completados", "tasa"}}; la tasa es
+    None con menos de MIN_CASOS_TASA casos."""
+    from django.db.models import Count
+
+    from riesgo.services.modelos import modelo_lote
+    from riesgo.services.predictor import SinModeloActivo
+
+    _, predicciones, _, _ = posteriores_al_corte(version)
+    consultas = [evaluables(predicciones)]
+    try:
+        de_lote = modelo_lote().id == version.id
+    except SinModeloActivo:
+        de_lote = version.activo
+    if not de_lote:
+        consultas.append(evaluables(Prediccion.con_sombra.filter(
+            origen="sombra", version_modelo=version)))
+    resultado = {n: {"evaluables": 0, "no_completados": 0} for n in NIVELES}
+    fallo = Q(ejecucion_real__etiqueta="despliegue_no_completado")
+    for consulta in consultas:
+        for fila in (consulta.order_by().values("nivel")
+                     .annotate(n=Count("id"), fallos=Count("id", filter=fallo))):
+            if fila["nivel"] in resultado:
+                resultado[fila["nivel"]]["evaluables"] += fila["n"]
+                resultado[fila["nivel"]]["no_completados"] += fila["fallos"]
+    for datos in resultado.values():
+        n = datos["evaluables"]
+        datos["tasa"] = (datos["no_completados"] / n
+                         if n >= MIN_CASOS_TASA else None)
+    return resultado

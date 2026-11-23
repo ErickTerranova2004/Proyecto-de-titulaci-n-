@@ -304,12 +304,18 @@ class VersionModeloSerializer(serializers.ModelSerializer):
     # «principal»: el activo (el lote y los análisis por defecto);
     # «alternativo»: el otro modelo seleccionable (XGBoost).
     rol = serializers.SerializerMethodField()
+    # Tasa de fallos por nivel con despliegues reales (resultado del análisis).
+    tasa_real_por_nivel = serializers.SerializerMethodField()
 
     class Meta:
         model = VersionModelo
         fields = ["id", "version", "nombre_modelo", "metadatos", "activo",
                   "registrado_en", "activable", "motivo_no_activable",
-                  "ultima_activacion", "rol"]
+                  "ultima_activacion", "rol", "tasa_real_por_nivel"]
+
+    def get_tasa_real_por_nivel(self, version):
+        from riesgo.services.supervision import tasas_reales
+        return tasas_reales(version)
 
     def get_rol(self, version):
         return "principal" if version.activo else "alternativo"
