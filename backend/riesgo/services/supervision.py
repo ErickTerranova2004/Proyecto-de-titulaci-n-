@@ -148,8 +148,13 @@ def comparacion():
     """El modelo activo y sus versiones en sombra sobre exactamente las
     mismas ejecuciones evaluables (las que tienen predicción en sombra de
     todas las demás versiones)."""
-    referencia = VersionModelo.objects.filter(activo=True).first()
-    if referencia is None:
+    # Referencia: el modelo del lote (Random Forest), aunque se cambie el
+    # principal; los demás se evalúan en sombra sobre sus ejecuciones.
+    from riesgo.services.modelos import modelo_lote
+    from riesgo.services.predictor import SinModeloActivo
+    try:
+        referencia = modelo_lote()
+    except SinModeloActivo:
         return None
     # Solo las versiones visibles (est_registro = 'A'): v1.1 está oculta.
     sombras = list(VersionModelo.objects.filter(est_registro="A")

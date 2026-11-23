@@ -345,3 +345,21 @@ class XGBoostEnSombraTest(Base):
             self.assertEqual(datos["evaluables"], 1, m["version"])
         datos = self.api.get(f"/api/modelos/{self.xgb.id}/supervision/").json()
         self.assertEqual(datos["predicciones_sombra"], 1)
+
+
+class LoteSiempreConRandomForestTest(XGBoostEnSombraTest):
+    """Si un administrador deja XGBoost como principal, el lote, la
+    evaluación en sombra y la comparación siguen con Random Forest; el
+    principal solo decide el modelo por defecto de cada análisis."""
+
+    def setUp(self):
+        super().setUp()
+        r = self.api.post(f"/api/modelos/{self.xgb.id}/activar/",
+                          {"confirmacion": "v2-xgb"}, format="json")
+        self.assertEqual(r.status_code, 200)
+
+    def test_referencia_del_lote(self):
+        from riesgo.services import modelos
+        self.assertTrue(VersionModelo.objects.get(id=self.xgb.id).activo)
+        self.assertEqual(modelos.modelo_lote().version, "v2")
+        self.assertEqual(modelos.versiones_para("")[0].version, "v2-xgb")

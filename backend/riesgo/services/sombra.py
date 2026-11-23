@@ -71,7 +71,9 @@ def pendientes(referencia, version):
 def generar(usuario, contar=False):
     """Crea las predicciones en sombra que falten. Devuelve
     {version: {"creadas": n, "rellenadas": [variables]}}."""
-    referencia = predictor.modelo_activo()
+    # La referencia es el modelo del lote (Random Forest), no el principal.
+    from riesgo.services.modelos import modelo_lote
+    referencia = modelo_lote()
     resumen = {}
     # Las versiones ocultas (est_registro = 'I') ya no se evalúan.
     visibles = VersionModelo.objects.filter(est_registro="A")

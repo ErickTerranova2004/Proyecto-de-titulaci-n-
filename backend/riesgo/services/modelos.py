@@ -64,6 +64,21 @@ def recomendada():
                               v.registrado_en, v.id))
 
 
+def modelo_lote():
+    """Modelo del análisis en lote y referencia de la evaluación en sombra y
+    de la comparación: siempre el elegido por la regla de selección del
+    entrenamiento (no el alternativo) de la fecha de corte más reciente, es
+    decir Random Forest, aunque un administrador cambie el principal de la
+    plataforma (que solo decide el modelo por defecto de cada análisis).
+    Así la validación prospectiva no mezcla modelos."""
+    from riesgo.services.predictor import SinModeloActivo
+
+    version = recomendada()
+    if version is None:
+        raise SinModeloActivo()
+    return version
+
+
 def estado():
     """Modelo activo frente al recomendado (aviso del panel del
     administrador). Avisa si no hay modelo activo, si el activo no tiene

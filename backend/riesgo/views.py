@@ -744,9 +744,13 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
         # Una versión no activa no hace análisis nuevos: su supervisión suma
         # sus predicciones en sombra (las mismas ejecuciones evaluables que
         # la del modelo activo, ver services/sombra.py).
+        try:
+            de_lote = modelos_servicio.modelo_lote().id == version.id
+        except SinModeloActivo:
+            de_lote = version.activo
         sombra = (Prediccion.con_sombra.filter(origen="sombra",
                                                version_modelo=version)
-                  if not version.activo else Prediccion.con_sombra.none())
+                  if not de_lote else Prediccion.con_sombra.none())
         evaluables = [
             (p.nivel, p.probabilidad, p.ejecucion_real.y)
             for consulta in (predicciones, sombra)

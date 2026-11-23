@@ -35,7 +35,8 @@ from riesgo.models import Workflow
 from riesgo.services import github, lote, sombra
 from riesgo.services.features import fecha
 from riesgo.services.pendientes import actualizar_pendientes
-from riesgo.services.predictor import SinModeloActivo, modelo_activo
+from riesgo.services import modelos
+from riesgo.services.predictor import SinModeloActivo
 
 
 class Command(ComandoAuditado):
@@ -60,9 +61,11 @@ class Command(ComandoAuditado):
 
     def handle(self, *args, **opciones):
         try:
-            version = modelo_activo()
+            # Siempre Random Forest (modelos.modelo_lote), aunque se cambie
+            # el principal de la plataforma.
+            version = modelos.modelo_lote()
         except SinModeloActivo:
-            raise CommandError("No hay un modelo activo.")
+            raise CommandError("No hay un modelo con fecha de corte para el lote.")
         corte = fecha(version.metadatos.get("fecha_corte"))
         if corte is None:
             raise CommandError(f"El modelo {version} no tiene fecha_corte.")
