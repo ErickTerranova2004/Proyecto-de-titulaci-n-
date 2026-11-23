@@ -256,3 +256,40 @@ class VersionOcultaTest(Base):
             {"v1": "A", "v1.1": "I", "v2": "A"})
         migracion.estado("A")(apps, None)
         self.assertFalse(VersionModelo.objects.filter(est_registro="I").exists())
+
+
+class V1OcultaTest(Base):
+    """v1 oculta (migración 0029): fuera de Modelos, supervisión,
+    comparación y selectores, y el lote ya no la evalúa en sombra."""
+
+    def setUp(self):
+        VersionModelo.objects.filter(id__in=[self.v1.id, self.v11.id]).update(
+            est_registro="I")
+        admin = test_api.ApiTest._usuario("admin", "administrador", [])
+        self.api = test_api.ApiTest.cliente(self, admin)
+
+    def test_no_sale_ni_se_evalua_en_sombra(self):
+        self.assertEqual([m["version"] for m in self.api.get("/api/modelos/").json()],
+                         ["v2"])
+        self.assertEqual(self.api.get(
+            f"/api/modelos/{self.v1.id}/supervision/").status_code, 404)
+        self.prediccion()
+        self.assertEqual(sombra.generar(self.lote), {})
+        self.assertFalse(Prediccion.con_sombra.filter(
+            origen="sombra", version_modelo=self.v1).exists())
+        datos = self.api.get("/api/modelos/comparacion-sombra/").json()
+        self.assertEqual([m["version"] for m in datos["modelos"]], ["v2"])
+        # Las filas se conservan.
+        self.assertTrue(VersionModelo.objects.filter(id=self.v1.id).exists())
+
+    def test_la_migracion_solo_oculta_v1(self):
+        from importlib import import_module
+        from django.apps import apps
+        VersionModelo.objects.update(est_registro="A")
+        migracion = import_module("riesgo.migrations.0029_ocultar_v1")
+        migracion.estado("I")(apps, None)
+        self.assertEqual(
+            dict(VersionModelo.objects.values_list("version", "est_registro")),
+            {"v1": "I", "v1.1": "A", "v2": "A"})
+        migracion.estado("A")(apps, None)
+        self.assertFalse(VersionModelo.objects.filter(est_registro="I").exists())
