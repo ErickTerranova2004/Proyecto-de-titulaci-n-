@@ -114,3 +114,27 @@ Por esas tres razones las cifras de v1.1 eran optimistas; las de v2 estiman mejo
   - **SonarQube:** calidad del código del commit o del pull request (estado del quality gate, bugs, vulnerabilidades y code smells nuevos, cobertura de pruebas del código nuevo, duplicación), es decir, las vulnerabilidades y la cobertura que hoy no se pueden obtener.
   - **Jira:** contexto del cambio (tipo de incidencia, prioridad, si es un hotfix, número de incidencias incluidas en el despliegue, reaperturas e incidentes previos del componente).
   - Ambas requieren acceso a la organización, por eso no forman parte de v2 (los 198 repositorios son públicos y de terceros). Un modelo con esas variables se evaluaría igual (GroupKFold por repositorio, IC por bootstrap de repositorios) frente a v2 y a la regla simple, con atención al recall en workflows sanos.
+
+## 9. XGBoost como modelo alternativo de la plataforma (23-nov-2026)
+
+La propuesta de la tesis compara Random Forest y XGBoost. La regla de selección (sección 2) eligió Random Forest como modelo principal; desde el 23-nov la plataforma también ofrece XGBoost como **alternativo** para que el usuario elija con cuál hacer cada análisis.
+
+- **Entrenamiento**: `entrenar_modelos_v2.py --alternativo-xgboost`. Mismo procedimiento que el elegido (`ajustar`: mismo pipeline, pesos balanceados, calibración sigmoide y umbral F1 con GroupKFold por repositorio), entrenado con todo el dataset. Mismo dataset (se comprueba su SHA-256), mismas variables y misma fecha de corte (2026-11-09T16:09:30Z). No repite la evaluación ni toca los archivos de Random Forest. Es reproducible: al reentrenarlo da las mismas probabilidades.
+- **Archivos**: `modelos/modelo_riesgo_v2_xgb.joblib` (calibrado), `_shap.joblib` (modelo base para SHAP) y `.json`; registrado en la plataforma como `v2-xgb` (`registrar_modelo --modelo v2-xgb --sin-activar`).
+- **Métricas de validación**: las de XGBoost en la sección 1 (misma evaluación anidada): PR-AUC 0,348, Brier 0,074, recall 0,459.
+- **Niveles de riesgo**: misma regla que el principal (riesgo relativo a la tasa base 0,097): bajo < 0,097 ≤ medio < 0,195 ≤ alto. Umbral F1 propio: 0,272 (solo informativo, como en Random Forest).
+- **Explicabilidad**: TreeExplainer sobre el modelo base; los valores SHAP de XGBoost están en **log-odds** (los de Random Forest, en probabilidad), así que no se comparan entre modelos. La plataforma lo indica en los factores y, en los informes de cumplimiento con modelos distintos, calcula los dos análisis con el modelo del nuevo.
+- **En la plataforma**: en «Nuevo análisis» y en el Planificador se elige Random Forest (por defecto), XGBoost o «Comparar ambos» (los dos lado a lado; el usuario elige cuál queda como análisis oficial). Todo el análisis (probabilidad, nivel, recomendación, factores SHAP y texto de la IA) sale del modelo elegido. El lote sigue usando Random Forest y calcula XGBoost en sombra sobre las mismas ejecuciones, con las variables guardadas y sin consultar GitHub.
+
+### Comparación con despliegues reales
+
+Datos al 23-nov-2026 (`GET /api/modelos/comparacion-sombra/`): 1.423 ejecuciones evaluables posteriores a la fecha de corte, 193 no completadas. Mismas ejecuciones y mismas variables para los dos modelos. IC 95 %: Wilson para las tasas; bootstrap pareado (1000 remuestreos) para Brier, PR-AUC y la diferencia.
+
+| Modelo | Nivel bajo | Nivel medio | Nivel alto | Brier [IC 95 %] | PR-AUC [IC 95 %] |
+|---|---|---|---|---|---|
+| Random Forest (principal) | 5,3 % (64/1197) [4,2 % – 6,8 %] | 30,3 % (20/66) [20,6 % – 42,2 %] | 68,1 % (109/160) [60,6 % – 74,8 %] | 0,082 [0,071 – 0,093] | 0,631 [0,556 – 0,698] |
+| XGBoost (alternativo, en sombra) | 6,0 % (68/1138) [4,7 % – 7,5 %] | 23,1 % (33/143) [16,9 % – 30,6 %] | 64,8 % (92/142) [56,6 % – 72,2 %] | 0,089 [0,078 – 0,101] | 0,570 [0,489 – 0,640] |
+
+Diferencia XGBoost − Random Forest: Brier +0,0065 [+0,0040 – +0,0091]; PR-AUC −0,061 [−0,092 – −0,032].
+
+**Conclusión.** Con despliegues reales, Random Forest es mejor que XGBoost en calibración (Brier) y en ordenación del riesgo (PR-AUC): ningún IC de la diferencia incluye el 0. Confirma la selección hecha con la validación por repositorio (sección 2), así que Random Forest sigue como modelo principal. XGBoost se mantiene como alternativo y se sigue evaluando en sombra.

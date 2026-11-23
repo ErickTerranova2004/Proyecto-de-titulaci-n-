@@ -412,6 +412,9 @@ def tabla(filas, columnas, formato="{:.3f}"):
 
 def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
             importancia, niveles, ic_regla, oof, valores):
+    # Ojo: la sección 9 de informes/fase5_modelos_v2.md (XGBoost como modelo
+    # alternativo y su comparación con despliegues reales, 23-nov-2026) se
+    # añadió aparte; si se vuelve a generar el informe, hay que conservarla.
     y1 = int(df["y"].sum())
     l = ["# Fase 5. Modelo de riesgo de despliegue v2 (dataset de 198 repositorios)", "",
          f"- Datos: `{meta['dataset']}` (SHA-256 `{meta['dataset_sha256'][:12]}…`): "

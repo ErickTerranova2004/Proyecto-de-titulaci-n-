@@ -5,7 +5,7 @@ aplicaciones empresariales». Django/DRF + React/Vite, PostgreSQL, Random
 Forest/XGBoost + SHAP, análisis de texto con Claude (Haiku 5.5; Gemini como
 alternativa).
 
-Actualizado: 2026-11-23 · rama `feature/100-repos-desplegados` (publicada en
+Actualizado: 2026-11-23 (tarde) · rama `feature/100-repos-desplegados` (publicada en
 `origin`, **sin merge a `main`**).
 
 ## 1. Reglas acordadas (obligatorias)
@@ -44,14 +44,47 @@ Actualizado: 2026-11-23 · rama `feature/100-repos-desplegados` (publicada en
 - Fecha de corte (última ejecución del entrenamiento):
   **2026-11-09T16:09:30Z** (`modelos/modelo_riesgo_v2.json`).
 
-### Modelo v2 (activo)
-- Random Forest, validación GroupKFold por repositorio: PR-AUC 0,415,
-  ROC-AUC 0,803, recall y=1 0,536, precisión 0,517, F1 0,526, Brier 0,067.
-  v1 está registrado e inactivo. **v1.1 está oculta** (`est_registro = 'I'`,
-  migración 0022): no sale en Modelos, Supervisión, la comparación ni los
-  selectores, no se puede activar y `evaluar_sombra` ya no la evalúa; sus
-  filas, sus 83 predicciones interactivas, sus 791 en sombra y sus archivos
-  se conservan.
+### Modelos: Random Forest (principal) y XGBoost (alternativo)
+Los dos modelos de la propuesta, entrenados con el dataset v2 (misma fecha
+de corte y mismas variables). Se puede elegir cualquiera en cada análisis.
+
+| Versión | Modelo | Rol | Validación GroupKFold (PR-AUC / Brier) | Despliegues reales al 23-nov (PR-AUC / Brier, 1.423 ejecuciones) |
+|---|---|---|---|---|
+| `v2` | Random Forest | Principal (activo; lo usa el lote) | 0,415 / 0,067 | 0,631 [0,556–0,698] / 0,082 [0,071–0,093] |
+| `v2-xgb` | XGBoost | Alternativo (en sombra en el lote) | 0,348 / 0,074 | 0,570 [0,489–0,640] / 0,089 [0,078–0,101] |
+
+- Diferencia XGBoost − Random Forest con despliegues reales: Brier +0,0065
+  [+0,0040 – +0,0091], PR-AUC −0,061 [−0,092 – −0,032]: Random Forest es
+  mejor de forma significativa; confirma la selección del entrenamiento
+  (`informes/fase5_modelos_v2.md` §9).
+- XGBoost: `entrenar_modelos_v2.py --alternativo-xgboost` (mismo
+  procedimiento que el principal, reproducible), archivos
+  `modelos/modelo_riesgo_v2_xgb.*`, registrado con
+  `registrar_modelo --modelo v2-xgb --sin-activar` (23-nov). Mismos límites
+  de nivel (tasa base 0,097 y el doble); SHAP en log-odds (no comparable con
+  el de Random Forest).
+- **v1 y v1.1 retiradas** (`est_registro = 'I'`; v1.1 migración 0022, v1
+  migración 0029, 23-nov): no salen en Modelos, Supervisión, Comparación ni
+  selectores, no se pueden activar y el lote ya no las evalúa en sombra. Sus
+  filas, predicciones y archivos se conservan. Registros de sus
+  comparaciones: `informes/comparacion_sombra_v2.md` (v1.1, 17-nov) y
+  `informes/comparacion_sombra_v1.md` (v1, 23-nov: v2 mejor de forma
+  significativa en 1.423 ejecuciones).
+- **Elección en cada análisis** («Nuevo análisis» y Planificador): Random
+  Forest (por defecto), XGBoost o «Comparar ambos». Todo el análisis
+  (probabilidad, nivel con los límites de ese modelo, recomendación,
+  factores SHAP y texto de la IA) sale del modelo elegido y se guarda con él
+  (`id_version_modelo`). «Comparar ambos» crea los dos análisis ocultos
+  (`est_registro = 'I'`, el segundo enlazado al primero con
+  `id_prediccion_base`); el autor elige el oficial
+  (`POST /api/predicciones/{id}/oficial/`) y solo ese lo ve el líder. El
+  modelo se muestra en el detalle, historiales (con filtro «Modelo»),
+  pendientes, informes de cumplimiento y PDF.
+- **Cambiar el principal**: solo en Modelos, escribiendo el nombre de la
+  versión; queda en `trx_activacion_modelo`. No hay acción de desactivar y
+  el admin de Django es de solo lectura para las versiones. El panel del
+  administrador avisa en rojo si el activo no tiene fecha de corte o es de
+  un corte anterior al más reciente.
 - Recomendación automática: nivel alto → «Solicitar revisión previa»;
   bajo/medio → «Permitir el despliegue». El líder técnico la acepta o la
   cambia (se guarda `acepta_recomendacion`).
@@ -59,37 +92,19 @@ Actualizado: 2026-11-23 · rama `feature/100-repos-desplegados` (publicada en
   IA02…). Proveedor `IA_PROVEEDOR=claude|gemini|reglas` (por defecto Claude,
   modelo `CLAUDE_MODELO=claude-haiku-5-5`, clave `CLAUDE_API_KEY`); si falla,
   rechaza o tarda más de `IA_TIMEOUT`, se usa el análisis por reglas (nunca
-  Error 500). Las pruebas nunca llaman a una API de pago.
+  Error 500). Con «Comparar ambos» se redactan dos textos. Las pruebas nunca
+  llaman a una API de pago.
 - Supervisión prospectiva: cuenta solo ejecuciones posteriores al corte;
-  excluye repos de demostración y de prueba. 1.158 predicciones de lote y
-  261 interactivas en la base (17-nov).
-- **Evaluación en sombra de v1 y v1.1** (`riesgo/services/sombra.py`,
-  comando `evaluar_sombra`, también al final de cada pasada del lote): sin
-  activarlos ni llamar a GitHub, predicen las mismas ejecuciones evaluables
-  de la supervisión de v2 con las variables guardadas en cada predicción de
-  v2; `reejecutado_por_otro` (que v2 no guarda) se rellena con la mediana
-  del imputador de cada modelo. Se guardan con `origen = "sombra"` e
-  `id_prediccion_base`; el gestor por defecto (`Prediccion.objects`) las
-  excluye, así que no salen en historiales, paneles, «Nuevo análisis» ni en
-  los conteos (solo `Prediccion.con_sombra` las ve). Modelos → Supervisión
-  muestra la comparación (`/api/modelos/comparacion-sombra/`).
-- Resultado al 17-nov (791 ejecuciones evaluables, 96 no completadas;
-  IC 95 %: Wilson en tasas, bootstrap pareado de 1.000 remuestreos):
-
-  | Versión | Tasa bajo | Tasa medio | Tasa alto | Brier | PR-AUC |
-  |---|---|---|---|---|---|
-  | v2 | 5,9 % (40/678) | 28,6 % (12/42) | 62,0 % (44/71) | 0,084 [0,068–0,101] | 0,506 [0,410–0,609] |
-  | v1.1 | 7,2 % (51/710) | 41,2 % (14/34) | 66,0 % (31/47) | 0,087 [0,070–0,103] | 0,492 [0,397–0,594] |
-  | v1 | 9,4 % (70/743) | 35,3 % (6/17) | 64,5 % (20/31) | 0,092 [0,075–0,109] | 0,412 [0,319–0,511] |
-
-  v2 supera a v1 de forma significativa (diferencia de Brier +0,0075
-  [0,0025–0,0135] y de PR-AUC −0,094 [−0,149 – −0,043] a favor de v2).
-  Frente a v1.1, v2 es mejor en los valores puntuales y detecta más fallos
-  en el nivel alto (44 frente a 31), pero los IC de la diferencia incluyen
-  el 0 (Brier +0,0026 [−0,0018–0,0073]; PR-AUC −0,014 [−0,053–0,029]):
-  no es concluyente. Tabla completa y conclusión en
-  `informes/comparacion_sombra_v2.md` (guardado antes de ocultar v1.1);
-  desde entonces la comparación de la plataforma muestra v2 y v1.
+  excluye repos de demostración y de prueba y los análisis no elegidos de
+  «Comparar ambos».
+- **Evaluación en sombra** (`riesgo/services/sombra.py`, comando
+  `evaluar_sombra`, también al final de cada pasada del lote): la versión
+  visible no activa (XGBoost) predice las mismas ejecuciones evaluables de
+  la supervisión del principal con las variables guardadas, sin llamar a
+  GitHub. Se guardan con `origen = "sombra"` e `id_prediccion_base`; el
+  gestor por defecto las excluye. El 23-nov se crearon las 1.423 de las
+  ejecuciones ya evaluadas. Modelos → Comparación muestra Random Forest
+  frente a XGBoost (`/api/modelos/comparacion-sombra/`).
 
 ### Plataforma
 - 229 repositorios activos (198 del dataset v2 + 1 de demostración
@@ -168,10 +183,11 @@ Actualizado: 2026-11-23 · rama `feature/100-repos-desplegados` (publicada en
   (única con `id_version_modelo`: una sombra por versión y predicción).
 - `backend/riesgo/tests/test_esquema_er.py` compara la base con el ER
   columna por columna.
-- Migraciones hasta la 0028: `trx_restablecimiento_clave` (0023–0024),
+- Migraciones hasta la 0029: `trx_restablecimiento_clave` (0023–0024),
   `trx_informe_cumplimiento` y `trx_descarga_informe` (0025–0026),
   `trx_activacion_modelo` (0027–0028), con los mismos nombres ER y columnas
-  de auditoría.
+  de auditoría; 0029 solo oculta v1 (datos, sin cambios de tablas: el
+  diagrama ER no cambia).
 - Diagrama actualizado (23-nov, con las cuatro tablas anteriores):
   `docs/modelo_er_actualizado.drawio` y `.png`, generados con
   `backend\venv\Scripts\python.exe scripts\generar_diagrama_er.py --png`.
@@ -227,6 +243,11 @@ arrancarla desde el asistente.
 - `riesgo_despliegue_20261120_165221_antes_desactivar_prueba.dump`
 - `riesgo_despliegue_20261120_174326_antes_informe_cumplimiento.dump`
 - `riesgo_despliegue_20261120_195916_antes_limpiar_repos_inactivos.dump`
+- `riesgo_despliegue_20261123_130149_antes_reactivar_v2_c.dump`
+- `riesgo_despliegue_20261123_131341_antes_activacion_modelo.dump`
+- `riesgo_despliegue_20261123_132420_antes_ocultar_v1.dump`
+- `riesgo_despliegue_20261123_132730_antes_registrar_xgboost.dump`
+- `riesgo_despliegue_20261123_154254_antes_sombra_xgboost.dump`
 
 ### Limpieza de repositorios inactivos (20-nov-2026)
 
@@ -286,6 +307,10 @@ de avrae/avrae, `deploy-pages.yml` de bdunderscore/modular-avatar y
 | Filtros y paginación en el backend | Con paginación, filtrar en el navegador solo vería una página |
 | «Resultado del cambio» de los informes por nivel, no por probabilidad | Es lo que ve el líder; una variación pequeña de probabilidad no es una mejora |
 | El respaldo de la base nunca va a GitHub | El repositorio es público y la base tiene cuentas, correos y contraseñas cifradas |
+| Random Forest principal y XGBoost alternativo (los dos elegibles) | Son los dos modelos de la propuesta; la regla de selección y los despliegues reales favorecen a Random Forest |
+| «Comparar ambos» guarda los dos análisis ocultos hasta elegir el oficial | El líder decide sobre un solo análisis y la supervisión no cuenta dos veces el mismo despliegue |
+| Sin columna nueva para el par de «Comparar ambos» | Se reutiliza `id_prediccion_base` (como en sombra): sin migración de esquema ni cambio del ER |
+| Admin de Django de solo lectura para las versiones del modelo | Allí se podía desactivar un modelo sin confirmación ni registro |
 
 ## 4. Pendientes (por prioridad)
 
@@ -324,11 +349,24 @@ de avrae/avrae, `deploy-pages.yml` de bdunderscore/modular-avatar y
    revisar si alguna es sospechosa.
 10. `datos_prueba/casos_prueba_30.md` nombra a las cuentas `prueba_*`
     eliminadas (registro histórico; se dejó tal cual).
-11. Probar en el navegador la navegación con URL (atrás/adelante, F5,
+11. Probar en el navegador «Comparar ambos» (elegir el oficial, también al
+    atender una asignación) y el selector de modelo del Planificador; las
+    pruebas automáticas cubren la API y el renderizado.
+12. Probar en el navegador la navegación con URL (atrás/adelante, F5,
     login con regreso a la dirección pedida); las pruebas automáticas cubren
     la lógica, no el navegador real.
 
 **Hecho del 18 al 23-nov**
+- **Dos modelos (23-nov, tarde)**: registro de la comparación v2 frente a
+  v1 (`informes/comparacion_sombra_v1.md`); v1 retirada (migración 0029);
+  XGBoost del dataset v2 registrado como alternativo; elección del modelo en
+  cada análisis y en el Planificador, «Comparar ambos» con análisis oficial,
+  modelo visible en todas las pantallas y el PDF, filtro «Modelo»; XGBoost
+  en sombra (1.423 creadas) y comparación con despliegues reales; admin de
+  Django de solo lectura para las versiones. Respaldos:
+  `..._132420_antes_ocultar_v1.dump`,
+  `..._132730_antes_registrar_xgboost.dump`,
+  `..._154254_antes_sombra_xgboost.dump`.
 - **Incidente 23-nov**: v1 quedó activo a las 10:36 (Modelos → «Activar»,
   cuenta `admin`); la pasada del lote de las 12:00 falló («El modelo v1 … no
   tiene fecha_corte») y no se hizo ninguna predicción con v1. Respaldo

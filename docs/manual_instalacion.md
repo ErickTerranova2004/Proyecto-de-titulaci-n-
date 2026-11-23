@@ -9,7 +9,7 @@ PowerShell y VS Code.
 | Archivo o carpeta | ¿En GitHub? | Qué hacer |
 |---|---|---|
 | Código (`backend/`, `frontend/`, `scripts/`, scripts `*.py` de la raíz) | Sí | Se clona |
-| Modelos `modelos/modelo_riesgo_v1*`, `_v1_1*`, `_v2*` (`.joblib` y `.json`) | Sí | Se clona. La base guarda solo el nombre del archivo y la plataforma lo busca en `modelos/` |
+| Modelos `modelos/modelo_riesgo_v2*` (Random Forest), `_v2_xgb*` (XGBoost) y los retirados `_v1*`, `_v1_1*` (`.joblib` y `.json`) | Sí | Se clona. La base guarda solo el nombre del archivo y la plataforma lo busca en `modelos/` |
 | Datasets `datos_procesados/dataset_riesgo_despliegue_v1.csv`, `_v1_1.csv`, `_v2.csv` | Sí | Se clona |
 | Figuras (`figuras/`, `informes/figuras/`), informes y diagramas (`docs/`) | Sí | Se clona |
 | **Base de datos** (usuarios, repositorios, análisis, decisiones, informes) | **No** | Respaldo `.dump` que se pasa **por un medio privado** (§6) |
@@ -110,7 +110,8 @@ Después de restaurar:
 - Las cuentas son las del respaldo. Pida al administrador su usuario y
   contraseña, o cree una cuenta propia con
   `cd backend; venv\Scripts\python.exe manage.py createsuperuser`.
-- Compruebe en **Modelos** que el modelo activo es **v2**.
+- Compruebe en **Modelos** que aparecen **Random Forest (Principal)** (`v2`) y
+  **XGBoost (Alternativo)** (`v2-xgb`).
 
 **Sin respaldo (base vacía, sin los datos de la tesis):**
 
@@ -118,6 +119,7 @@ Después de restaurar:
 cd backend
 venv\Scripts\python.exe manage.py migrate
 venv\Scripts\python.exe manage.py registrar_modelo --modelo v2
+venv\Scripts\python.exe manage.py registrar_modelo --modelo v2-xgb --sin-activar
 venv\Scripts\python.exe manage.py createsuperuser
 ```
 
