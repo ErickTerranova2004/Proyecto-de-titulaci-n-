@@ -31,7 +31,6 @@ from django.utils import timezone as dj_timezone
 from riesgo.services.predictor import (DESCRIPCIONES, contribuciones,
                                        nivel_de, predecir, probabilidades)
 
-CONDICIONES = ("fecha", "hora", "es_reintento", "tiene_pr")
 # Franja que se evalúa en las mejores ventanas (hora local, ambas incluidas).
 HORAS_VENTANA = range(7, 21)
 # Días hacia adelante que admite un escenario o la lista de ventanas.

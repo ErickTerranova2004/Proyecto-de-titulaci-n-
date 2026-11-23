@@ -4023,10 +4023,6 @@ td>.gestion-insignia:first-child {
     font-weight: 700;
 }
 
-.informe-fila--nuevo td {
-    background: var(--acento-suave);
-}
-
 .informe__barra {
     display: flex;
     flex-wrap: wrap;
@@ -4159,8 +4155,7 @@ td>.gestion-insignia:first-child {
 @media print {
     .lateral,
     .barra-superior,
-    .no-imprimir,
-    .ventana-asignaciones {
+    .no-imprimir {
         display: none !important;
     }
 
