@@ -723,7 +723,7 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
 
 class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
-    # Las versiones ocultas (est_registro = 'I', p. ej. v1.1) no salen en
+    # Las versiones ocultas (est_registro = 'I': v1 y v1.1) no salen en
     # ninguna pantalla ni se pueden activar; sus filas y predicciones se
     # conservan.
     queryset = VersionModelo.objects.filter(est_registro="A")

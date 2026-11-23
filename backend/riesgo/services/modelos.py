@@ -2,8 +2,8 @@
 
 Solo se puede activar una versión visible (est_registro = 'A') con fecha de
 corte (metadatos.fecha_corte): sin ella el análisis en lote no sabe desde
-cuándo evaluar y la supervisión no se puede calcular. v1 y v1.1 no la tienen;
-solo se evalúan en sombra (services/sombra.py).
+cuándo evaluar y la supervisión no se puede calcular. v1 y v1.1 no la tienen
+y están ocultas (migraciones 0022 y 0029).
 
 Activar exige escribir el nombre de la versión como confirmación y deja una
 fila en trx_activacion_modelo (quién, cuándo, desde dónde y cuál estaba

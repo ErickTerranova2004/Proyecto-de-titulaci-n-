@@ -156,7 +156,8 @@ def comparacion():
         referencia = modelo_lote()
     except SinModeloActivo:
         return None
-    # Solo las versiones visibles (est_registro = 'A'): v1.1 está oculta.
+    # Solo las versiones visibles (est_registro = 'A'): v1 y v1.1 están
+    # ocultas.
     sombras = list(VersionModelo.objects.filter(est_registro="A")
                    .exclude(id=referencia.id)
                    .order_by("-registrado_en", "-id"))

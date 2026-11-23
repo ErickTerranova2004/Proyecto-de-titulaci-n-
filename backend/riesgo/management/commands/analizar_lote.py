@@ -13,8 +13,9 @@ Cada pasada:
    análisis interactivo.
 3. Actualiza los commits pendientes de desplegar de cada workflow (también
    del repositorio de demostración) que muestra «Nuevo análisis».
-4. Evaluación en sombra: v1 y v1.1 predicen las ejecuciones evaluables
-   nuevas con las variables ya guardadas (sin llamadas a GitHub).
+4. Evaluación en sombra: XGBoost predice las ejecuciones evaluables
+   nuevas de Random Forest con las variables ya guardadas (sin llamadas a
+   GitHub).
 
     manage.py analizar_lote --contar            # solo cuenta (no guarda nada)
     manage.py analizar_lote --usuario analisis_lote

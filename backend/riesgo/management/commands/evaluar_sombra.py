@@ -1,4 +1,5 @@
-"""Evaluación en sombra de las versiones no activas (v1, v1.1).
+"""Evaluación en sombra de las versiones visibles que no son el modelo del
+lote (hoy XGBoost frente a Random Forest).
 
 Predice con cada versión no activa las ejecuciones evaluables de la
 supervisión del modelo activo que aún no tengan predicción en sombra, con

@@ -1,0 +1,5 @@
+# Dependencias extra para reentrenar los modelos v1 y v1.1 (train_models.py,
+# en la raíz del proyecto). La plataforma no las necesita.
+#   pip install -r backend/requirements-entrenamiento.txt
+-r requirements.txt
+lightgbm==4.7.0
