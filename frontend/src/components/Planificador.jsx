@@ -236,18 +236,12 @@ export default function Planificador({ inicial: inicialDado, analisisId, modelos
                 value={modeloEstimacion}
                 disabled={!base}
                 onChange={(e) => cambiarModelo(e.target.value)}
-                aria-describedby="ayuda-plan-modelo"
               >
                 {!opciones.some((o) => o.valor === modeloEstimacion) && modeloEstimacion && (
                   <option value={modeloEstimacion}>{modeloEstimacion}</option>
                 )}
                 {opciones.map((o) => <option key={o.valor} value={o.valor}>{o.texto}</option>)}
               </select>
-              {base && (
-                <p id="ayuda-plan-modelo" className="secundario nota-pie">
-                  Por defecto, el del análisis base ({base.modelo_nombre ?? base.version_modelo}).
-                </p>
-              )}
             </div>
             )}
           </div>
