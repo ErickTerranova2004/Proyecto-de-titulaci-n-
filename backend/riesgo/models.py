@@ -279,8 +279,8 @@ class VersionModelo(Auditoria):
     metadatos = models.JSONField(db_column="jsn_metadatos")
     activo = models.BooleanField(default=False,
                                  db_column="es_vigente")
-    # El administrador decide qué modelos se ofrecen en «Nuevo análisis» y
-    # en el Planificador (services/modelos.py; el del lote, siempre).
+    # Retirado el 23-nov (los dos modelos siempre están disponibles): se
+    # conserva con su historial (trx_disponibilidad_modelo), pero no se usa.
     disponible = models.BooleanField(default=True,
                                      db_column="es_disponible_analisis")
     registrado_en = models.DateTimeField(auto_now_add=True,
@@ -767,7 +767,8 @@ class ActivacionModelo(Auditoria):
 
 class DisponibilidadModelo(Auditoria):
     """Historial de cambios de «disponible para análisis» de cada versión del
-    modelo: quién lo cambió, cuándo y a qué valor. No se borra."""
+    modelo: quién lo cambió, cuándo y a qué valor. No se borra. La función se
+    retiró el 23-nov; la tabla se conserva como registro (solo lectura)."""
 
     id = models.BigAutoField(primary_key=True,
                               db_column="id_disponibilidad_modelo")

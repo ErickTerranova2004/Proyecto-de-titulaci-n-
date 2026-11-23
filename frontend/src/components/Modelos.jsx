@@ -13,22 +13,6 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
   // Versión que se está confirmando (se escribe su nombre para activarla).
   const [confirmando, setConfirmando] = useState(null);
   const [activando, setActivando] = useState(false);
-  const [cambiando, setCambiando] = useState(null);
-
-  // Disponible para análisis («Nuevo análisis» y Planificador). Queda
-  // registrado quién lo cambia (trx_disponibilidad_modelo).
-  async function cambiarDisponibilidad(modelo, disponible) {
-    setError("");
-    setCambiando(modelo.id);
-    try {
-      await api.disponibilidadModelo(modelo.id, disponible);
-      await alCambiar();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setCambiando(null);
-    }
-  }
 
   async function activar(modelo, confirmacion) {
     setError("");
@@ -65,7 +49,6 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
               <th scope="col">Versión</th>
               <th scope="col">Modelo</th>
               <th scope="col">Estado</th>
-              <th scope="col">Disponible para análisis</th>
               <th scope="col" className="numero">Filas de entrenamiento</th>
               <th scope="col">Evaluación</th>
               {METRICAS.map((m) => (
@@ -95,14 +78,6 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
                       </span>
                     )}
                   </td>
-                  <td>
-                    <Disponibilidad
-                      modelo={m}
-                      esAdmin={esAdmin}
-                      cambiando={cambiando === m.id}
-                      alCambiar={(valor) => cambiarDisponibilidad(m, valor)}
-                    />
-                  </td>
                   <td className="numero">{m.metadatos.filas_entrenamiento}</td>
                   <td>
                     {origen ?? "—"}
@@ -119,9 +94,9 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
                       {m.activo ? (
                         <span className="secundario">En uso</span>
                       ) : !m.activable ? (
-                        // Sin fecha de corte (v1) o no disponible para análisis; el backend también lo rechaza.
+                        // Sin fecha de corte (v1): solo se evalúa en sombra; el backend también lo rechaza.
                         <span className="secundario" title={m.motivo_no_activable ?? undefined}>
-                          {m.disponible === false ? "No disponible para análisis" : "Solo evaluación en sombra"}
+                          Solo evaluación en sombra
                         </span>
                       ) : (
                         <button
@@ -154,35 +129,6 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
       )}
       {esAdmin && <Supervision modelos={modelos} />}
     </section>
-  );
-}
-
-// Columna «Disponible para análisis». El administrador la cambia con una
-// casilla; el modelo del lote (Random Forest) y el principal siempre están
-// disponibles (casilla desactivada con el motivo).
-export function Disponibilidad({ modelo, esAdmin, cambiando = false, alCambiar }) {
-  const siempre = modelo.motivo_siempre_disponible;
-  if (!esAdmin) return <span>{modelo.disponible === false ? "No" : "Sí"}</span>;
-  const cambio = modelo.ultimo_cambio_disponibilidad;
-  return (
-    <>
-      <label className="campo--en-linea modelos__disponible" title={siempre ?? undefined}>
-        <input
-          type="checkbox"
-          checked={modelo.disponible !== false}
-          disabled={Boolean(siempre) || cambiando}
-          onChange={(e) => alCambiar(e.target.checked)}
-        />
-        {siempre ? "Siempre" : modelo.disponible === false ? "No" : "Sí"}
-        <span className="solo-lector"> ({modelo.nombre_modelo})</span>
-      </label>
-      {siempre && <span className="secundario modelos__activacion">{siempre}</span>}
-      {cambio && (
-        <span className="secundario modelos__activacion">
-          Cambiado por {cambio.usuario} el <Fecha valor={cambio.fecha} />
-        </span>
-      )}
-    </>
   );
 }
 

@@ -306,29 +306,12 @@ class VersionModeloSerializer(serializers.ModelSerializer):
     rol = serializers.SerializerMethodField()
     # Tasa de fallos por nivel con despliegues reales (resultado del análisis).
     tasa_real_por_nivel = serializers.SerializerMethodField()
-    # Por qué no se puede quitar de los análisis (modelo del lote o
-    # principal); None si se puede.
-    motivo_siempre_disponible = serializers.SerializerMethodField()
-    ultimo_cambio_disponibilidad = serializers.SerializerMethodField()
 
     class Meta:
         model = VersionModelo
         fields = ["id", "version", "nombre_modelo", "metadatos", "activo",
                   "registrado_en", "activable", "motivo_no_activable",
-                  "ultima_activacion", "rol", "tasa_real_por_nivel",
-                  "disponible", "motivo_siempre_disponible",
-                  "ultimo_cambio_disponibilidad"]
-
-    def get_motivo_siempre_disponible(self, version):
-        from riesgo.services.modelos import motivo_no_cambiar_disponibilidad
-        return motivo_no_cambiar_disponibilidad(version, False)
-
-    def get_ultimo_cambio_disponibilidad(self, version):
-        fila = version.disponibilidades.order_by("-cambiado_en", "-id").first()
-        if fila is None:
-            return None
-        return {"usuario": fila.nombre_usuario, "fecha": fila.cambiado_en,
-                "disponible": fila.disponible}
+                  "ultima_activacion", "rol", "tasa_real_por_nivel"]
 
     def get_tasa_real_por_nivel(self, version):
         from riesgo.services.supervision import tasas_reales

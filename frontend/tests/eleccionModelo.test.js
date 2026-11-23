@@ -131,34 +131,25 @@ test("Planificador: selector de modelo que usa por defecto el del análisis base
   assert.match(fuente, /api\.ventanas\(baseId, undefined, valor\)/);
 });
 
-test("solo los modelos disponibles; con uno solo no hay selector y se usa el principal", async () => {
-  const sinXgb = MODELOS.map((m) => (m.version === "v2-xgb" ? { ...m, disponible: false, activable: false } : m));
-  assert.deepEqual(opcionesModelo(sinXgb), [{ valor: "v2", texto: "Random Forest (Principal)" }]);
-  // El principal siempre se ofrece.
-  assert.equal(opcionesModelo([{ ...MODELOS[1], disponible: false }]).length, 1);
+test("los dos modelos siempre disponibles: selector con Random Forest, XGBoost y Comparar ambos", async () => {
+  // Aunque la columna antigua diga «no disponible», se ofrecen los dos.
+  const conColumnaAntigua = MODELOS.map((m) => ({ ...m, disponible: false }));
+  assert.deepEqual(opcionesModelo(conColumnaAntigua).map((o) => o.valor), ["v2", "v2-xgb"]);
   const { default: NuevoAnalisis } = await cargarComponente("NuevoAnalisis");
-  const html = limpiar(renderToString(h(NuevoAnalisis, { modelos: sinXgb })));
-  assert.doesNotMatch(html, /campo-modelo|Comparar ambos|<legend>3\. Modelo/);
-  const conLos2 = limpiar(renderToString(h(NuevoAnalisis, { modelos: MODELOS })));
-  assert.match(conLos2, /campo-modelo/);
-  const { readFileSync } = await import("node:fs");
-  const fuente = readFileSync(new URL("../src/components/Planificador.jsx", import.meta.url), "utf8");
-  assert.match(fuente, /opciones\.length > 1 && \(/);
+  const html = limpiar(renderToString(h(NuevoAnalisis, { modelos: conColumnaAntigua })));
+  assert.match(html, /campo-modelo/);
+  assert.match(html, />Comparar ambos</);
+  // Con un solo modelo (p. ej. sin XGBoost registrado) no hay selector.
+  const solo = limpiar(renderToString(h(NuevoAnalisis, { modelos: [MODELOS[1]] })));
+  assert.doesNotMatch(solo, /campo-modelo|Comparar ambos/);
 });
 
-test("Modelos: columna «Disponible para análisis»", async () => {
-  const { Disponibilidad } = await cargarComponente("Modelos");
-  const rf = { ...MODELOS[1], disponible: true,
-    motivo_siempre_disponible: "Random Forest es el modelo del análisis en lote: siempre está disponible." };
-  const xgb = { ...MODELOS[0], disponible: false, motivo_siempre_disponible: null,
-    ultimo_cambio_disponibilidad: { usuario: "revision_admin", fecha: "2026-11-23T21:40:00Z", disponible: false } };
-  const fila = (modelo, esAdmin = true) =>
-    limpiar(renderToString(h(Disponibilidad, { modelo, esAdmin, alCambiar: () => {} })));
-  assert.match(fila(rf), /<input type="checkbox" disabled="" checked=""\/>Siempre/);
-  assert.match(fila(rf), /siempre está disponible/);
-  assert.match(fila(xgb), /<input type="checkbox"\/>No/);
-  assert.match(fila(xgb), /Cambiado por revision_admin el/);
-  // Sin permisos de administrador, solo se lee.
-  assert.equal(fila(xgb, false), "<span>No</span>");
-  assert.equal(fila(rf, false), "<span>Sí</span>");
+test("Modelos: sin la columna «Disponible para análisis»", async () => {
+  const { default: Modelos } = await cargarComponente("Modelos");
+  const html = limpiar(renderToString(h(Modelos, { modelos: MODELOS, esAdmin: true, alCambiar: () => {} })));
+  assert.doesNotMatch(html, /Disponible para análisis|type="checkbox"/);
+  assert.match(html, /Usar como principal…/);
+  const { readFileSync } = await import("node:fs");
+  const api = readFileSync(new URL("../src/api.js", import.meta.url), "utf8");
+  assert.doesNotMatch(api, /disponibilidad/);
 });

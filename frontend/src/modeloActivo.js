@@ -27,13 +27,13 @@ export const confirmacionValida = (texto, version) => (texto ?? "").trim() === v
 export const COMPARAR = "comparar";
 export const ROLES_MODELO = { principal: "Principal", alternativo: "Alternativo" };
 
-// Modelos que se pueden elegir en un análisis: con fecha de corte y marcados
-// como disponibles por el administrador (el principal siempre lo está), el
-// principal primero. [{ valor: "v2", texto: "Random Forest (Principal)" }, …]
+// Modelos que se pueden elegir en un análisis: los que tienen fecha de corte
+// (Random Forest y XGBoost, siempre disponibles), el principal primero.
+// [{ valor: "v2", texto: "Random Forest (Principal)" }, …]
 // Con una sola opción no se muestra el selector y se usa el principal.
 export function opcionesModelo(modelos) {
   return (modelos ?? [])
-    .filter((m) => m.activo || (m.activable !== false && m.disponible !== false))
+    .filter((m) => m.activo || m.activable !== false)
     .sort((a, b) => Number(b.activo) - Number(a.activo))
     .map((m) => ({ valor: m.version, texto: `${m.nombre_modelo} (${ROLES_MODELO[m.activo ? "principal" : "alternativo"]})` }));
 }

@@ -87,15 +87,15 @@ de corte y mismas variables). Se puede elegir cualquiera en cada análisis.
   modelo por defecto de cada análisis: **el lote, la sombra y la comparación
   usan siempre Random Forest** (`modelos.modelo_lote()`). Solo el
   administrador cambia el principal (desarrollador y líder reciben 403).
-- **Disponible para análisis** (Modelos, solo administrador;
-  `mae_version_modelo.es_disponible_analisis`, migraciones 0030–0031):
-  qué modelos ofrecen «Nuevo análisis» y el Planificador. Random Forest
-  (modelo del lote) y el principal siempre están disponibles; un modelo no
-  disponible no puede ser principal. Con un solo modelo disponible no se
-  muestra el selector y se usa el principal. El backend rechaza un modelo
-  no disponible (400 `modelo_no_disponible`). Cada cambio queda en
-  `trx_disponibilidad_modelo` (quién, cuándo y a qué valor; visible en el
-  admin de Django, de solo lectura). No hay acción de desactivar y
+- **Los dos modelos siempre disponibles** en «Nuevo análisis» y en el
+  Planificador (Random Forest, XGBoost y «Comparar ambos»). La
+  disponibilidad por modelo se añadió y se retiró el 23-nov: el campo
+  `mae_version_modelo.es_disponible_analisis` y el historial
+  `trx_disponibilidad_modelo` (migraciones 0030–0031) se conservan, pero ya
+  no se usan ni se pueden cambiar (sin columna en Modelos ni acción en la
+  API; el historial se ve en el admin de Django, de solo lectura). XGBoost
+  quedó marcado como disponible (respaldo
+  `..._164507_antes_quitar_disponibilidad.dump`). No hay acción de desactivar y
   el admin de Django es de solo lectura para las versiones. El panel del
   administrador avisa en rojo si el activo no tiene fecha de corte o es de
   un corte anterior al más reciente.
@@ -267,6 +267,7 @@ arrancarla desde el asistente.
 - `riesgo_despliegue_20261123_161545_antes_corregir_lote_xgboost.dump`
 - `riesgo_despliegue_20261123_163026_antes_regenerar_texto_ia.dump`
 - `riesgo_despliegue_20261123_163610_antes_disponibilidad_modelo.dump`
+- `riesgo_despliegue_20261123_164507_antes_quitar_disponibilidad.dump`
 
 ### Limpieza de repositorios inactivos (20-nov-2026)
 
