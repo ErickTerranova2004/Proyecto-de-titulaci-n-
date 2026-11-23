@@ -5,7 +5,8 @@ import { formatoMetrica, metricasModelo } from "../metricas.js";
 import { MisAsignaciones } from "./Alarma.jsx";
 import { Alerta, Fecha, NIVELES, NivelRiesgo, NotaCorte, porcentaje } from "./comunes.jsx";
 import { BarrasApiladas, Dona, Embudo, Linea } from "./graficos.jsx";
-import Resultado, { ETIQUETAS } from "./Resultado.jsx";
+import { useNavegacion } from "../navegacion.jsx";
+import { ETIQUETAS } from "./Resultado.jsx";
 import { pasosEmbudo, textoDemostracion } from "../embudo.js";
 
 // Dashboard principal con el mismo diseño para los tres perfiles: flujo de la
@@ -169,7 +170,7 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
   const [cargando, setCargando] = useState(false);
   const [periodo, setPeriodo] = useState("30");
   const [cargadoEn, setCargadoEn] = useState(null);
-  const [seleccion, setSeleccion] = useState(null);
+  const { navegar } = useNavegacion();
 
   const activo = modelos.find((m) => m.activo);
   const limites = activo?.metadatos?.limites_riesgo;
@@ -330,23 +331,9 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
     </section>
   );
 
+  // El análisis abre su pantalla /analisis/<id> (atrás vuelve al panel).
   function verAnalisis(id) {
-    const p = historial?.find((x) => x.id === id);
-    if (p) setSeleccion(p);
-  }
-
-  if (seleccion) {
-    return (
-      <section className="vista" aria-labelledby="titulo-panel">
-        <h1 id="titulo-panel">{textos.titulo}</h1>
-        <div>
-          <button className="boton boton--secundario" type="button" onClick={() => { setSeleccion(null); cargar(); alarma?.recargar(); }}>
-            ← Volver al panel
-          </button>
-        </div>
-        <Resultado prediccion={seleccion} modelos={modelos} />
-      </section>
-    );
+    navegar(`/analisis/${id}?desde=panel`);
   }
 
   return (
@@ -395,7 +382,7 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
               vacio="Sin análisis en el período."
               detalle={(p) => ` · ${p.usuario}`}
               accion="Ver"
-              alSeleccionar={setSeleccion}
+              alSeleccionar={(p) => verAnalisis(p.id)}
             />
           </div>
           {tendencia}
@@ -449,7 +436,7 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
               vacio="Sin análisis en el período."
               detalle={(p) => ` · ${p.ejecucion_real ? ETIQUETAS[p.ejecucion_real.etiqueta] || p.ejecucion_real.etiqueta : "resultado pendiente"}`}
               accion="Ver"
-              alSeleccionar={setSeleccion}
+              alSeleccionar={(p) => verAnalisis(p.id)}
             />
           </div>
 
@@ -492,7 +479,7 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
               vacio="No hay predicciones de nivel medio o alto sin decisión."
               detalle={(p) => ` · ${p.usuario}`}
               accion="Decidir"
-              alSeleccionar={setSeleccion}
+              alSeleccionar={(p) => verAnalisis(p.id)}
             />
           </div>
 

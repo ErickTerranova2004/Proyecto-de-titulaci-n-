@@ -3,7 +3,9 @@ import { api } from "../api.js";
 import { columnasInformes } from "../columnasTablas.js";
 import { errorRango, FILTROS_INICIALES, hayFiltros } from "../filtrosHistorial.js";
 import { consultaInformes, ORDENES_INFORMES } from "../informes.js";
-import { consultaPaginada, PAGINACION_INICIAL } from "../paginacion.js";
+import { escribirEstado, leerFiltros, leerPaginacion } from "../estadoUrl.js";
+import { useNavegacion } from "../navegacion.jsx";
+import { consultaPaginada } from "../paginacion.js";
 import { textoPuntos } from "../planificador.js";
 import { AbrirInformeContexto, Alerta, Fecha, NivelRiesgo } from "./comunes.jsx";
 import FiltrosHistorial from "./FiltrosHistorial.jsx";
@@ -14,18 +16,20 @@ import { TablaPaginada } from "./TablaDesplazable.jsx";
 // defecto, del más reciente al más antiguo, 25 por página.
 export default function InformesRecibidos({ titulo = "Informes recibidos", descripcion, mostrarLider = false }) {
   const abrir = useContext(AbrirInformeContexto);
-  const [filtros, setFiltrosBase] = useState(FILTROS_INICIALES);
-  const [paginacion, setPaginacion] = useState(PAGINACION_INICIAL);
+  const { ruta, navegar } = useNavegacion();
+  const filtros = leerFiltros(ruta.search, FILTROS_INICIALES);
+  const paginacion = leerPaginacion(ruta.search);
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const peticion = useRef(0);
   const columnas = columnasInformes({ mostrarLider });
 
-  function setFiltros(nuevos) {
-    setFiltrosBase(nuevos);
-    setPaginacion((p) => ({ ...p, pagina: 1 }));
+  function irA(f, p) {
+    navegar(ruta.pathname + escribirEstado({ filtros: f, iniciales: FILTROS_INICIALES, paginaciones: [["", p]] }));
   }
+  const setFiltros = (nuevos) => irA(nuevos, { ...paginacion, pagina: 1 });
+  const setPaginacion = (p) => irA(filtros, p);
 
   function cargar() {
     if (errorRango(filtros.desde, filtros.hasta)) return;

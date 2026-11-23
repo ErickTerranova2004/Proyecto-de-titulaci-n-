@@ -5,10 +5,11 @@ import {
   AbrirInformeContexto, Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador, textoPlazo,
 } from "./comunes.jsx";
 import FiltrosHistorial from "./FiltrosHistorial.jsx";
-import Resultado from "./Resultado.jsx";
 import { TablaPaginada } from "./TablaDesplazable.jsx";
+import { escribirEstado, leerFiltros, leerPaginacion } from "../estadoUrl.js";
 import { consultaHistorial, errorRango, FILTROS_INICIALES, hayFiltros, ORDENES } from "../filtrosHistorial.js";
-import { consultaPaginada, PAGINACION_INICIAL } from "../paginacion.js";
+import { Enlace, useNavegacion } from "../navegacion.jsx";
+import { consultaPaginada } from "../paginacion.js";
 
 // Aquí todos los análisis están sin decisión: no aplica «con decisión primero».
 const ORDENES_PENDIENTES = ORDENES.filter(([id]) => id !== "decision");
@@ -18,23 +19,28 @@ const ORDENES_PENDIENTES = ORDENES.filter(([id]) => id !== "decision");
 // Nivel, fechas, orden y paginación los aplica el backend (sin_decision=1);
 // por defecto, todos los niveles, del más reciente al más antiguo, 25 por
 // página.
-export default function Pendientes({ modelos }) {
+export default function Pendientes() {
   const abrirInforme = useContext(AbrirInformeContexto);
+  const { ruta, navegar } = useNavegacion();
   const [sinDecision, setSinDecision] = useState(null);
   const [asignaciones, setAsignaciones] = useState(null);
   const [error, setError] = useState("");
-  const [filtros, setFiltrosBase] = useState(FILTROS_INICIALES);
-  const [paginaPendientes, setPaginaPendientes] = useState(PAGINACION_INICIAL);
-  const [paginaAsignaciones, setPaginaAsignaciones] = useState(PAGINACION_INICIAL);
+  // Filtros y las dos paginaciones van en la dirección (F5, atrás/adelante).
+  const filtros = leerFiltros(ruta.search, FILTROS_INICIALES);
+  const paginaPendientes = leerPaginacion(ruta.search);
+  const paginaAsignaciones = leerPaginacion(ruta.search, "_asignaciones");
   const [cargando, setCargando] = useState(false);
-  const [seleccion, setSeleccion] = useState(null);
-  const [abriendo, setAbriendo] = useState(false);
   const peticion = useRef(0);
 
-  function setFiltros(nuevos) {
-    setFiltrosBase(nuevos);
-    setPaginaPendientes((p) => ({ ...p, pagina: 1 }));
+  function irA(f, pendientes, asignadas) {
+    navegar(ruta.pathname + escribirEstado({
+      filtros: f, iniciales: FILTROS_INICIALES,
+      paginaciones: [["", pendientes], ["_asignaciones", asignadas]],
+    }));
   }
+  const setFiltros = (nuevos) => irA(nuevos, { ...paginaPendientes, pagina: 1 }, paginaAsignaciones);
+  const setPaginaPendientes = (p) => irA(filtros, p, paginaAsignaciones);
+  const setPaginaAsignaciones = (p) => irA(filtros, paginaPendientes, p);
 
   function cargarPendientes() {
     if (errorRango(filtros.desde, filtros.hasta)) return;
@@ -59,31 +65,8 @@ export default function Pendientes({ modelos }) {
   useEffect(cargarPendientes, [filtros.desde, filtros.hasta, filtros.nivel, filtros.orden,
     paginaPendientes.pagina, paginaPendientes.porPagina]);
   const filtrado = hayFiltros(filtros);
-
-  if (seleccion) {
-    return (
-      <section className="vista" aria-labelledby="titulo-pendientes">
-        <h1 id="titulo-pendientes">Pendientes de decisión</h1>
-        <div>
-          <button className="boton boton--secundario" type="button" onClick={() => { setSeleccion(null); cargar(); }}>
-            ← Volver a pendientes
-          </button>
-        </div>
-        <Resultado prediccion={seleccion} modelos={modelos} />
-      </section>
-    );
-  }
-
-  // El análisis de una asignación ya tiene decisión: no está en la lista de
-  // pendientes, se pide al backend.
-  function abrir(id) {
-    setAbriendo(true);
-    api
-      .prediccion(id)
-      .then(setSeleccion)
-      .catch((e) => setError(e.message))
-      .finally(() => setAbriendo(false));
-  }
+  // Decidir o ver un análisis: su pantalla /analisis/<id>.
+  const enlaceAnalisis = (id) => `/analisis/${id}?desde=pendientes`;
 
   const celdasPendientes = {
     fecha: (p) => <Fecha valor={p.creada_en} />,
@@ -93,9 +76,9 @@ export default function Pendientes({ modelos }) {
     desarrollador: (p) => p.usuario,
     workflow: (p) => <span className="secundario" title={p.workflow_path}>{p.workflow_path.replace(".github/workflows/", "")}</span>,
     acciones: (p) => (
-      <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => setSeleccion(p)}>
+      <Enlace className="boton boton--secundario boton--pequeno" href={enlaceAnalisis(p.id)}>
         Decidir<span className="solo-lector"> sobre el análisis {p.id} de {p.repositorio}</span>
-      </button>
+      </Enlace>
     ),
   };
 
@@ -127,9 +110,9 @@ export default function Pendientes({ modelos }) {
     vista: (a) => (a.vista_por_desarrollador_en ? <Fecha valor={a.vista_por_desarrollador_en} /> : "No"),
     cumplida: (a) => (a.cumplida_en ? <Fecha valor={a.cumplida_en} /> : "No"),
     acciones: (a) => (
-      <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => abrir(a.prediccion)} disabled={abriendo}>
+      <Enlace className="boton boton--secundario boton--pequeno" href={enlaceAnalisis(a.prediccion)}>
         Ver<span className="solo-lector"> el análisis de {a.repositorio}</span>
-      </button>
+      </Enlace>
     ),
   };
 

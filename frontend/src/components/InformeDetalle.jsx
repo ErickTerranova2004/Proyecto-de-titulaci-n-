@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { valorVariable } from "../informes.js";
+import { useNavegacion } from "../navegacion.jsx";
 import { textoPuntos } from "../planificador.js";
 import { Alerta, DECISIONES, Fecha, FechaDia, NivelRiesgo, porcentaje } from "./comunes.jsx";
 
@@ -8,7 +9,12 @@ const OPCIONES = ["autorizar", "posponer", "solicitar_revision"];
 
 // Informe de cumplimiento completo. Pantalla e impresión comparten el mismo
 // contenido; @media print oculta el menú y los botones (clase no-imprimir).
+// Pantalla /informes/<id>. «Volver» va atrás si se llegó navegando; si no
+// (enlace del correo, F5), a la lista de informes (o al panel si el rol no la
+// tiene: lo redirige App).
 export default function InformeDetalle({ id, alVolver }) {
+  const { volver } = useNavegacion();
+  alVolver = alVolver || (() => volver("/informes"));
   const [informe, setInforme] = useState(null);
   const [error, setError] = useState("");
   const [descargando, setDescargando] = useState(false);

@@ -40,10 +40,14 @@ function conSigno(valor) {
   return `${valor > 0 ? "+" : valor < 0 ? "−" : ""}${Math.abs(valor).toFixed(3)}`;
 }
 
-// `inicial`: { id, repositorio, workflow_path } del último «Nuevo análisis»;
-// se preselecciona al abrir el Planificador.
-export default function Planificador({ inicial }) {
+// `analisisId` (de /planificador?analisis=<id>): análisis que se preselecciona,
+// también al recargar la página. `inicial`: el mismo análisis si ya se tiene
+// (el último «Nuevo análisis»); si no, se pide al backend.
+export default function Planificador({ inicial: inicialDado, analisisId }) {
   const usuario = useContext(UsuarioContexto)?.usuario;
+  const [inicial, setInicial] = useState(
+    inicialDado && inicialDado.repositorio && (!analisisId || inicialDado.id === analisisId) ? inicialDado : null,
+  );
   const [analisis, setAnalisis] = useState(null);
   const [repositorio, setRepositorio] = useState("");
   const [workflow, setWorkflow] = useState("");
@@ -60,25 +64,31 @@ export default function Planificador({ inicial }) {
     api.historial().then(setAnalisis).catch((e) => setError(e.message));
   }, []);
 
-  // Preselección del último análisis (aunque el historial no lo incluya, el
-  // backend lo encuentra por su id).
+  // Solo el id en la dirección: se pide el análisis para preseleccionarlo.
+  useEffect(() => {
+    if (!analisisId || inicial?.id === analisisId) return;
+    api.prediccion(analisisId).then(setInicial).catch(() => setInicial(null));
+  }, [analisisId]);
+
+  // Preselección (aunque el historial no lo incluya, el backend lo encuentra
+  // por su id).
   useEffect(() => {
     if (!analisis || !inicial?.id) return;
     setRepositorio(inicial.repositorio);
     setWorkflow(inicial.workflow_path);
     elegirBase(String(inicial.id));
-  }, [analisis]);
+  }, [analisis, inicial]);
 
-  // El último análisis cuenta aunque el historial cargado no lo traiga.
+  // El análisis preseleccionado cuenta aunque el historial no lo traiga.
   // (Debe declararse antes de los cálculos que lo usan.)
   const todos = useMemo(
     () => (inicial?.id && analisis && !analisis.some((a) => a.id === inicial.id) ? [inicial, ...analisis] : analisis || []),
-    [analisis],
+    [analisis, inicial],
   );
   const repositorios = useMemo(() => {
     const lista = ordenarRepositorios(todos, usuario);
     return inicial?.repositorio && !lista.includes(inicial.repositorio) ? [inicial.repositorio, ...lista] : lista;
-  }, [todos, usuario]);
+  }, [todos, usuario, inicial]);
   const workflows = useMemo(
     () => [...new Set(todos.filter((a) => a.repositorio === repositorio).map((a) => a.workflow_path))].sort(),
     [todos, repositorio],

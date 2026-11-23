@@ -4,11 +4,12 @@ import {
   Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador,
 } from "./comunes.jsx";
 import FiltrosHistorial from "./FiltrosHistorial.jsx";
-import Resultado from "./Resultado.jsx";
 import { TablaPaginada } from "./TablaDesplazable.jsx";
 import { columnasHistorial } from "../columnasTablas.js";
+import { escribirEstado, leerFiltros, leerPaginacion } from "../estadoUrl.js";
 import { consultaHistorial, errorRango, FILTROS_INICIALES, hayFiltros } from "../filtrosHistorial.js";
-import { consultaPaginada, PAGINACION_INICIAL } from "../paginacion.js";
+import { Enlace, useNavegacion } from "../navegacion.jsx";
+import { consultaPaginada } from "../paginacion.js";
 
 // Seguimiento de la fecha límite de la última decisión (vista / cumplida).
 export function SeguimientoAsignacion({ decision, nivelOriginal }) {
@@ -38,28 +39,32 @@ const ORIGENES = [
 // El backend ya filtra por rol: el desarrollador recibe sus análisis y el
 // líder los de todos los desarrolladores de sus repositorios asignados.
 // Fechas, origen, orden y paginación también se aplican en el backend; por
-// defecto, del más reciente al más antiguo y 25 por página.
+// defecto, del más reciente al más antiguo y 25 por página. Filtros y página
+// van en la dirección (F5 y atrás/adelante los conservan).
 export default function Historial({
-  modelos, titulo = "Historial de análisis", descripcion, mostrarDesarrollador = true, mostrarSeguimiento = false,
+  titulo = "Historial de análisis", descripcion, mostrarDesarrollador = true, mostrarSeguimiento = false,
   conOrigen = false,
   // Desplegable de nivel de riesgo (Todos, Bajo, Medio, Alto); lo filtra el backend.
   conNivel = false,
 }) {
+  const { ruta, navegar } = useNavegacion();
   const inicial = conOrigen ? { ...FILTROS_INICIALES, origen: "interactivo" } : FILTROS_INICIALES;
-  const [filtros, setFiltrosBase] = useState(inicial);
-  const [paginacion, setPaginacion] = useState(PAGINACION_INICIAL);
+  const filtros = leerFiltros(ruta.search, inicial);
+  const paginacion = leerPaginacion(ruta.search);
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [seleccion, setSeleccion] = useState(null);
   const peticion = useRef(0);
   const columnas = columnasHistorial({ mostrarSeguimiento, mostrarDesarrollador });
 
-  // Cambiar un filtro vuelve a la primera página.
-  function setFiltros(nuevos) {
-    setFiltrosBase(nuevos);
-    setPaginacion((p) => ({ ...p, pagina: 1 }));
+  function irA(nuevosFiltros, nuevaPaginacion) {
+    navegar(ruta.pathname + escribirEstado({
+      filtros: nuevosFiltros, iniciales: inicial, paginaciones: [["", nuevaPaginacion]],
+    }));
   }
+  // Cambiar un filtro vuelve a la primera página.
+  const setFiltros = (nuevos) => irA(nuevos, { ...paginacion, pagina: 1 });
+  const setPaginacion = (nueva) => irA(filtros, nueva);
 
   function cargar() {
     if (errorRango(filtros.desde, filtros.hasta)) return;
@@ -93,25 +98,11 @@ export default function Historial({
     workflow: (p) => <span className="secundario" title={p.workflow_path}>{p.workflow_path.replace(".github/workflows/", "")}</span>,
     commit: (p) => <code>{p.head_sha.slice(0, 7)}</code>,
     acciones: (p) => (
-      <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => setSeleccion(p)}>
+      <Enlace className="boton boton--secundario boton--pequeno" href={`/analisis/${p.id}?desde=historial`}>
         Ver detalle<span className="solo-lector"> del análisis {p.id}</span>
-      </button>
+      </Enlace>
     ),
   };
-
-  if (seleccion) {
-    return (
-      <section className="vista" aria-labelledby="titulo-historial">
-        <h1 id="titulo-historial">{titulo}</h1>
-        <div>
-          <button className="boton boton--secundario" type="button" onClick={() => { setSeleccion(null); cargar(); }}>
-            ← Volver al historial
-          </button>
-        </div>
-        <Resultado prediccion={seleccion} modelos={modelos} mostrarResultadoReal={false} />
-      </section>
-    );
-  }
 
   return (
     <section className="vista" aria-labelledby="titulo-historial">

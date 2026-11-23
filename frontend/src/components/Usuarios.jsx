@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api.js";
 import { COLUMNAS_USUARIOS } from "../columnasTablas.js";
-import { consultaPaginada, PAGINACION_INICIAL } from "../paginacion.js";
+import { escribirEstado, leerFiltros, leerPaginacion } from "../estadoUrl.js";
+import { useNavegacion } from "../navegacion.jsx";
+import { consultaPaginada } from "../paginacion.js";
 import { textoEnvio } from "../restablecer.js";
 import { NOMBRES_ROL } from "../roles.js";
 import { candidatosTraspaso, motivoNoEliminar, tieneHistorial } from "../traspaso.js";
@@ -26,6 +28,9 @@ const FILTROS = [
   ["sin_correo", "Sin correo"],
   ["inactivos", "Inactivos"],
 ];
+
+// Filtro y búsqueda de la tabla en la dirección (?filtro=…&q=…).
+const FILTROS_URL = { filtro: "todos", q: "" };
 
 function cumple(u, filtro) {
   if (filtro === "todos") return true;
@@ -92,27 +97,36 @@ export default function Usuarios() {
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [filtro, setFiltroBase] = useState("todos");
-  const [busqueda, setBusqueda] = useState("");
-  // La búsqueda se envía al backend 300 ms después de dejar de escribir.
-  const [busquedaEnviada, setBusquedaEnviada] = useState("");
-  const [paginacion, setPaginacion] = useState(PAGINACION_INICIAL);
+  // Filtro, búsqueda y página van en la dirección (F5, atrás/adelante).
+  const { ruta, navegar } = useNavegacion();
+  const leidos = leerFiltros(ruta.search, FILTROS_URL);
+  // Un filtro desconocido en la dirección (editada a mano) vale «Todos».
+  const filtro = FILTROS.some(([id]) => id === leidos.filtro) ? leidos.filtro : "todos";
+  const busquedaEnviada = leidos.q;
+  const paginacion = leerPaginacion(ruta.search);
+  const [busqueda, setBusqueda] = useState(busquedaEnviada);
   const [editando, setEditando] = useState(null);
   const [creando, setCreando] = useState(false);
   const peticion = useRef(0);
 
-  function setFiltro(valor) {
-    setFiltroBase(valor);
-    setPaginacion((p) => ({ ...p, pagina: 1 }));
+  function irA(valores, p, opciones) {
+    navegar(ruta.pathname + escribirEstado({ filtros: valores, iniciales: FILTROS_URL, paginaciones: [["", p]] }), opciones);
   }
+  const setFiltro = (valor) => irA({ filtro: valor, q: busquedaEnviada }, { ...paginacion, pagina: 1 });
+  const setPaginacion = (p) => irA({ filtro, q: busquedaEnviada }, p);
 
+  // La búsqueda se envía 300 ms después de dejar de escribir; reemplaza la
+  // entrada del historial para no crear una por cada letra.
   useEffect(() => {
     const espera = setTimeout(() => {
-      setBusquedaEnviada(busqueda.trim());
-      setPaginacion((p) => ({ ...p, pagina: 1 }));
+      if (busqueda.trim() !== busquedaEnviada) {
+        irA({ filtro, q: busqueda.trim() }, { ...paginacion, pagina: 1 }, { reemplazar: true });
+      }
     }, 300);
     return () => clearTimeout(espera);
   }, [busqueda]);
+  // Atrás/adelante cambia la búsqueda de la dirección: el campo la sigue.
+  useEffect(() => setBusqueda(busquedaEnviada), [busquedaEnviada]);
 
   // Todas las cuentas (indicadores, avisos y diálogos) y la página de la
   // tabla, filtrada y paginada en el backend.
