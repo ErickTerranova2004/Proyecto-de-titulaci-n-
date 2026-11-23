@@ -90,7 +90,8 @@ TABLAS_PROPIAS = set(ER) - VISTAS | {"trx_seguimiento_lote",
                                      "trx_restablecimiento_clave",
                                      "trx_informe_cumplimiento",
                                      "trx_descarga_informe",
-                                     "trx_activacion_modelo"}
+                                     "trx_activacion_modelo",
+                                     "trx_disponibilidad_modelo"}
 
 # En la implementación y no en el diagrama (hay que añadirlo al ER).
 EXTRA = {
@@ -137,6 +138,12 @@ EXTRA = {
         "id_activacion_modelo": BIGINT, "id_version_modelo": BIGINT,
         "id_version_modelo_anterior": BIGINT, "id_usuario": INT,
         "nom_usuario": vc(150), "tip_origen": vc(15), **AUDITORIA},
+    # Historial de «disponible para análisis» de cada versión del modelo.
+    "trx_disponibilidad_modelo": {
+        "id_disponibilidad_modelo": BIGINT, "id_version_modelo": BIGINT,
+        "es_disponible": BOOL, "id_usuario": INT, "nom_usuario": vc(150),
+        **AUDITORIA},
+    "mae_version_modelo": {"es_disponible_analisis": BOOL},
 }
 
 # Única diferencia de tipo con el diagrama original: Django crea la tabla

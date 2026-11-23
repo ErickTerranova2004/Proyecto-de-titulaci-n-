@@ -110,6 +110,9 @@ export const api = {
     // Todos los repositorios asignados, aunque no tengan workflows utilizables.
     repositoriosAsignados: () => solicitar("/repositorios/?todos=1"),
     modelos: () => solicitar("/modelos/"),
+    // Si el modelo se ofrece en «Nuevo análisis» y en el Planificador (solo administrador).
+    disponibilidadModelo: (id, disponible) =>
+        solicitar(`/modelos/${id}/disponibilidad/`, { method: "POST", body: JSON.stringify({ disponible }) }),
     activarModelo: (id, confirmacion) =>
         solicitar(`/modelos/${id}/activar/`, { method: "POST", body: JSON.stringify({ confirmacion }) }),
     supervision: (id) => solicitar(`/modelos/${id}/supervision/`),

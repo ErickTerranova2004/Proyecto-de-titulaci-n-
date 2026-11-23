@@ -806,6 +806,26 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
                        request.user.username)
         return Response(VersionModeloSerializer(version).data)
 
+    @action(detail=True, methods=["post"],
+            permission_classes=[EsAdministrador])
+    def disponibilidad(self, request, pk=None):
+        """{"disponible": true|false}: si el modelo se ofrece en «Nuevo
+        análisis» y en el Planificador. Queda en trx_disponibilidad_modelo."""
+        version = self.get_object()
+        disponible = request.data.get("disponible")
+        if not isinstance(disponible, bool):
+            return _error("Indique disponible: true o false.",
+                          "disponible_no_valido", status.HTTP_400_BAD_REQUEST)
+        try:
+            modelos_servicio.cambiar_disponibilidad(version, disponible,
+                                                    request.user)
+        except modelos_servicio.NoActivable as e:
+            return _error(e.mensaje, e.codigo, status.HTTP_400_BAD_REQUEST)
+        logger.warning("Modelo %s %s para análisis por %s", version.version,
+                       "disponible" if disponible else "no disponible",
+                       request.user.username)
+        return Response(VersionModeloSerializer(version).data)
+
 
 class AsignacionViewSet(mixins.ListModelMixin, GenericViewSet):
     """Asignaciones (última decisión con fecha límite) de las predicciones

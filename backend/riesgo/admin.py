@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from riesgo.models import (AccesoRepositorio, ActivacionModelo, Commit,
                            DecisionDespliegue, DescargaInforme,
+                           DisponibilidadModelo,
                            EjecucionWorkflow, InformeCumplimiento, Prediccion,
                            Repositorio, RestablecimientoClave, VersionModelo,
                            Workflow)
@@ -115,6 +116,12 @@ class VersionModeloAdmin(SoloLectura):
 
     list_display = ["version", "nombre_modelo", "activo", "est_registro",
                     "registrado_en"]
+
+
+@admin.register(DisponibilidadModelo)
+class DisponibilidadModeloAdmin(SoloLectura):
+    list_display = ["cambiado_en", "version_modelo", "disponible",
+                    "nombre_usuario"]
 
 
 @admin.register(ActivacionModelo)

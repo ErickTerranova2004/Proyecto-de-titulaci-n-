@@ -8,12 +8,17 @@ solo se evalúan en sombra (services/sombra.py).
 Activar exige escribir el nombre de la versión como confirmación y deja una
 fila en trx_activacion_modelo (quién, cuándo, desde dónde y cuál estaba
 activa antes).
+
+Disponibilidad: el administrador decide qué modelos se ofrecen en «Nuevo
+análisis» y en el Planificador (VersionModelo.disponible, historial en
+trx_disponibilidad_modelo). El modelo del lote (Random Forest) y el
+principal están siempre disponibles.
 """
 
 from django.db import transaction
 
 from .. import auditoria
-from ..models import ActivacionModelo, VersionModelo
+from ..models import ActivacionModelo, DisponibilidadModelo, VersionModelo
 from .features import fecha
 
 
@@ -38,6 +43,9 @@ def motivo_no_activable(version):
     if fecha_corte(version) is None:
         return ("Esta versión no tiene fecha de corte: solo se evalúa en "
                 "sombra y no se puede activar.")
+    if not version.disponible:
+        return ("No está disponible para análisis: márquela como disponible "
+                "antes de usarla como principal.")
     return None
 
 
@@ -48,18 +56,28 @@ def es_alternativo(version):
     return bool((version.metadatos or {}).get("alternativa_de"))
 
 
-def seleccionables():
-    """Versiones con las que se puede hacer un análisis: visibles y con
-    fecha de corte (Random Forest y XGBoost del dataset v2)."""
+def con_corte():
+    """Versiones visibles con fecha de corte (Random Forest y XGBoost del
+    dataset v2), estén o no disponibles para análisis."""
     return [v for v in VersionModelo.objects.filter(est_registro="A")
             .order_by("id") if fecha_corte(v) is not None]
 
 
-def recomendada():
+def seleccionables():
+    """Versiones con las que se puede hacer un análisis: con fecha de corte
+    y disponibles (el modelo del lote, siempre)."""
+    versiones = con_corte()
+    lote = recomendada(versiones)
+    return [v for v in versiones
+            if v.disponible or (lote is not None and v.id == lote.id)]
+
+
+def recomendada(versiones=None):
     """La versión con la fecha de corte más reciente; si varias la comparten
     (Random Forest y XGBoost de v2), la principal (no alternativa) y, a
     igualdad, la última registrada."""
-    return max(seleccionables(), default=None,
+    versiones = con_corte() if versiones is None else versiones
+    return max(versiones, default=None,
                key=lambda v: (fecha_corte(v), not es_alternativo(v),
                               v.registrado_en, v.id))
 
@@ -130,6 +148,50 @@ def activar(version, usuario, confirmacion):
         return registrar_activacion(version, anterior, usuario)
 
 
+# --- Disponibilidad para análisis -------------------------------------------
+
+def motivo_no_cambiar_disponibilidad(version, disponible):
+    """Por qué no se puede cambiar la disponibilidad (None si se puede)."""
+    if disponible:
+        return None
+    lote = recomendada()
+    if lote is not None and version.id == lote.id:
+        return (f"{version.nombre_modelo} es el modelo del análisis en lote: "
+                "siempre está disponible.")
+    if version.activo:
+        return ("Es el modelo principal: cambie antes el principal para "
+                "quitarlo de los análisis.")
+    return None
+
+
+def cambiar_disponibilidad(version, disponible, usuario):
+    """Marca la versión como disponible o no para análisis y lo registra en
+    trx_disponibilidad_modelo (NoActivable si no se puede)."""
+    if motivo_no_activable_base(version):
+        raise NoActivable(motivo_no_activable_base(version),
+                          "version_no_activable")
+    motivo = motivo_no_cambiar_disponibilidad(version, disponible)
+    if motivo:
+        raise NoActivable(motivo, "disponibilidad_no_permitida")
+    if version.disponible == disponible:
+        return None
+    with transaction.atomic():
+        version.disponible = disponible
+        version.save(update_fields=["disponible"])
+        return DisponibilidadModelo.objects.create(
+            version_modelo=version, disponible=disponible, usuario=usuario,
+            nombre_usuario=usuario.get_username()[:150])
+
+
+def motivo_no_activable_base(version):
+    """Oculta o sin fecha de corte (sin mirar la disponibilidad)."""
+    if version.est_registro != "A":
+        return "Esta versión está oculta."
+    if fecha_corte(version) is None:
+        return "Esta versión no tiene fecha de corte."
+    return None
+
+
 # --- Modelo de cada análisis ------------------------------------------------
 
 COMPARAR = "comparar"
@@ -145,8 +207,7 @@ def por_codigo(codigo):
         if version.version == codigo:
             return version
     raise ModeloNoDisponible(
-        f"El modelo «{codigo}» no está disponible. Elija Random Forest o "
-        "XGBoost.")
+        f"El modelo «{codigo}» no está disponible para análisis.")
 
 
 def versiones_para(codigo):

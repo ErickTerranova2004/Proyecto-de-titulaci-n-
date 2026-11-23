@@ -279,6 +279,10 @@ class VersionModelo(Auditoria):
     metadatos = models.JSONField(db_column="jsn_metadatos")
     activo = models.BooleanField(default=False,
                                  db_column="es_vigente")
+    # El administrador decide qué modelos se ofrecen en «Nuevo análisis» y
+    # en el Planificador (services/modelos.py; el del lote, siempre).
+    disponible = models.BooleanField(default=True,
+                                     db_column="es_disponible_analisis")
     registrado_en = models.DateTimeField(auto_now_add=True,
                                          db_column="fec_creacion")
     fec_creacion = None  # registrado_en
@@ -759,3 +763,32 @@ class ActivacionModelo(Auditoria):
 
     def __str__(self):
         return f"{self.version_modelo_id} por {self.nombre_usuario}"
+
+
+class DisponibilidadModelo(Auditoria):
+    """Historial de cambios de «disponible para análisis» de cada versión del
+    modelo: quién lo cambió, cuándo y a qué valor. No se borra."""
+
+    id = models.BigAutoField(primary_key=True,
+                              db_column="id_disponibilidad_modelo")
+    version_modelo = models.ForeignKey(
+        VersionModelo, on_delete=models.PROTECT, related_name="disponibilidades",
+        db_column="id_version_modelo")
+    disponible = models.BooleanField(db_column="es_disponible")
+    # SET_NULL: si la cuenta se elimina, la fila se conserva con su nombre.
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                on_delete=models.SET_NULL, null=True,
+                                blank=True, related_name="+",
+                                db_column="id_usuario")
+    nombre_usuario = models.CharField(max_length=150,
+                                      db_column="nom_usuario")
+    cambiado_en = models.DateTimeField(auto_now_add=True,
+                                       db_column="fec_creacion")
+    fec_creacion = None  # cambiado_en
+
+    class Meta:
+        db_table = "trx_disponibilidad_modelo"
+        ordering = ["-cambiado_en", "-id"]
+
+    def __str__(self):
+        return f"{self.version_modelo_id}: {self.disponible} ({self.nombre_usuario})"

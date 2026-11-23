@@ -228,6 +228,7 @@ export default function Planificador({ inicial: inicialDado, analisisId, modelos
                 ))}
               </select>
             </div>
+            {opciones.length > 1 && (
             <div className="campo planificador__modelo">
               <label htmlFor="plan-modelo">Modelo</label>
               <select
@@ -248,6 +249,7 @@ export default function Planificador({ inicial: inicialDado, analisisId, modelos
                 </p>
               )}
             </div>
+            )}
           </div>
         )}
       </div>

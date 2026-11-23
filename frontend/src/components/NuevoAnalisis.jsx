@@ -219,7 +219,9 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
   const [comparacion, setComparacion] = useState(null);
   const [eligiendo, setEligiendo] = useState(null);
   const opciones = opcionesModelo(modelos);
-  const modeloElegido = modelo || modeloPrincipal(modelos);
+  // Con un solo modelo disponible no hay selector: se usa el principal.
+  const conSelector = opciones.length > 1;
+  const modeloElegido = (conSelector && modelo) || modeloPrincipal(modelos);
   // 409 commit_ya_desplegado: el commit ya se desplegó o se está desplegando.
   const [aviso, setAviso] = useState(null);
   const refResultado = useRef(null);
@@ -436,6 +438,7 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
           </div>
         </fieldset>
 
+        {conSelector && (
         <fieldset>
           <legend>3. Modelo</legend>
           <div className="campos">
@@ -448,11 +451,10 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
                 aria-describedby="ayuda-modelo"
                 required
               >
-                {!opciones.length && <option value="">Sin modelos disponibles</option>}
                 {opciones.map((o) => (
                   <option key={o.valor} value={o.valor}>{o.texto}</option>
                 ))}
-                {opciones.length > 1 && <option value={COMPARAR}>Comparar ambos</option>}
+                <option value={COMPARAR}>Comparar ambos</option>
               </select>
             </div>
           </div>
@@ -461,10 +463,11 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
             ambos» verá los dos lado a lado y elegirá cuál queda como análisis oficial para el líder técnico.
           </p>
         </fieldset>
+        )}
 
         {respuesta && (
           <fieldset>
-            <legend>4. Respuesta al líder técnico</legend>
+            <legend>{conSelector ? "4" : "3"}. Respuesta al líder técnico</legend>
             <div className="campo">
               <label htmlFor="campo-cambios">Qué cambié (opcional)</label>
               <textarea

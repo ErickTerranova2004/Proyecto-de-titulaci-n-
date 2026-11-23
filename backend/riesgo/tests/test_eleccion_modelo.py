@@ -261,3 +261,91 @@ class FactoresEnProbabilidadTest(TestCase):
             self.assertEqual(set(m["tasa_real_por_nivel"]), {"bajo", "medio", "alto"})
             # Sin despliegues verificados no hay tasa.
             self.assertIsNone(m["tasa_real_por_nivel"]["alto"]["tasa"])
+
+
+@override_settings(GEMINI_API_KEY="")
+class PermisosYDisponibilidadTest(TestCase):
+    """Solo el administrador cambia el principal y la disponibilidad; un
+    modelo no disponible no se puede usar en análisis ni en el
+    Planificador; Random Forest (modelo del lote) siempre está disponible."""
+
+    cliente = test_api.ApiTest.cliente
+    predecir = test_api.ApiTest.predecir
+    _usuario = test_api.ApiTest._usuario
+
+    @classmethod
+    def setUpTestData(cls):
+        test_api.ApiTest.setUpTestData.__func__(cls)
+        call_command("registrar_modelo", "--modelo", "v2-xgb", "--sin-activar",
+                     stdout=StringIO())
+        cls.rf = VersionModelo.objects.get(version="v2")
+        cls.xgb = VersionModelo.objects.get(version="v2-xgb")
+
+    def disponibilidad(self, version, disponible, usuario=None):
+        return self.cliente(usuario or self.admin).post(
+            f"/api/modelos/{version.id}/disponibilidad/",
+            {"disponible": disponible}, format="json")
+
+    def test_solo_el_administrador_cambia_el_principal(self):
+        url = f"/api/modelos/{self.xgb.id}/activar/"
+        for usuario in (self.dev, self.lider):
+            with self.subTest(usuario=usuario.username):
+                r = self.cliente(usuario).post(url, {"confirmacion": "v2-xgb"},
+                                               format="json")
+                self.assertEqual(r.status_code, 403)
+        self.assertEqual(VersionModelo.objects.get(activo=True).version, "v2")
+        self.assertEqual(self.cliente(self.admin).post(
+            url, {"confirmacion": "v2-xgb"}, format="json").status_code, 200)
+
+    def test_solo_el_administrador_cambia_la_disponibilidad(self):
+        for usuario in (self.dev, self.lider):
+            with self.subTest(usuario=usuario.username):
+                self.assertEqual(self.disponibilidad(self.xgb, False, usuario)
+                                 .status_code, 403)
+        self.assertTrue(VersionModelo.objects.get(id=self.xgb.id).disponible)
+
+    def test_random_forest_y_el_principal_siempre_disponibles(self):
+        r = self.disponibilidad(self.rf, False)
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()["codigo"], "disponibilidad_no_permitida")
+        modelos = {m["version"]: m for m in self.cliente(self.admin).get(
+            "/api/modelos/").json()}
+        self.assertIn("análisis en lote", modelos["v2"]["motivo_siempre_disponible"])
+        self.assertIsNone(modelos["v2-xgb"]["motivo_siempre_disponible"])
+        # XGBoost principal: tampoco se puede quitar mientras lo sea.
+        self.cliente(self.admin).post(f"/api/modelos/{self.xgb.id}/activar/",
+                                      {"confirmacion": "v2-xgb"}, format="json")
+        self.assertEqual(self.disponibilidad(self.xgb, False).status_code, 400)
+        self.assertEqual(self.disponibilidad(self.xgb, "no").status_code, 400)
+
+    def test_no_disponible_se_rechaza_y_queda_registrado(self):
+        from riesgo.models import DisponibilidadModelo
+        r = self.disponibilidad(self.xgb, False)
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertFalse(r.json()["disponible"])
+        fila = DisponibilidadModelo.objects.get(version_modelo=self.xgb)
+        self.assertEqual((fila.disponible, fila.usuario, fila.nombre_usuario,
+                          fila.usu_creacion), (False, self.admin, "admin", "admin"))
+        self.assertEqual(r.json()["ultimo_cambio_disponibilidad"]["usuario"], "admin")
+        # Nuevo análisis: ni XGBoost ni «Comparar ambos».
+        for modelo in ("v2-xgb", "comparar"):
+            r = self.predecir(self.dev, dict(DATOS, modelo=modelo))
+            self.assertEqual(r.status_code, 400, modelo)
+            self.assertEqual(r.json()["codigo"], "modelo_no_disponible")
+        # Random Forest y el principal por defecto siguen funcionando.
+        p = self.predecir(self.dev, DATOS)
+        self.assertEqual(p.status_code, 201)
+        # Planificador.
+        r = self.cliente(self.dev).get(
+            f"/api/predicciones/{p.json()['id']}/ventanas/?modelo=v2-xgb")
+        self.assertEqual(r.status_code, 400)
+        # No se puede hacer principal un modelo no disponible.
+        r = self.cliente(self.admin).post(f"/api/modelos/{self.xgb.id}/activar/",
+                                          {"confirmacion": "v2-xgb"}, format="json")
+        self.assertEqual(r.status_code, 400)
+        # Volver a ofrecerlo también queda registrado.
+        self.assertEqual(self.disponibilidad(self.xgb, True).status_code, 200)
+        self.assertEqual(DisponibilidadModelo.objects.filter(
+            version_modelo=self.xgb).count(), 2)
+        self.assertEqual(self.predecir(self.dev, dict(DATOS, modelo="v2-xgb"))
+                         .status_code, 201)
