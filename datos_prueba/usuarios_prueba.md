@@ -1,15 +1,17 @@
 # Usuarios de prueba para revisar la interfaz
 
-Solo para el entorno local de desarrollo. Las contraseñas son **de prueba**
-(no se usan en ningún otro sitio); cámbielas o borre los usuarios antes de
-cualquier despliegue real.
+Solo para el entorno local de desarrollo. **Las contraseñas no se publican
+aquí** (el repositorio es público). Para entrar con una de estas cuentas, use
+«¿Olvidó su contraseña?» en la pantalla de inicio de sesión (llega un enlace
+de restablecimiento al correo de la cuenta) o pida al administrador que le
+envíe el enlace desde «Usuarios y accesos».
 
-| Usuario | Rol | Contraseña de prueba | Repositorios |
-|---|---|---|---|
-| `revision_admin` | Administrador | `Revision-Admin-2026` | Ve todos (además tiene asignados los 198 del dataset v2) |
-| `revision_lider` | Líder técnico | `Revision-Lider-2026` | Los 198 del dataset v2 |
-| `revision_dev` | Desarrollador | `Revision-Dev-2026` | Los 198 del dataset v2 |
-| `analisis_lote` | Sin rol | Sin contraseña (no puede iniciar sesión) | Autor de las predicciones del análisis en lote |
+| Usuario | Rol | Repositorios |
+|---|---|---|
+| `revision_admin` | Administrador | Ve todos (además tiene asignados los 198 del dataset v2) |
+| `revision_lider` | Líder técnico | Los 198 del dataset v2 |
+| `revision_dev` | Desarrollador | Los 198 del dataset v2 |
+| `analisis_lote` | Sin rol (sin contraseña: no puede iniciar sesión) | Autor de las predicciones del análisis en lote |
 
 Los tres primeros forman el grupo que revisa la validación prospectiva de v2.
 El desarrollador solo ve sus propios análisis; las predicciones del lote
@@ -19,9 +21,10 @@ El desarrollador solo ve sus propios análisis; las predicciones del lote
 
 ```powershell
 cd backend
-venv\Scripts\python.exe manage.py crear_usuario revision_admin --rol administrador --password Revision-Admin-2026
-venv\Scripts\python.exe manage.py crear_usuario revision_lider --rol lider_tecnico --password Revision-Lider-2026
-venv\Scripts\python.exe manage.py crear_usuario revision_dev --rol desarrollador --password Revision-Dev-2026
+# Sin --password la contraseña se pide por teclado (no queda en el historial).
+venv\Scripts\python.exe manage.py crear_usuario revision_admin --rol administrador
+venv\Scripts\python.exe manage.py crear_usuario revision_lider --rol lider_tecnico
+venv\Scripts\python.exe manage.py crear_usuario revision_dev --rol desarrollador
 venv\Scripts\python.exe manage.py registrar_repos_v2 --validado-por revision_admin `
     --asignar revision_dev revision_lider revision_admin --aplicar
 venv\Scripts\python.exe manage.py analizar_lote --usuario analisis_lote

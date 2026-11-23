@@ -108,8 +108,9 @@ Actualizado: 2026-11-23 · rama `feature/100-repos-desplegados` (publicada en
   la casilla «Incluir repositorios inactivos» muestra también los demás. Los
   contadores indican a qué alcance corresponden.
 - Usuarios activos: `admin` (superusuario), `revision_admin`,
-  `revision_dev`, `revision_lider` (contraseñas de prueba en
-  `datos_prueba/usuarios_prueba.md`) y `analisis_lote` (cuenta interna del
+  `revision_dev`, `revision_lider` (listadas en
+  `datos_prueba/usuarios_prueba.md`, sin contraseñas: se restablecen por
+  correo) y `analisis_lote` (cuenta interna del
   lote: sin rol ni contraseña utilizable; **no eliminarla**). Las cuentas
   `prueba_*` se eliminaron y su historial pasó a las `revision_*` del mismo
   rol.
@@ -167,10 +168,11 @@ Actualizado: 2026-11-23 · rama `feature/100-repos-desplegados` (publicada en
   (única con `id_version_modelo`: una sombra por versión y predicción).
 - `backend/riesgo/tests/test_esquema_er.py` compara la base con el ER
   columna por columna.
-- Migraciones hasta la 0026: `trx_restablecimiento_clave` (0023–0024),
-  `trx_informe_cumplimiento` y `trx_descarga_informe` (0025–0026), con los
-  mismos nombres ER y columnas de auditoría.
-- Diagrama actualizado (23-nov, con las tres tablas anteriores):
+- Migraciones hasta la 0028: `trx_restablecimiento_clave` (0023–0024),
+  `trx_informe_cumplimiento` y `trx_descarga_informe` (0025–0026),
+  `trx_activacion_modelo` (0027–0028), con los mismos nombres ER y columnas
+  de auditoría.
+- Diagrama actualizado (23-nov, con las cuatro tablas anteriores):
   `docs/modelo_er_actualizado.drawio` y `.png`, generados con
   `backend\venv\Scripts\python.exe scripts\generar_diagrama_er.py --png`.
 - Equivalencias y diferencias documentadas en `docs/arquitectura.md`.
@@ -288,12 +290,6 @@ de avrae/avrae, `deploy-pages.yml` de bdunderscore/modular-avatar y
 ## 4. Pendientes (por prioridad)
 
 **Alta**
-0. **v1 quedó activo el 23-nov a las 10:36** (Modelos → «Activar», cuenta
-   `admin`; v2 inactivo). No hay predicciones con v1 desde entonces, pero el
-   lote falla en cada pasada («El modelo v1 … no tiene fecha_corte», código
-   1 desde las 12:00) y los análisis nuevos usarían v1. Decidir si se
-   reactiva v2 (respaldo antes). Exportar la base para compartirla solo
-   después de corregirlo.
 1. **Merge de `feature/100-repos-desplegados` a `main`**: todo está
    publicado en la rama; esperar orden expresa.
 2. **Demostración con despliegues reales**: analizar EfileProxyServer
@@ -328,17 +324,26 @@ de avrae/avrae, `deploy-pages.yml` de bdunderscore/modular-avatar y
    revisar si alguna es sospechosa.
 10. `datos_prueba/casos_prueba_30.md` nombra a las cuentas `prueba_*`
     eliminadas (registro histórico; se dejó tal cual).
-11. `datos_prueba/usuarios_prueba.md` publica en el repositorio (público) las
-    contraseñas de prueba de las cuentas `revision_*`, que también vienen en
-    el respaldo que se comparte. Cambiarlas antes de exponer la plataforma
-    fuera del equipo.
-12. Confirmar el punto 5 del 23-nov («Enlace discreto», texto cortado): se
-    implementó un enlace «Ver la ejecución en GitHub».
-13. Probar en el navegador la navegación con URL (atrás/adelante, F5,
+11. Probar en el navegador la navegación con URL (atrás/adelante, F5,
     login con regreso a la dirección pedida); las pruebas automáticas cubren
     la lógica, no el navegador real.
 
 **Hecho del 18 al 23-nov**
+- **Incidente 23-nov**: v1 quedó activo a las 10:36 (Modelos → «Activar»,
+  cuenta `admin`); la pasada del lote de las 12:00 falló («El modelo v1 … no
+  tiene fecha_corte») y no se hizo ninguna predicción con v1. Respaldo
+  `..._130149_antes_reactivar_v2_c.dump`; v2 reactivado a las 13:01; pasada
+  manual del lote 13:02–13:13 terminada con código 0 (38 analizadas, 126
+  sombras de v1 que faltaban).
+- **Para que no se repita** (migraciones 0027–0028, respaldo
+  `..._131341_antes_activacion_modelo.dump`): las versiones sin fecha de
+  corte (v1) no tienen botón «Activar» y la API las rechaza; activar otra
+  exige escribir su nombre; cada activación queda en `trx_activacion_modelo`
+  (quién, cuándo, versión anterior, pantalla o comando); el panel del
+  administrador avisa si el activo no es la versión más reciente con fecha de
+  corte (`riesgo/services/modelos.py`, `/api/resumen-admin/` → `modelo`).
+- Contraseñas quitadas de `datos_prueba/usuarios_prueba.md` (se restablecen
+  por correo).
 - Restablecimiento de contraseña por correo, filtros por fecha dd/mm/aaaa,
   informe de cumplimiento, paginación en el backend, limpieza de
   repositorios inactivos, navegación con URL, filtros uniformes, mejoras del
