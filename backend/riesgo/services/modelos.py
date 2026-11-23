@@ -113,3 +113,41 @@ def activar(version, usuario, confirmacion):
         version.activo = True
         version.save(update_fields=["activo"])
         return registrar_activacion(version, anterior, usuario)
+
+
+# --- Modelo de cada análisis ------------------------------------------------
+
+COMPARAR = "comparar"
+
+
+class ModeloNoDisponible(Exception):
+    pass
+
+
+def por_codigo(codigo):
+    """Versión seleccionable con ese código (p. ej. «v2» o «v2-xgb»)."""
+    for version in seleccionables():
+        if version.version == codigo:
+            return version
+    raise ModeloNoDisponible(
+        f"El modelo «{codigo}» no está disponible. Elija Random Forest o "
+        "XGBoost.")
+
+
+def versiones_para(codigo):
+    """Modelos con los que se hace un análisis nuevo.
+
+    - vacío: el principal (el activo);
+    - «comparar»: todos los seleccionables, el principal primero;
+    - un código: solo esa versión.
+    """
+    from riesgo.services.predictor import modelo_activo
+
+    if not codigo:
+        return [modelo_activo()]
+    if codigo == COMPARAR:
+        opciones = sorted(seleccionables(), key=lambda v: (not v.activo, v.id))
+        if len(opciones) < 2:
+            raise ModeloNoDisponible("No hay dos modelos para comparar.")
+        return opciones
+    return [por_codigo(codigo)]

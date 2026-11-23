@@ -30,6 +30,10 @@ class SolicitudPrediccionSerializer(serializers.Serializer):
     # El commit ya se desplegó (o se está desplegando): analizar igualmente.
     confirmar_desplegado = serializers.BooleanField(required=False,
                                                     default=False)
+    # Modelo del análisis: vacío = el principal; «v2», «v2-xgb»… o
+    # «comparar» (los dos lado a lado; el usuario elige el oficial).
+    modelo = serializers.CharField(max_length=20, required=False,
+                                   allow_blank=True, default="")
 
     def validate(self, datos):
         if not datos["head_sha"] and not datos["rama"]:
@@ -176,6 +180,16 @@ class AsignacionSerializer(serializers.ModelSerializer):
 
     def get_vista(self, decision):
         return decision.vista_por_desarrollador_en is not None
+
+
+class SolicitudOficialSerializer(serializers.Serializer):
+    """«Comparar ambos»: el análisis elegido como oficial y, si el análisis
+    atiende una asignación del líder, la respuesta del desarrollador."""
+
+    atiende_decision = serializers.IntegerField(required=False,
+                                                allow_null=True, default=None)
+    respuesta_desarrollador = serializers.CharField(
+        max_length=1000, required=False, allow_blank=True, default="")
 
 
 class SolicitudEscenarioSerializer(serializers.Serializer):

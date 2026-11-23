@@ -145,13 +145,19 @@ def _resumen(probabilidad, version):
                               version.metadatos["limites_riesgo"])}
 
 
+def _modelo(version):
+    return {"version": version.version, "nombre": version.nombre_modelo}
+
+
 def _tiempo(variables):
     return {v: variables.get(v) for v in VARIABLES_TIEMPO}
 
 
-def estimar_escenario(prediccion, condiciones):
-    """`condiciones`: fecha (date), hora local, es_reintento y tiene_pr."""
-    version = prediccion.version_modelo
+def estimar_escenario(prediccion, condiciones, version=None):
+    """`condiciones`: fecha (date), hora local, es_reintento y tiene_pr.
+    `version`: modelo con el que se estima (por defecto, el del análisis
+    base); la base se recalcula con ese mismo modelo."""
+    version = version or prediccion.version_modelo
     momento = momento_local(condiciones["fecha"], condiciones["hora"])
     variables = _variables_en(prediccion, momento, condiciones["es_reintento"],
                               condiciones["tiene_pr"])
@@ -169,6 +175,7 @@ def estimar_escenario(prediccion, condiciones):
         if abs(d) > 1e-6][:MAX_EXPLICACION]
 
     return {
+        "modelo": _modelo(version),
         "condiciones_base": condiciones_base(prediccion),
         "condiciones": {**condiciones,
                         "fecha": condiciones["fecha"].isoformat(),
@@ -185,7 +192,7 @@ def estimar_escenario(prediccion, condiciones):
     }
 
 
-def mejores_ventanas(prediccion, dias=None):
+def mejores_ventanas(prediccion, dias=None, version=None):
     """La hora de menor riesgo de cada uno de los próximos `dias` días.
 
     Empieza mañana (hora local), evalúa de 07:00 a 20:00 y mantiene
@@ -193,7 +200,7 @@ def mejores_ventanas(prediccion, dias=None):
     cronológico; `mejor` marca la de menor riesgo (la primera si empatan).
     """
     dias = dias or settings.PLANIFICADOR_DIAS_VENTANAS
-    version = prediccion.version_modelo
+    version = version or prediccion.version_modelo
     prob_base = probabilidades([prediccion.variables], version)[0]
     reintento = bool(prediccion.variables.get("es_reintento"))
     pr = bool(prediccion.variables.get("tiene_pr"))
@@ -218,7 +225,8 @@ def mejores_ventanas(prediccion, dias=None):
                          **_resumen(prob, version)})
     if ventanas:
         min(ventanas, key=lambda v: v["probabilidad"])["mejor"] = True
-    return {"condiciones_base": condiciones_base(prediccion),
+    return {"modelo": _modelo(version),
+            "condiciones_base": condiciones_base(prediccion),
             "base": _resumen(prob_base, version),
             "desde": desde.isoformat(), "dias": dias,
             "ventanas": ventanas}

@@ -235,7 +235,8 @@ def run_ids_analizados(workflow, version):
     lote_ids = set(enlazadas.filter(origen="lote").values_list(
         "ejecucion_real__run_id", flat=True))
     interactivas = set(enlazadas.filter(
-        origen="interactivo", version_modelo=version).values_list(
+        origen="interactivo", version_modelo=version,
+        est_registro="A").values_list(
         "ejecucion_real__run_id", flat=True))
     return lote_ids, interactivas - lote_ids
 
@@ -364,7 +365,7 @@ def interactivos_pendientes(dias=DIAS_INTERACTIVOS):
     """Análisis interactivos recientes sin resultado real, de repositorios
     activos que no son de prueba (los reales y el de demostración)."""
     return (Prediccion.objects.filter(
-        origen="interactivo", ejecucion_real__isnull=True,
+        origen="interactivo", ejecucion_real__isnull=True, est_registro="A",
         creada_en__gte=dj_timezone.now() - timedelta(days=dias),
         workflow__repositorio__est_registro="A",
         workflow__repositorio__es_prueba=False)

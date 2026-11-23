@@ -141,14 +141,21 @@ def _analisis(p):
         "recomendacion": p.recomendacion,
         "recomendacion_texto": RECOMENDACIONES.get(p.recomendacion, "—"),
         "version_modelo": p.version_modelo.version,
+        "modelo_nombre": p.version_modelo.nombre_modelo,
     }
 
 
 def factores_cambio(original, nueva, n=MAX_FACTORES):
     """Variables cuya contribución SHAP más cambió entre los dos análisis
-    (cada uno con su versión del modelo)."""
+    (cada uno con su versión del modelo). Si se hicieron con modelos
+    distintos (Random Forest y XGBoost), las dos se calculan con el modelo
+    del análisis nuevo: sus valores SHAP no están en la misma escala
+    (probabilidad frente a log-odds) y no se pueden restar."""
+    modelo_original = (original.version_modelo
+                       if original.version_modelo_id == nueva.version_modelo_id
+                       else nueva.version_modelo)
     try:
-        antes = contribuciones(original.variables, original.version_modelo)
+        antes = contribuciones(original.variables, modelo_original)
         despues = contribuciones(nueva.variables, nueva.version_modelo)
     except Exception:  # noqa: BLE001 - sin el modelo no se puede explicar
         logger.warning("No se pudo calcular SHAP para el informe (%s, %s)",
@@ -190,6 +197,8 @@ def resumen(informe):
         "desarrollador": informe.desarrollador.username,
         "lider": informe.lider.username,
         "nivel_original": original.nivel, "nivel_nuevo": nueva.nivel,
+        "modelo_original": original.version_modelo.nombre_modelo,
+        "modelo_nuevo": nueva.version_modelo.nombre_modelo,
         "diferencia_puntos": round((nueva.probabilidad - original.probabilidad)
                                    * 100, 2),
         "decision_final": _decision(informe.decision_final),
@@ -343,7 +352,8 @@ def pdf(informe, usuario):
                ["Probabilidad", _pct(o["probabilidad"]), _pct(n["probabilidad"])],
                ["Nivel", o["nivel_texto"], n["nivel_texto"]],
                ["Recomendación", o["recomendacion_texto"], n["recomendacion_texto"]],
-               ["Modelo", o["version_modelo"], n["version_modelo"]]],
+               ["Modelo", f"{o['modelo_nombre']} ({o['version_modelo']})",
+                f"{n['modelo_nombre']} ({n['version_modelo']})"]],
               [40 * mm, 67 * mm, 67 * mm]),
         Spacer(1, 3),
         p(f"Diferencia: <b>{_txt(_puntos(c['diferencia_puntos']))}</b>"),

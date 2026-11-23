@@ -31,7 +31,8 @@ def posteriores_al_corte(version):
     """(todas, predicciones que cuentan, fecha de corte, excluidas por el
     corte). Solo predicciones de la plataforma (el gestor por defecto ya
     excluye las de la evaluación en sombra)."""
-    todas = Prediccion.objects.filter(version_modelo=version)
+    # Sin los análisis no elegidos de «Comparar ambos» (est_registro='I').
+    todas = Prediccion.objects.filter(version_modelo=version, est_registro="A")
     # Ni las de demostración ni las de los casos de prueba: no son
     # validación del modelo.
     predicciones = todas.para_modelo()
