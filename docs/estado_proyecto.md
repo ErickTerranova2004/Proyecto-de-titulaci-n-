@@ -85,7 +85,17 @@ de corte y mismas variables). Se puede elegir cualquiera en cada análisis.
 - **Cambiar el principal**: solo en Modelos, escribiendo el nombre de la
   versión; queda en `trx_activacion_modelo`. El principal solo decide el
   modelo por defecto de cada análisis: **el lote, la sombra y la comparación
-  usan siempre Random Forest** (`modelos.modelo_lote()`). No hay acción de desactivar y
+  usan siempre Random Forest** (`modelos.modelo_lote()`). Solo el
+  administrador cambia el principal (desarrollador y líder reciben 403).
+- **Disponible para análisis** (Modelos, solo administrador;
+  `mae_version_modelo.es_disponible_analisis`, migraciones 0030–0031):
+  qué modelos ofrecen «Nuevo análisis» y el Planificador. Random Forest
+  (modelo del lote) y el principal siempre están disponibles; un modelo no
+  disponible no puede ser principal. Con un solo modelo disponible no se
+  muestra el selector y se usa el principal. El backend rechaza un modelo
+  no disponible (400 `modelo_no_disponible`). Cada cambio queda en
+  `trx_disponibilidad_modelo` (quién, cuándo y a qué valor; visible en el
+  admin de Django, de solo lectura). No hay acción de desactivar y
   el admin de Django es de solo lectura para las versiones. El panel del
   administrador avisa en rojo si el activo no tiene fecha de corte o es de
   un corte anterior al más reciente.
@@ -187,11 +197,12 @@ de corte y mismas variables). Se puede elegir cualquiera en cada análisis.
   (única con `id_version_modelo`: una sombra por versión y predicción).
 - `backend/riesgo/tests/test_esquema_er.py` compara la base con el ER
   columna por columna.
-- Migraciones hasta la 0029: `trx_restablecimiento_clave` (0023–0024),
+- Migraciones hasta la 0031: `trx_restablecimiento_clave` (0023–0024),
   `trx_informe_cumplimiento` y `trx_descarga_informe` (0025–0026),
   `trx_activacion_modelo` (0027–0028), con los mismos nombres ER y columnas
-  de auditoría; 0029 solo oculta v1 (datos, sin cambios de tablas: el
-  diagrama ER no cambia).
+  de auditoría; 0029 solo oculta v1 (datos); 0030–0031:
+  `es_disponible_analisis` y `trx_disponibilidad_modelo` (diagrama ER
+  regenerado el 23-nov).
 - Diagrama actualizado (23-nov, con las cuatro tablas anteriores):
   `docs/modelo_er_actualizado.drawio` y `.png`, generados con
   `backend\venv\Scripts\python.exe scripts\generar_diagrama_er.py --png`.
@@ -254,6 +265,8 @@ arrancarla desde el asistente.
 - `riesgo_despliegue_20261123_154254_antes_sombra_xgboost.dump`
 - `riesgo_despliegue_20261123_160523_antes_volver_a_random_forest.dump`
 - `riesgo_despliegue_20261123_161545_antes_corregir_lote_xgboost.dump`
+- `riesgo_despliegue_20261123_163026_antes_regenerar_texto_ia.dump`
+- `riesgo_despliegue_20261123_163610_antes_disponibilidad_modelo.dump`
 
 ### Limpieza de repositorios inactivos (20-nov-2026)
 
@@ -375,8 +388,9 @@ de avrae/avrae, `deploy-pages.yml` de bdunderscore/modular-avatar y
   con Random Forest y las de XGBoost pasaron a ser su sombra (respaldo
   `..._161545_antes_corregir_lote_xgboost.dump`), y el lote usa ya siempre
   Random Forest. Los tres análisis interactivos de XGBoost de esa prueba
-  (5994, 5995, 5997) tienen los factores recalculados en probabilidad; su
-  texto de IA cita todavía valores en log-odds. «Comparar ambos» falló en
+  (5994, 5995, 5997) tienen los factores recalculados en probabilidad y el
+  texto de IA regenerado con Claude (16:30; respaldo
+  `..._163026_antes_regenerar_texto_ia.dump`): ya no cita log-odds. «Comparar ambos» falló en
   esa prueba porque el backend no se había reiniciado (corría desde las
   13:12); la pantalla ahora lo avisa.
 - **Dos modelos (23-nov, tarde)**: registro de la comparación v2 frente a
