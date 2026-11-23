@@ -41,27 +41,45 @@ def motivo_no_activable(version):
     return None
 
 
+def es_alternativo(version):
+    """Modelo alternativo de otra versión (p. ej. v2-xgb de v2): mismo
+    dataset y fecha de corte, pero no es el elegido por la regla de
+    selección del entrenamiento."""
+    return bool((version.metadatos or {}).get("alternativa_de"))
+
+
+def seleccionables():
+    """Versiones con las que se puede hacer un análisis: visibles y con
+    fecha de corte (Random Forest y XGBoost del dataset v2)."""
+    return [v for v in VersionModelo.objects.filter(est_registro="A")
+            .order_by("id") if fecha_corte(v) is not None]
+
+
 def recomendada():
-    """La versión visible más reciente con fecha de corte (la de fecha de
-    corte más tardía; a igualdad, la última registrada)."""
-    candidatas = [v for v in VersionModelo.objects.filter(est_registro="A")
-                  if fecha_corte(v) is not None]
-    return max(candidatas, default=None,
-               key=lambda v: (fecha_corte(v), v.registrado_en, v.id))
+    """La versión con la fecha de corte más reciente; si varias la comparten
+    (Random Forest y XGBoost de v2), la principal (no alternativa) y, a
+    igualdad, la última registrada."""
+    return max(seleccionables(), default=None,
+               key=lambda v: (fecha_corte(v), not es_alternativo(v),
+                              v.registrado_en, v.id))
 
 
 def estado():
     """Modelo activo frente al recomendado (aviso del panel del
-    administrador)."""
+    administrador). Avisa si no hay modelo activo, si el activo no tiene
+    fecha de corte (v1) o si es de una fecha de corte anterior a la más
+    reciente. Elegir XGBoost como principal, con la misma fecha de corte,
+    no es un error y no avisa."""
     activo = VersionModelo.objects.filter(activo=True).first()
     referencia = recomendada()
+    corte_activo = fecha_corte(activo) if activo else None
     return {
         "activo": activo.version if activo else None,
         "recomendado": referencia.version if referencia else None,
         "aviso": referencia is not None and (
-            activo is None or activo.id != referencia.id),
+            corte_activo is None or corte_activo < fecha_corte(referencia)),
         # Sin fecha de corte el análisis en lote se niega a correr.
-        "activo_sin_corte": activo is not None and fecha_corte(activo) is None,
+        "activo_sin_corte": activo is not None and corte_activo is None,
     }
 
 

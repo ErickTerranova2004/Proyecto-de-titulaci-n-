@@ -12,15 +12,15 @@ const limpiar = (html) => html.replace(/<!-- -->/g, "");
 const metadatos = { limites_riesgo: { medio: 0.2, alto: 0.5 }, filas_entrenamiento: 100 };
 const v2 = {
   id: 3, version: "v2", nombre_modelo: "Random Forest", metadatos, activo: true, registrado_en: "2026-11-10T00:00:00Z",
-  activable: true, motivo_no_activable: null,
+  activable: true, motivo_no_activable: null, rol: "principal",
   ultima_activacion: { usuario: "revision_admin", fecha: "2026-11-23T18:01:54Z", origen: "plataforma" },
 };
 const v1 = {
   id: 1, version: "v1", nombre_modelo: "Árbol de decisión", metadatos, activo: false, registrado_en: "2026-10-01T00:00:00Z",
   activable: false, motivo_no_activable: "Esta versión no tiene fecha de corte: solo se evalúa en sombra y no se puede activar.",
-  ultima_activacion: null,
+  ultima_activacion: null, rol: "alternativo",
 };
-const v3 = { ...v2, id: 4, version: "v3", activo: false, ultima_activacion: null };
+const v3 = { ...v2, id: 4, version: "v3", nombre_modelo: "XGBoost", activo: false, ultima_activacion: null, rol: "alternativo" };
 
 test("aviso del panel: solo si el activo no es el recomendado", () => {
   assert.equal(avisoModeloActivo(undefined), null);
@@ -43,14 +43,16 @@ test("confirmación: el nombre exacto de la versión", () => {
   for (const texto of ["", "V3", "v2", undefined]) assert.equal(confirmacionValida(texto, "v3"), false);
 });
 
-test("Modelos: sin botón «Activar» para v1; «Activar…» para una versión con fecha de corte", async () => {
+test("Modelos: sin botón para v1; «Usar como principal…» para una versión con fecha de corte", async () => {
   const { default: Modelos } = await cargarComponente("Modelos");
   const html = limpiar(renderToString(h(Modelos, { modelos: [v2, v1, v3], esAdmin: true, alCambiar: () => {} })));
   const fila = (version) => html.split("<tr").find((f) => f.includes(`>${version}</code>`));
   assert.doesNotMatch(fila("v1"), /<button/);
   assert.match(fila("v1"), /Solo evaluación en sombra/);
   assert.match(fila("v1"), /title="Esta versión no tiene fecha de corte/);
-  assert.match(fila("v3"), /<button[^>]*>Activar…<span class="solo-lector"> v3<\/span><\/button>/);
+  assert.match(fila("v3"), /<button[^>]*>Usar como principal…<span class="solo-lector"> XGBoost \(v3\)<\/span><\/button>/);
+  assert.match(fila("v3"), /<strong>XGBoost<\/strong> <span class="secundario">\(Alternativo\)<\/span>/);
+  assert.match(fila("v2"), /<strong>Random Forest<\/strong> <span class="secundario">\(Principal\)<\/span>/);
   assert.match(fila("v2"), /En uso/);
   assert.match(fila("v2"), /Activado por revision_admin el/);
   // Sin confirmación abierta no hay formulario.
@@ -60,7 +62,7 @@ test("Modelos: sin botón «Activar» para v1; «Activar…» para una versión 
 test("Modelos: un usuario que no es administrador no ve acciones", async () => {
   const { default: Modelos } = await cargarComponente("Modelos");
   const html = limpiar(renderToString(h(Modelos, { modelos: [v2, v1], esAdmin: false, alCambiar: () => {} })));
-  assert.doesNotMatch(html, /Activar|Solo evaluación en sombra|Activado por/);
+  assert.doesNotMatch(html, /Usar como principal|Solo evaluación en sombra|Activado por/);
 });
 
 test("confirmación: pide escribir el nombre y el botón empieza desactivado", async () => {
@@ -68,10 +70,10 @@ test("confirmación: pide escribir el nombre y el botón empieza desactivado", a
   const html = limpiar(renderToString(h(ConfirmarActivacion, {
     modelo: v3, activo: v2, activando: false, alConfirmar: () => {}, alCancelar: () => {},
   })));
-  assert.match(html, /Activar la versión v3/);
+  assert.match(html, /Usar XGBoost \(<code class="codigo">v3<\/code>\) como modelo principal/);
   assert.match(html, /Para confirmar, escriba <code class="codigo">v3<\/code>/);
-  assert.match(html, /sustituye a <code class="codigo">v2<\/code>/);
-  assert.match(html, /<button class="boton" type="submit" disabled="">Activar v3<\/button>/);
+  assert.match(html, /Random Forest \(<code class="codigo">v2<\/code>\) pasa a ser el alternativo/);
+  assert.match(html, /<button class="boton" type="submit" disabled="">Usar v3 como principal<\/button>/);
   assert.match(html, />Cancelar</);
 });
 

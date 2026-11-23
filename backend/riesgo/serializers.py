@@ -212,6 +212,9 @@ class PrediccionSerializer(serializers.ModelSerializer):
     workflow_path = serializers.CharField(source="workflow.path")
     head_sha = serializers.CharField(source="commit.sha")
     version_modelo = serializers.CharField(source="version_modelo.version")
+    # Algoritmo con el que se hizo el análisis (Random Forest o XGBoost).
+    modelo_nombre = serializers.CharField(
+        source="version_modelo.nombre_modelo", read_only=True)
     # Repositorio de demostración: los dashboards no lo cuentan.
     demostracion = serializers.BooleanField(
         source="workflow.repositorio.es_demostracion", read_only=True)
@@ -229,7 +232,7 @@ class PrediccionSerializer(serializers.ModelSerializer):
                   "prueba", "rama", "evento", "cambio", "variables",
                   "probabilidad", "nivel", "recomendacion", "factores",
                   "origen", "momento_variables", "recomendaciones", "analisis_ia",
-                  "version_modelo",
+                  "version_modelo", "modelo_nombre",
                   "ejecuciones_previas", "ejecucion_real", "decisiones",
                   "verificada_en", "datos_github_extraidos_en", "creada_en"]
 
@@ -284,12 +287,18 @@ class VersionModeloSerializer(serializers.ModelSerializer):
     motivo_no_activable = serializers.SerializerMethodField()
     activable = serializers.SerializerMethodField()
     ultima_activacion = serializers.SerializerMethodField()
+    # «principal»: el activo (el lote y los análisis por defecto);
+    # «alternativo»: el otro modelo seleccionable (XGBoost).
+    rol = serializers.SerializerMethodField()
 
     class Meta:
         model = VersionModelo
         fields = ["id", "version", "nombre_modelo", "metadatos", "activo",
                   "registrado_en", "activable", "motivo_no_activable",
-                  "ultima_activacion"]
+                  "ultima_activacion", "rol"]
+
+    def get_rol(self, version):
+        return "principal" if version.activo else "alternativo"
 
     def get_motivo_no_activable(self, version):
         from riesgo.services.modelos import motivo_no_activable

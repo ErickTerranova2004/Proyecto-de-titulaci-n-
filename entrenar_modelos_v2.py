@@ -35,6 +35,8 @@ No hay curva de aprendizaje: el dataset está congelado.
 
 Uso:
     backend/venv/Scripts/python.exe -X utf8 entrenar_modelos_v2.py
+    # Solo el XGBoost final (modelo alternativo de la plataforma, v2-xgb):
+    backend/venv/Scripts/python.exe -X utf8 entrenar_modelos_v2.py --alternativo-xgboost
 """
 
 import argparse
@@ -485,6 +487,49 @@ def informe(ruta, df, total, por_pliegue, ic, ic_dif, elegido, motivo, meta,
     ruta.write_text("\n".join(l) + "\n", encoding="utf-8")
 
 
+def final_alternativo(df, datos, modelos_dir):
+    """XGBoost final como modelo alternativo de la plataforma (v2-xgb).
+
+    Mismo dataset, mismas variables, misma fecha de corte y mismo
+    procedimiento que el modelo elegido (`ajustar`: pipeline, pesos
+    balanceados, calibración sigmoide y umbral F1 con GroupKFold por
+    repositorio), entrenado con todo el dataset. No repite la evaluación ni
+    toca los archivos de Random Forest: sus métricas de validación son las
+    de la misma evaluación anidada guardada en modelo_riesgo_v2.json.
+    """
+    principal = json.loads((modelos_dir / "modelo_riesgo_v2.json").read_text(encoding="utf-8"))
+    sha = hashlib.sha256(datos.read_bytes()).hexdigest()
+    if sha != principal["dataset_sha256"]:
+        raise SystemExit("El dataset no es el mismo con el que se entrenó v2.")
+    y = df["y"].to_numpy()
+    final, umbral = ajustar(XGB, df[COLUMNAS], y, df["repositorio"].to_numpy())
+    base = final.calibrated_classifiers_[0].estimator
+    tasa_base = float(y.mean())
+    meta = {
+        **{k: principal[k] for k in (
+            "dataset", "dataset_sha256", "fecha_corte", "variables_categoricas",
+            "variables_numericas", "validacion", "metricas_validacion",
+            "filas_entrenamiento", "repositorios", "pesos_clase")},
+        "version": "v2-xgb", "modelo": XGB,
+        "rol": "alternativo", "alternativa_de": "v2",
+        "motivo_seleccion": ("Modelo alternativo de la propuesta, entrenado con el dataset v2. "
+                             "No es el principal: " + principal["motivo_seleccion"]),
+        "fecha_entrenamiento": datetime.now(timezone.utc).isoformat(),
+        # Misma regla que el principal: riesgo relativo a la tasa base.
+        "tasa_base_entrenamiento": tasa_base,
+        "limites_riesgo": {"medio": tasa_base, "alto": 2 * tasa_base},
+        "umbral_f1": umbral,
+        "escala_shap": "log-odds",
+    }
+    if meta["fecha_corte"] != str(df["run_started_at"].max()):
+        raise SystemExit("La fecha de corte no coincide con la del dataset.")
+    joblib.dump(final, modelos_dir / "modelo_riesgo_v2_xgb.joblib")
+    joblib.dump(base, modelos_dir / "modelo_riesgo_v2_xgb_shap.joblib")
+    (modelos_dir / "modelo_riesgo_v2_xgb.json").write_text(
+        json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"XGBoost alternativo guardado en {modelos_dir} (umbral F1 {umbral:.3f}).")
+
+
 def main():
     # La consola de Windows (cp1252) no puede imprimir «−» ni «≥».
     for flujo in (sys.stdout, sys.stderr):
@@ -495,11 +540,16 @@ def main():
     parser.add_argument("--model-dir", default="modelos")
     parser.add_argument("--fig-dir", default="figuras")
     parser.add_argument("--report", default="informes/fase5_modelos_v2.md")
+    parser.add_argument("--alternativo-xgboost", action="store_true",
+                        help="Solo entrena y guarda el XGBoost final (modelo_riesgo_v2_xgb.*).")
     args = parser.parse_args()
 
     datos = Path(args.data)
     df = pd.read_csv(datos).dropna(subset=["y"]).reset_index(drop=True)
     df["y"] = df["y"].astype(int)
+    if args.alternativo_xgboost:
+        final_alternativo(df, datos, Path(args.model_dir))
+        return
 
     # 1) Evaluación con GroupKFold por repositorio.
     oof, por_pliegue = evaluar(df)

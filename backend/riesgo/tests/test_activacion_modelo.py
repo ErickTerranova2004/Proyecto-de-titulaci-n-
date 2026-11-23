@@ -115,3 +115,62 @@ class ActivacionModeloTest(TestCase):
         estado = self.api.get("/api/resumen-admin/").json()["modelo"]
         self.assertEqual((estado["activo"], estado["aviso"],
                           estado["activo_sin_corte"]), ("v1", True, True))
+
+
+@override_settings(GEMINI_API_KEY="")
+class XGBoostAlternativoTest(TestCase):
+    """Random Forest (v2, principal) y XGBoost (v2-xgb, alternativo),
+    entrenados con el mismo dataset v2 y la misma fecha de corte."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("registrar_modelo", stdout=StringIO())
+        call_command("registrar_modelo", "--modelo", "v2-xgb", "--sin-activar",
+                     stdout=StringIO())
+        cls.rf = VersionModelo.objects.get(version="v2")
+        cls.xgb = VersionModelo.objects.get(version="v2-xgb")
+        cls.admin = test_api.ApiTest._usuario("admin", "administrador", [])
+
+    def setUp(self):
+        self.api = test_api.ApiTest.cliente(self, self.admin)
+
+    def test_registro_sin_activar_con_sus_archivos_y_metadatos(self):
+        self.assertTrue(self.rf.activo)
+        self.assertFalse(self.xgb.activo)
+        self.assertEqual(self.xgb.nombre_modelo, "XGBoost")
+        self.assertEqual((self.xgb.archivo, self.xgb.archivo_explicacion),
+                         ("modelo_riesgo_v2_xgb.joblib",
+                          "modelo_riesgo_v2_xgb_shap.joblib"))
+        meta, rf = self.xgb.metadatos, self.rf.metadatos
+        for clave in ("fecha_corte", "variables_numericas",
+                      "variables_categoricas", "dataset_sha256",
+                      "limites_riesgo"):
+            self.assertEqual(meta[clave], rf[clave], clave)
+        self.assertEqual(meta["escala_shap"], "log-odds")
+        self.assertIn("XGBoost", meta["metricas_validacion"])
+        # Registrarlo no cuenta como activación.
+        self.assertFalse(ActivacionModelo.objects.filter(
+            version_modelo=self.xgb).exists())
+
+    def test_modelos_principal_y_alternativo(self):
+        modelos = {m["version"]: m for m in self.api.get("/api/modelos/").json()}
+        self.assertEqual({v: m["rol"] for v, m in modelos.items()},
+                         {"v2": "principal", "v2-xgb": "alternativo"})
+        self.assertTrue(modelos["v2-xgb"]["activable"])
+
+    def test_cambiar_el_principal_pide_el_nombre_y_no_dispara_el_aviso(self):
+        url = f"/api/modelos/{self.xgb.id}/activar/"
+        self.assertEqual(self.api.post(url, {"confirmacion": "XGBoost"},
+                                       format="json").status_code, 400)
+        self.assertEqual(self.api.post(url, {"confirmacion": "v2-xgb"},
+                                       format="json").status_code, 200)
+        fila = ActivacionModelo.objects.get(version_modelo=self.xgb)
+        self.assertEqual((fila.version_anterior, fila.nombre_usuario),
+                         (self.rf, "admin"))
+        estado = self.api.get("/api/resumen-admin/").json()["modelo"]
+        self.assertEqual((estado["activo"], estado["aviso"]), ("v2-xgb", False))
+
+    def test_aviso_sin_falsos_positivos_con_el_alternativo(self):
+        estado = self.api.get("/api/resumen-admin/").json()["modelo"]
+        self.assertEqual(estado, {"activo": "v2", "recomendado": "v2",
+                                  "aviso": False, "activo_sin_corte": False})

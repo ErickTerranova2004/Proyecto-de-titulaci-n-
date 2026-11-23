@@ -6,6 +6,8 @@ import { formatoMetrica, METRICAS, metricasModelo } from "../metricas.js";
 import { formatoIntervalo } from "../sombra.js";
 import { confirmacionValida } from "../modeloActivo.js";
 
+const ROLES = { principal: "Principal", alternativo: "Alternativo" };
+
 export default function Modelos({ modelos, esAdmin, alCambiar }) {
   const [error, setError] = useState("");
   // Versión que se está confirmando (se escribe su nombre para activarla).
@@ -31,8 +33,10 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
       <header className="encabezado">
         <h1 id="titulo-modelos">Versiones del modelo</h1>
         <p className="secundario">
-          Modelos registrados. Las métricas de v1 corresponden a su partición temporal de prueba; las de v2, a
-          la validación por repositorio (repositorios no vistos). No son comparables entre sí.
+          Los dos modelos de la propuesta, entrenados con el dataset v2 (misma fecha de corte y mismas variables). Las
+          métricas son de la validación por repositorio (GroupKFold, repositorios no vistos). El principal hace el
+          análisis en lote y es el que viene elegido en Nuevo análisis; el alternativo se puede elegir en cada análisis
+          y se evalúa en sombra con los despliegues reales.
         </p>
       </header>
       <Alerta>{error}</Alerta>
@@ -62,7 +66,10 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
               return (
                 <tr key={m.id}>
                   <td><code className="codigo">{m.version}</code></td>
-                  <td><strong>{m.nombre_modelo}</strong></td>
+                  <td>
+                    <strong>{m.nombre_modelo}</strong>{" "}
+                    <span className="secundario">({ROLES[m.rol] ?? "Alternativo"})</span>
+                  </td>
                   <td>
                     {m.activo ? <span className="estado estado--activo">Activo</span> : <span className="secundario">Inactivo</span>}
                     {esAdmin && m.ultima_activacion && (
@@ -98,8 +105,8 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
                           onClick={() => { setError(""); setConfirmando(m); }}
                           disabled={activando}
                         >
-                          Activar…
-                          <span className="solo-lector"> {m.version}</span>
+                          Usar como principal…
+                          <span className="solo-lector"> {m.nombre_modelo} ({m.version})</span>
                         </button>
                       )}
                     </td>
@@ -139,11 +146,13 @@ export function ConfirmarActivacion({ modelo, activo, activando, alConfirmar, al
         if (valido && !activando) alConfirmar(texto);
       }}
     >
-      <h2 id="titulo-confirmar-activacion">Activar la versión {modelo.version}</h2>
+      <h2 id="titulo-confirmar-activacion">
+        Usar {modelo.nombre_modelo} (<code className="codigo">{modelo.version}</code>) como modelo principal
+      </h2>
       <p>
-        La versión activa hace todos los análisis nuevos y el análisis en lote
-        {activo ? <> y sustituye a <code className="codigo">{activo.version}</code></> : null}. Quedará registrado quién
-        la activó y cuándo.
+        El modelo principal hace el análisis en lote y es el que viene elegido en Nuevo análisis
+        {activo ? <>; {activo.nombre_modelo} (<code className="codigo">{activo.version}</code>) pasa a ser el alternativo</> : null}.
+        Los dos siguen disponibles en cada análisis. Quedará registrado quién hizo el cambio y cuándo.
       </p>
       <label className="campo confirmar-activacion__campo">
         <span>
@@ -160,7 +169,7 @@ export function ConfirmarActivacion({ modelo, activo, activando, alConfirmar, al
       </label>
       <div className="confirmar-activacion__acciones">
         <button className="boton" type="submit" disabled={!valido || activando}>
-          {activando ? "Activando…" : `Activar ${modelo.version}`}
+          {activando ? "Cambiando…" : `Usar ${modelo.version} como principal`}
         </button>
         <button className="boton boton--secundario" type="button" onClick={alCancelar} disabled={activando}>
           Cancelar
@@ -212,7 +221,7 @@ function Supervision({ modelos }) {
               if (!s) return null;
               return (
                 <tr key={m.id}>
-                  <td>{s.version}</td>
+                  <td>{m.nombre_modelo} <span className="secundario">({ROLES[m.rol] ?? "Alternativo"} · {s.version})</span></td>
                   <td className="numero">{s.predicciones}</td>
                   <td className="numero">{s.verificadas}</td>
                   <td className="numero">{s.evaluables}</td>
