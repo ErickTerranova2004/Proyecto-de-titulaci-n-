@@ -38,7 +38,7 @@ export function Fecha({ valor }) {
 }
 
 // Fechas límite: solo días (sin hora) en la zona del backend.
-const ZONA = "America/Guayaquil";
+import { ZONA } from "../zona.js";
 
 // Fecha de hoy en America/Guayaquil con formato AAAA-MM-DD (input type="date").
 export function hoyLocal() {
@@ -112,6 +112,18 @@ export function RespuestaDesarrollador({ nivelOriginal, respuesta, comentario })
     </span>
   );
 }
+
+// Celda «Modelo» de las tablas (Historial y Pendientes).
+export function CeldaModelo({ analisis }) {
+  return (
+    <span className="secundario" title={analisis.version_modelo}>
+      {analisis.modelo_nombre ?? analisis.version_modelo}
+    </span>
+  );
+}
+
+// «68.1 % (109/160)» o «—»: tasa de no completados de un nivel.
+export const textoTasa = (n) => (n.tasa == null ? "—" : `${porcentaje(n.tasa)} (${n.no_completados}/${n.evaluables})`);
 
 export function NivelRiesgo({ nivel, grande = false }) {
   return (

@@ -16,6 +16,7 @@ workflow y, en el repositorio, las 100 más recientes con 5 por workflow
 (límites heredados de GHALogs, que guarda como máximo 5 por workflow).
 """
 
+import math
 import re
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -39,6 +40,13 @@ PARAMS_CHECKS = {"per_page": 100, "filter": "all"}
 MAX_PREVIAS_WORKFLOW = 4
 MAX_POR_WORKFLOW_REPO = 5
 MAX_PREVIAS_REPO = 100
+
+
+def json_seguro(variables):
+    """Variables con NaN convertido en None, para guardarlas como JSON
+    válido (análisis interactivos y del lote)."""
+    return {k: (None if isinstance(v, float) and math.isnan(v) else v)
+            for k, v in variables.items()}
 
 
 def fecha(texto):

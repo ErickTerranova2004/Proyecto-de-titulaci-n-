@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import { COLUMNAS_ASIGNACIONES, COLUMNAS_PENDIENTES } from "../columnasTablas.js";
 import {
-  AbrirInformeContexto, Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador, textoPlazo,
+  AbrirInformeContexto, Alerta, CeldaModelo, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador, textoPlazo,
 } from "./comunes.jsx";
 import FiltrosHistorial from "./FiltrosHistorial.jsx";
 import { TablaPaginada } from "./TablaDesplazable.jsx";
@@ -73,7 +73,7 @@ export default function Pendientes() {
     repositorio: (p) => <strong className="celda-recortada" title={p.repositorio}>{p.repositorio}</strong>,
     riesgo: (p) => <NivelRiesgo nivel={p.nivel} />,
     probabilidad: (p) => <span className="destacado">{porcentaje(p.probabilidad)}</span>,
-    modelo: (p) => <span className="secundario" title={p.version_modelo}>{p.modelo_nombre ?? p.version_modelo}</span>,
+    modelo: (p) => <CeldaModelo analisis={p} />,
     desarrollador: (p) => p.usuario,
     workflow: (p) => <span className="secundario" title={p.workflow_path}>{p.workflow_path.replace(".github/workflows/", "")}</span>,
     acciones: (p) => (

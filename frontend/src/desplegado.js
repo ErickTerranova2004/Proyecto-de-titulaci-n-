@@ -1,7 +1,7 @@
 // Aviso de «Nuevo análisis» cuando el commit ya se desplegó (409
 // commit_ya_desplegado). Texto claro para el desarrollador: cuándo (hoy, ayer
 // o dd/mm/aaaa, hora en 24 h, hora de Ecuador) y cómo terminó.
-const ZONA = "America/Guayaquil";
+import { ZONA } from "./zona.js";
 
 const PARTES = new Intl.DateTimeFormat("en-CA", {
   timeZone: ZONA, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",

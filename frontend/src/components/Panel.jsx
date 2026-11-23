@@ -3,7 +3,8 @@ import { api } from "../api.js";
 import { cargarTarjetas } from "../cargaAdmin.js";
 import { formatoMetrica, metricasModelo } from "../metricas.js";
 import { MisAsignaciones } from "./Alarma.jsx";
-import { Alerta, Fecha, NIVELES, NivelRiesgo, NotaCorte, porcentaje } from "./comunes.jsx";
+import { Indicador } from "./gestion.jsx";
+import { Alerta, Fecha, NIVELES, NivelRiesgo, NotaCorte, porcentaje, textoTasa } from "./comunes.jsx";
 import { BarrasApiladas, Dona, Embudo, Linea } from "./graficos.jsx";
 import { Enlace, useNavegacion } from "../navegacion.jsx";
 import { avisoModeloActivo } from "../modeloActivo.js";
@@ -84,40 +85,6 @@ function agrupar(predicciones, campo) {
     if (p.creada_en > g.ultimo) g.ultimo = p.creada_en;
   });
   return Object.values(grupos).map((g) => ({ ...g, media: g.suma / g.n }));
-}
-
-function Icono({ tipo }) {
-  const trazos = {
-    analisis: "M3 3v18h18M7 16l4-4 4 4 5-6",
-    alto: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z",
-    probabilidad: "M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6z",
-    verificado: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
-    modelo: "M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9",
-    pendiente: "M12 7v5l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
-    usuarios: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
-    repositorio: "M3 7h18M3 12h18M3 17h18",
-    enlace: "M9 7H6a5 5 0 0 0 0 10h3M15 7h3a5 5 0 0 1 0 10h-3M8 12h8",
-  };
-  return (
-    <svg viewBox="0 0 24 24" className="kpi__icono" aria-hidden="true">
-      <path d={trazos[tipo]} />
-    </svg>
-  );
-}
-
-function Kpi({ icono, titulo, valor, detalle, nivel }) {
-  return (
-    <article className={`kpi${nivel ? ` kpi--${nivel}` : ""}`}>
-      <div className="kpi__cabecera">
-        <h3 className="kpi__titulo">{titulo}</h3>
-        <Icono tipo={icono} />
-      </div>
-      <div>
-        <p className="kpi__valor">{valor}</p>
-        {detalle && <p className="kpi__detalle secundario">{detalle}</p>}
-      </div>
-    </article>
-  );
 }
 
 // Tarjetas del administrador. Cada una carga por separado (cargaAdmin.js):
@@ -395,32 +362,32 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
           <section aria-labelledby="titulo-kpi">
             <h2 id="titulo-kpi" className="solo-lector">Mis indicadores del período</h2>
             <div className="kpis">
-              <Kpi
+              <Indicador
                 icono="analisis"
                 titulo="Mis análisis"
                 valor={datos.total}
                 detalle={datos.anterior === null ? "Todo el historial" : `${datos.anterior} en el período anterior`}
               />
-              <Kpi
+              <Indicador
                 icono="alto"
                 titulo="Riesgo Alto"
                 valor={datos.alto}
                 nivel="alto"
                 detalle={datos.total ? `${porcentaje(datos.alto / datos.total)} de mis análisis` : "Sin análisis"}
               />
-              <Kpi
+              <Indicador
                 icono="probabilidad"
                 titulo="Probabilidad media"
                 valor={datos.probMedia === null ? "—" : porcentaje(datos.probMedia)}
                 detalle="De despliegue no completado"
               />
-              <Kpi
+              <Indicador
                 icono="verificado"
                 titulo="Resultados verificados"
                 valor={`${datos.verificadas.length} / ${datos.total}`}
                 detalle={`${datos.noCompletados.length} no completados de ${datos.evaluables.length} evaluables`}
               />
-              <Kpi icono="repositorio" titulo="Mis repositorios" valor={repos.length} detalle="Repositorios asignados" />
+              <Indicador icono="repositorio" titulo="Mis repositorios" valor={repos.length} detalle="Repositorios asignados" />
             </div>
           </section>
 
@@ -450,22 +417,22 @@ function PanelDePerfil({ perfil, modelos, alNuevoAnalisis, alActualizar, alarma,
           <section aria-labelledby="titulo-kpi">
             <h2 id="titulo-kpi" className="solo-lector">Indicadores del equipo</h2>
             <div className="kpis">
-              <Kpi
+              <Indicador
                 icono="analisis"
                 titulo="Análisis del equipo"
                 valor={datos.total}
                 detalle={datos.anterior === null ? "Todo el historial" : `${datos.anterior} en el período anterior`}
               />
-              <Kpi
+              <Indicador
                 icono="alto"
                 titulo="Riesgo Alto"
                 valor={datos.alto}
                 nivel="alto"
                 detalle={datos.total ? `${porcentaje(datos.alto / datos.total)} de los análisis` : "Sin análisis"}
               />
-              <Kpi icono="repositorio" titulo="Repositorios asignados" valor={repos.length} detalle={`${datos.repositorios.filter((r) => r.alto).length} con riesgo Alto`} />
-              <Kpi icono="usuarios" titulo="Desarrolladores" valor={datos.desarrolladores.length} detalle="Con análisis en el período" />
-              <Kpi icono="pendiente" titulo="Sin decisión" valor={datos.sinDecision.length} detalle="Nivel medio o alto" />
+              <Indicador icono="repositorio" titulo="Repositorios asignados" valor={repos.length} detalle={`${datos.repositorios.filter((r) => r.alto).length} con riesgo Alto`} />
+              <Indicador icono="usuarios" titulo="Desarrolladores" valor={datos.desarrolladores.length} detalle="Con análisis en el período" />
+              <Indicador icono="pendiente" titulo="Sin decisión" valor={datos.sinDecision.length} detalle="Nivel medio o alto" />
             </div>
           </section>
           {flujo}
@@ -626,17 +593,16 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
   const resumen = datosDe("resumen");
   const github = datosDe("github");
   const supervision = datosDe("supervision");
-  const tasa = (n) => (n.tasa == null ? "—" : `${porcentaje(n.tasa)} (${n.no_completados}/${n.evaluables})`);
   return (
     <>
       <AvisoModeloActivo estado={resumen?.modelo} />
       <section aria-labelledby="titulo-kpi">
         <h2 id="titulo-kpi" className="solo-lector">Indicadores de la plataforma</h2>
         <div className="kpis">
-          <Kpi icono="usuarios" titulo="Usuarios" valor={resumen ? resumen.usuarios.total : "—"} detalle={resumen ? `${resumen.usuarios.sin_rol} sin rol` : "Sin datos"} />
-          <Kpi icono="verificado" titulo="Workflows validados" valor={resumen ? resumen.workflows.validados : "—"} detalle={resumen ? `${resumen.workflows.validados_disponibles_github} disponibles en GitHub` : "Sin datos"} />
-          <Kpi icono="pendiente" titulo="Workflows sin validar" valor={resumen ? resumen.workflows.sin_validar : "—"} detalle="Pendientes de validación" />
-          <Kpi
+          <Indicador icono="usuarios" titulo="Usuarios" valor={resumen ? resumen.usuarios.total : "—"} detalle={resumen ? `${resumen.usuarios.sin_rol} sin rol` : "Sin datos"} />
+          <Indicador icono="verificado" titulo="Workflows validados" valor={resumen ? resumen.workflows.validados : "—"} detalle={resumen ? `${resumen.workflows.validados_disponibles_github} disponibles en GitHub` : "Sin datos"} />
+          <Indicador icono="pendiente" titulo="Workflows sin validar" valor={resumen ? resumen.workflows.sin_validar : "—"} detalle="Pendientes de validación" />
+          <Indicador
             icono="modelo"
             titulo="Modelo activo"
             valor={activo ? activo.version : "—"}
@@ -644,7 +610,7 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
               ? `${activo.nombre_modelo} · PR-AUC ${formatoMetrica(metricasModelo(activo.metadatos).valores["PR-AUC"])}`
               : "No hay un modelo activo"}
           />
-          <Kpi
+          <Indicador
             icono="enlace"
             titulo="GitHub"
             valor={!github ? "—" : github.error ? "Sin conexión" : github.token_configurado ? "Con token" : "Sin token"}
@@ -732,7 +698,7 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
                   <td className="numero">{supervision.predicciones}</td>
                   <td className="numero">{supervision.verificadas}</td>
                   <td className="numero">{supervision.evaluables}</td>
-                  {Object.keys(NIVELES).map((n) => <td key={n} className="numero">{tasa(supervision.por_nivel[n])}</td>)}
+                  {Object.keys(NIVELES).map((n) => <td key={n} className="numero">{textoTasa(supervision.por_nivel[n])}</td>)}
                   <td className="numero">{supervision.brier == null ? "—" : supervision.brier.toFixed(3)}</td>
                 </tr>
               </tbody>

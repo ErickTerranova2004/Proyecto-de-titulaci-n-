@@ -1,7 +1,9 @@
 // Fechas y horas del Planificador en hora de Ecuador (America/Guayaquil),
 // sea cual sea la zona del equipo. Las fechas van como AAAA-MM-DD.
 
-export const ZONA = "America/Guayaquil";
+import { ZONA } from "./zona.js";
+
+export { ZONA };
 // Franja de las horas por defecto y de las mejores ventanas (ambas incluidas).
 export const PRIMERA_HORA = 7;
 export const ULTIMA_HORA = 20;

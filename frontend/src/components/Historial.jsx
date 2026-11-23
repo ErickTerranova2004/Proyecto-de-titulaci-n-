@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import {
-  Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador,
+  Alerta, CeldaModelo, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador,
 } from "./comunes.jsx";
 import FiltrosHistorial from "./FiltrosHistorial.jsx";
 import { TablaPaginada } from "./TablaDesplazable.jsx";
@@ -88,7 +88,7 @@ export default function Historial({
     repositorio: (p) => <strong className="celda-recortada" title={p.repositorio}>{p.repositorio}</strong>,
     riesgo: (p) => <NivelRiesgo nivel={p.nivel} />,
     probabilidad: (p) => <span className="destacado">{porcentaje(p.probabilidad)}</span>,
-    modelo: (p) => <span className="secundario" title={p.version_modelo}>{p.modelo_nombre ?? p.version_modelo}</span>,
+    modelo: (p) => <CeldaModelo analisis={p} />,
     decision: (p) => {
       const texto = p.decisiones?.length ? DECISIONES[p.decisiones[0].decision] : "Sin decisión";
       return <span className="celda-recortada celda-recortada--decision" title={texto}>{texto}</span>;

@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 
 export const ICONOS = {
+  analisis: "M3 3v18h18M7 16l4-4 4 4 5-6",
+  probabilidad: "M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6z",
+  modelo: "M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9",
   usuarios: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
   verificado: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
   pendiente: "M12 7v5l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
@@ -10,7 +13,7 @@ export const ICONOS = {
   enlace: "M9 7H6a5 5 0 0 0 0 10h3M15 7h3a5 5 0 0 1 0 10h-3M8 12h8",
 };
 
-// Indicador con el mismo diseño que los KPI del panel.
+// Tarjeta de indicador (KPI) del Panel y de las pantallas de gestión.
 export function Indicador({ icono, titulo, valor, detalle, nivel }) {
   return (
     <article className={`kpi${nivel ? ` kpi--${nivel}` : ""}`}>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
-import { Alerta, Fecha, NIVELES, porcentaje } from "./comunes.jsx";
+import { Alerta, Fecha, NIVELES, porcentaje, textoTasa } from "./comunes.jsx";
 
 import { formatoMetrica, METRICAS, metricasModelo } from "../metricas.js";
 import { formatoIntervalo, textoComparacion } from "../sombra.js";
@@ -191,7 +191,6 @@ function Supervision({ modelos }) {
       .catch((e) => setError(e.message));
   }, [modelos]);
 
-  const tasa = (n) => (n.tasa == null ? "—" : `${porcentaje(n.tasa)} (${n.no_completados}/${n.evaluables})`);
 
   return (
     <section aria-labelledby="titulo-supervision">
@@ -226,7 +225,7 @@ function Supervision({ modelos }) {
                   <td className="numero">{s.verificadas}</td>
                   <td className="numero">{s.evaluables}</td>
                   {Object.keys(NIVELES).map((n) => (
-                    <td key={n} className="numero">{tasa(s.por_nivel[n])}</td>
+                    <td key={n} className="numero">{textoTasa(s.por_nivel[n])}</td>
                   ))}
                   <td className="numero">{s.brier == null ? "—" : s.brier.toFixed(3)}</td>
                 </tr>

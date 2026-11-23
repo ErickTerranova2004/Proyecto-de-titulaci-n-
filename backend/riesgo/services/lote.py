@@ -22,7 +22,6 @@ la supervisión. Cada pasada también enlaza el resultado real de los análisis
 interactivos pendientes (verificar_interactivos).
 """
 
-import math
 from datetime import datetime, timedelta, timezone
 
 import requests
@@ -33,7 +32,7 @@ from riesgo.models import Prediccion, SeguimientoLote
 from riesgo.services import github
 from riesgo.services.analisis_ia import _por_reglas
 from riesgo.services.features import (PARAMS_CHECKS, PARAMS_PULLS, fecha,
-                                      variables_desde_datos)
+                                      json_seguro, variables_desde_datos)
 from riesgo.services.github import GitHubClient
 from riesgo.services.predictor import predecir
 from riesgo.services.trazabilidad import guardar_commit, guardar_ejecucion
@@ -295,11 +294,6 @@ def resumen_grupos(grupos, analizadas=None):
     return resumen
 
 
-def _json_seguro(variables):
-    return {k: (None if isinstance(v, float) and math.isnan(v) else v)
-            for k, v in variables.items()}
-
-
 def analizar_workflow(gh, workflow, corte, version, usuario):
     """Analiza y verifica las ejecuciones terminadas posteriores al corte.
 
@@ -346,7 +340,7 @@ def _analizar_run(gh, workflow, run, runs_wf, runs_repo, datos_commit,
         prediccion = Prediccion(
             usuario=usuario, workflow=workflow, commit=commit,
             version_modelo=version, rama=run.get("head_branch") or "",
-            evento=run.get("event") or "", variables=_json_seguro(variables),
+            evento=run.get("event") or "", variables=json_seguro(variables),
             probabilidad=resultado["probabilidad"], nivel=resultado["nivel"],
             recomendacion=resultado["recomendacion"],
             factores=resultado["factores"], recomendaciones=recomendaciones,

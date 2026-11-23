@@ -1,5 +1,4 @@
 import logging
-import math
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -36,19 +35,13 @@ from riesgo.services import modelos as modelos_servicio
 from riesgo.services.sincronizacion import sincronizar_repositorio
 from riesgo.services.pendientes import despliegue_previo
 from riesgo.services.verificacion import enlazar_resultado, etiquetar_run
-from riesgo.services.features import calcular_variables
+from riesgo.services.features import calcular_variables, json_seguro
 from riesgo.services.predictor import SinModeloActivo, predecir
 from riesgo.services.trazabilidad import (RepositorioNoRegistrado,
                                           guardar_commit, guardar_ejecucion,
                                           resolver_repositorio)
 
 logger = logging.getLogger(__name__)
-
-
-def _json_seguro(variables):
-    """Convierte NaN en None para guardar JSON válido."""
-    return {k: (None if isinstance(v, float) and math.isnan(v) else v)
-            for k, v in variables.items()}
 
 
 def _error_no_interactivo():
@@ -315,7 +308,9 @@ def integraciones(request):
     }})
 
 
-def _fecha_parametro(parametros, nombre):
+def fecha_parametro(parametros, nombre):
+    """Fecha AAAA-MM-DD de la consulta (None si falta; 400 si no es
+    válida). La usan los historiales y los informes."""
     valor = (parametros.get(nombre) or "").strip()
     if not valor:
         return None
@@ -348,8 +343,8 @@ def filtrar_historial(consulta, parametros):
       reciente al más antiguo). Va en el backend para que la paginación lo
       respete.
     """
-    desde = _fecha_parametro(parametros, "desde")
-    hasta = _fecha_parametro(parametros, "hasta")
+    desde = fecha_parametro(parametros, "desde")
+    hasta = fecha_parametro(parametros, "hasta")
     if desde and hasta and desde > hasta:
         raise ValidationError({"desde": "La fecha «desde» no puede ser "
                                         "posterior a «hasta»."})
@@ -545,7 +540,7 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                     commit=commit,
                     rama=datos["rama"],
                     evento=datos["evento"],
-                    variables=_json_seguro(variables),
+                    variables=json_seguro(variables),
                     probabilidad=resultado["probabilidad"],
                     nivel=resultado["nivel"],
                     recomendacion=resultado["recomendacion"],

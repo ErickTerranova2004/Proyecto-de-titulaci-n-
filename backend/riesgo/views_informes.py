@@ -8,7 +8,6 @@
 - GET /api/informes/<id>/pdf/: PDF (cada descarga queda registrada).
 """
 
-from datetime import date
 
 from django.db.models import Case, F, IntegerField, Value, When
 from django.http import HttpResponse
@@ -21,6 +20,7 @@ from riesgo import paginacion
 from riesgo.models import DecisionDespliegue
 from riesgo.permissions import PuedePredecir
 from riesgo.services import informes
+from riesgo.views import _error, fecha_parametro
 
 
 class SolicitudInformeSerializer(serializers.Serializer):
@@ -31,21 +31,6 @@ class SolicitudDecisionFinalSerializer(serializers.Serializer):
     decision = serializers.ChoiceField(choices=DecisionDespliegue.DECISIONES)
     comentario = serializers.CharField(max_length=1000, required=False,
                                        allow_blank=True, default="")
-
-
-def _error(mensaje, codigo, estado):
-    return Response({"detail": mensaje, "codigo": codigo}, status=estado)
-
-
-def _fecha(parametros, nombre):
-    valor = (parametros.get(nombre) or "").strip()
-    if not valor:
-        return None
-    try:
-        return date.fromisoformat(valor)
-    except ValueError:
-        raise serializers.ValidationError(
-            {nombre: "Use una fecha con el formato AAAA-MM-DD."})
 
 
 RESULTADOS = ("bajo", "mantuvo", "subio")
@@ -121,7 +106,8 @@ class InformeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         if self.action != "list":
             return consulta
         parametros = self.request.query_params
-        desde, hasta = _fecha(parametros, "desde"), _fecha(parametros, "hasta")
+        desde = fecha_parametro(parametros, "desde")
+        hasta = fecha_parametro(parametros, "hasta")
         if desde and hasta and desde > hasta:
             raise serializers.ValidationError(
                 {"desde": "La fecha «desde» no puede ser posterior a «hasta»."})
