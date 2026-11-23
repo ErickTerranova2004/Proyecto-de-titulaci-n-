@@ -2,7 +2,6 @@
 // con ?pagina=N responde { total, pagina, por_pagina, paginas, resultados }.
 
 export const POR_PAGINA = [25, 50, 100];
-export const PAGINACION_INICIAL = { pagina: 1, porPagina: 25 };
 
 // Añade pagina y por_pagina a una consulta ("" o "?a=b").
 export function consultaPaginada(consulta = "", { pagina = 1, porPagina = 25 } = {}) {

@@ -48,12 +48,6 @@ export function problemaComentario(texto) {
   return "";
 }
 
-// Id del informe del enlace del correo (?informe=12), o null.
-export function informeDelEnlace(busqueda) {
-  const valor = new URLSearchParams(busqueda || "").get("informe");
-  return valor && /^\d+$/.test(valor) ? Number(valor) : null;
-}
-
 // Valor de una variable en la tabla de factores.
 export function valorVariable(valor) {
   if (valor === null || valor === undefined) return "Sin dato";

@@ -1,11 +1,12 @@
-// Informes de cumplimiento: consulta, comentario obligatorio, enlace del
-// correo y render del documento y del botón de envío.
+// Informes de cumplimiento: consulta, comentario obligatorio y render del
+// documento y del botón de envío. El enlace del correo (?informe=<id>) se
+// prueba en rutas.test.js.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createElement as h } from "react";
 import { renderToString } from "react-dom/server";
 import {
-  consultaInformes, DECISIONES_FINAL_FILTRO, FILTROS_INFORMES, informeDelEnlace, ORDENES_INFORMES, problemaComentario,
+  consultaInformes, DECISIONES_FINAL_FILTRO, FILTROS_INFORMES, ORDENES_INFORMES, problemaComentario,
   RESULTADOS_FILTRO, valorVariable,
 } from "../src/informes.js";
 import { cargarComponente } from "./compilarComponente.js";
@@ -38,12 +39,6 @@ test("el comentario es obligatorio", () => {
   assert.match(problemaComentario("corto"), /10 caracteres/);
   assert.equal(problemaComentario("Corregí el YAML del despliegue."), "");
   assert.match(problemaComentario("x".repeat(2001)), /2000/);
-});
-
-test("enlace del correo ?informe=<id>", () => {
-  assert.equal(informeDelEnlace("?informe=12"), 12);
-  assert.equal(informeDelEnlace("?otra=1&informe=7"), 7);
-  for (const malo of ["", "?informe=", "?informe=abc", "?informe=1;drop"]) assert.equal(informeDelEnlace(malo), null, malo);
 });
 
 test("valores de las variables en la tabla", () => {

@@ -7,18 +7,20 @@ import { renderToString } from "react-dom/server";
 import {
   COLUMNAS_ASIGNACIONES, COLUMNAS_PENDIENTES, COLUMNAS_USUARIOS, columnasHistorial, columnasInformes,
 } from "../src/columnasTablas.js";
-import { consultaPaginada, PAGINACION_INICIAL, paginasVisibles, POR_PAGINA, textoRango } from "../src/paginacion.js";
+import { leerPaginacion } from "../src/estadoUrl.js";
+import { consultaPaginada, paginasVisibles, POR_PAGINA, textoRango } from "../src/paginacion.js";
 import { cargarComponente } from "./compilarComponente.js";
 
 const sinMarcas = (html) => html.replace(/<!-- -->/g, "");
 
 test("25 por página por defecto; opciones 25, 50 y 100", () => {
-  assert.deepEqual(PAGINACION_INICIAL, { pagina: 1, porPagina: 25 });
+  // Sin página en la dirección: la primera, con 25 filas (lo que usan las tablas).
+  assert.deepEqual(leerPaginacion(""), { pagina: 1, porPagina: 25 });
   assert.deepEqual(POR_PAGINA, [25, 50, 100]);
 });
 
 test("la consulta conserva filtros y orden y añade la página", () => {
-  assert.equal(consultaPaginada("", PAGINACION_INICIAL), "?pagina=1&por_pagina=25");
+  assert.equal(consultaPaginada("", leerPaginacion("")), "?pagina=1&por_pagina=25");
   assert.equal(consultaPaginada("?nivel=alto&orden=antiguo", { pagina: 3, porPagina: 50 }),
     "?nivel=alto&orden=antiguo&pagina=3&por_pagina=50");
   // Reemplaza una página anterior en vez de duplicarla.
