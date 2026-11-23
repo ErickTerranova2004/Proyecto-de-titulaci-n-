@@ -9,6 +9,7 @@ import {
   workflowInicial,
 } from "../pendientes.js";
 import { Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, textoPlazo } from "./comunes.jsx";
+import { TEXTO_SECUNDARIO_DESPLEGADO, textoDesplegado } from "../desplegado.js";
 import EnviarInforme from "./EnviarInforme.jsx";
 import Resultado from "./Resultado.jsx";
 
@@ -21,6 +22,33 @@ function fechaLegible(valor) {
   return new Date(valor).toLocaleString("es-EC", {
     day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
   });
+}
+
+// Aviso informativo (azul suave) cuando el commit ya se desplegó o se está
+// desplegando: cuándo y cómo terminó, qué implica para la validación y un
+// enlace discreto a la ejecución en GitHub. `children`: los botones.
+export function AvisoDesplegado({ aviso, children, ahora }) {
+  const ejecucion = aviso.ejecucion || {};
+  return (
+    <div className="aviso-desplegado" role="status">
+      <span className="aviso-desplegado__icono" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4M12 8h.01" />
+        </svg>
+      </span>
+      <div className="aviso-desplegado__cuerpo">
+        <p className="aviso-desplegado__principal">{textoDesplegado(ejecucion, ahora)}</p>
+        <p className="aviso-desplegado__secundario">{TEXTO_SECUNDARIO_DESPLEGADO}</p>
+        {ejecucion.url && (
+          <a className="aviso-desplegado__enlace" href={ejecucion.url} target="_blank" rel="noreferrer">
+            Ver la ejecución en GitHub
+          </a>
+        )}
+        {children && <div className="aviso-desplegado__acciones">{children}</div>}
+      </div>
+    </div>
+  );
 }
 
 // Tarjeta con la asignación del líder que este análisis responde.
@@ -299,34 +327,14 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
 
         <Alerta>{error}</Alerta>
         {aviso && (
-          <div className="aviso-desplegado" role="alert">
-            <p>
-              <strong>{aviso.en_curso ? "Este commit se está desplegando ahora." : "Este commit ya se desplegó."}</strong>{" "}
-              El análisis no podrá compararse con un resultado real: solo se enlaza un despliegue que empiece después del
-              análisis.
-            </p>
-            <p className="secundario">
-              Ejecución{" "}
-              {aviso.ejecucion.url ? (
-                <a href={aviso.ejecucion.url} target="_blank" rel="noreferrer">
-                  {aviso.ejecucion.run_id}
-                </a>
-              ) : (
-                aviso.ejecucion.run_id
-              )}{" "}
-              ({aviso.ejecucion.evento}
-              {aviso.ejecucion.rama && <> · {aviso.ejecucion.rama}</>}), iniciada <Fecha valor={aviso.ejecucion.iniciada_en} />
-              {aviso.ejecucion.conclusion && <> · conclusión {aviso.ejecucion.conclusion}</>}.
-            </p>
-            <div className="aviso-desplegado__acciones">
-              <button className="boton boton--secundario" type="button" onClick={elegirOtroCommit}>
-                Elegir otro commit
-              </button>
-              <button className="boton" type="button" disabled={cargando} onClick={() => enviar(null, true)}>
-                Analizar de todos modos
-              </button>
-            </div>
-          </div>
+          <AvisoDesplegado aviso={aviso}>
+            <button className="boton boton--secundario" type="button" onClick={elegirOtroCommit}>
+              Elegir otro commit
+            </button>
+            <button className="boton" type="button" disabled={cargando} onClick={() => enviar(null, true)}>
+              Analizar de todos modos
+            </button>
+          </AvisoDesplegado>
         )}
         <div className="formulario__acciones">
           <button className="boton" type="submit" disabled={cargando}>

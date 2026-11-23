@@ -3499,18 +3499,51 @@ td>.gestion-insignia:first-child {
 }
 
 /* Nuevo análisis: el commit elegido ya se desplegó (o se está desplegando). */
+/* Informativo (no es un error): azul suave con ícono de información. */
 .aviso-desplegado {
+    display: flex;
+    gap: var(--esp-3);
+    align-items: flex-start;
     margin: var(--esp-2) 0;
     padding: var(--esp-3);
-    border: 1px solid color-mix(in srgb, var(--color-medio) 45%, transparent);
-    border-left: 4px solid var(--color-medio);
+    border: 1px solid var(--acento-brillo);
+    border-left: 4px solid var(--color-acento);
     border-radius: var(--radio-sm);
-    background: color-mix(in srgb, var(--color-medio) 10%, transparent);
+    background: var(--acento-suave);
+    color: var(--tinta-principal);
     font-size: var(--texto-sm);
+}
+
+.aviso-desplegado__icono {
+    display: inline-flex;
+    flex: none;
+    color: var(--color-acento);
+    margin-top: 1px;
+}
+
+.aviso-desplegado__cuerpo {
+    flex: 1;
+    min-width: 0;
 }
 
 .aviso-desplegado p {
     margin: 0 0 var(--esp-2);
+}
+
+.aviso-desplegado__principal {
+    font-size: var(--texto-base);
+    font-weight: 600;
+}
+
+.aviso-desplegado__secundario {
+    color: var(--tinta-secundaria);
+}
+
+.aviso-desplegado__enlace {
+    display: inline-block;
+    margin-bottom: var(--esp-2);
+    color: var(--acento-texto);
+    font-size: var(--texto-xs);
 }
 
 .aviso-desplegado__acciones {
