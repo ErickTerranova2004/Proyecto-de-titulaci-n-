@@ -8,9 +8,35 @@ export const MAX_COMENTARIO = 2000;
 // La lista se ordena por fecha de envío: sin «con decisión primero».
 export const ORDENES_INFORMES = ORDENES.filter(([id]) => id !== "decision");
 
-// "?desde=…&hasta=…&orden=antiguo" ("" sin filtros). El nivel no aplica.
-export function consultaInformes({ desde, hasta, orden } = {}) {
-  return consultaHistorial({ desde, hasta, orden });
+// Filtros de «Informes recibidos» e «Informes de cumplimiento», con el mismo
+// diseño que los historiales: desde, hasta, nivel actual (del análisis
+// nuevo), resultado del cambio, decisión final, repositorio y orden.
+export const FILTROS_INFORMES = {
+  desde: "", hasta: "", nivel: "todos", resultado: "todos", decision: "todas", repo: "", orden: "reciente",
+};
+export const RESULTADOS_FILTRO = [
+  ["todos", "Todos"],
+  ["bajo", "Bajó el riesgo"],
+  ["mantuvo", "Se mantuvo"],
+  ["subio", "Subió el riesgo"],
+];
+export const DECISIONES_FINAL_FILTRO = [
+  ["todas", "Todas"],
+  ["pendiente", "Pendiente"],
+  ["autorizar", "Autorizar"],
+  ["posponer", "Posponer"],
+  ["solicitar_revision", "Solicitar revisión"],
+];
+
+// Parámetros de /api/informes/ ("" sin filtros).
+export function consultaInformes({ desde, hasta, nivel, resultado, decision, repo, orden } = {}) {
+  const p = new URLSearchParams(consultaHistorial({ desde, hasta, nivel }).replace(/^\?/, ""));
+  if (resultado && resultado !== "todos") p.set("resultado", resultado);
+  if (decision && decision !== "todas") p.set("decision", decision);
+  if (repo && repo.trim()) p.set("repo", repo.trim());
+  if (orden === "antiguo") p.set("orden", "antiguo");
+  const texto = p.toString();
+  return texto ? `?${texto}` : "";
 }
 
 // Mensaje si el comentario no se puede enviar; "" si es válido.

@@ -4,14 +4,32 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createElement as h } from "react";
 import { renderToString } from "react-dom/server";
-import { consultaInformes, informeDelEnlace, ORDENES_INFORMES, problemaComentario, valorVariable } from "../src/informes.js";
+import {
+  consultaInformes, DECISIONES_FINAL_FILTRO, FILTROS_INFORMES, informeDelEnlace, ORDENES_INFORMES, problemaComentario,
+  RESULTADOS_FILTRO, valorVariable,
+} from "../src/informes.js";
 import { cargarComponente } from "./compilarComponente.js";
 
-test("consulta de la lista: fechas y orden, sin nivel", () => {
+test("consulta de la lista: fechas, nivel actual, resultado, decisión final, repositorio y orden", () => {
   assert.equal(consultaInformes({}), "");
-  assert.equal(consultaInformes({ desde: "2026-11-01", hasta: "2026-11-20", orden: "antiguo", nivel: "alto" }),
-    "?desde=2026-11-01&hasta=2026-11-20&orden=antiguo");
+  assert.equal(consultaInformes(FILTROS_INFORMES), "");
+  assert.equal(consultaInformes({
+    ...FILTROS_INFORMES, desde: "2026-11-01", hasta: "2026-11-20", nivel: "alto", resultado: "bajo",
+    decision: "pendiente", repo: " acme ", orden: "antiguo",
+  }), "?desde=2026-11-01&hasta=2026-11-20&nivel=alto&resultado=bajo&decision=pendiente&repo=acme&orden=antiguo");
   assert.deepEqual(ORDENES_INFORMES.map(([id]) => id), ["reciente", "antiguo"]);
+  assert.deepEqual(RESULTADOS_FILTRO.map(([, t]) => t), ["Todos", "Bajó el riesgo", "Se mantuvo", "Subió el riesgo"]);
+  assert.deepEqual(DECISIONES_FINAL_FILTRO.map(([, t]) => t),
+    ["Todas", "Pendiente", "Autorizar", "Posponer", "Solicitar revisión"]);
+});
+
+test("informes: mismos filtros y mismo diseño que los historiales", async () => {
+  const InformesRecibidos = (await cargarComponente("InformesRecibidos")).default;
+  const html = renderToString(h(InformesRecibidos, {})).replace(/<!-- -->/g, "");
+  const etiquetas = [...html.matchAll(/<label class="campo campo--en-linea"[^>]*><span>([^<]+)<\/span>/g)].map((m) => m[1]);
+  assert.deepEqual(etiquetas,
+    ["Desde", "Hasta", "Nivel de riesgo actual", "Resultado del cambio", "Decisión final", "Repositorio", "Orden"]);
+  assert.match(html, /Quitar filtros/);
 });
 
 test("el comentario es obligatorio", () => {

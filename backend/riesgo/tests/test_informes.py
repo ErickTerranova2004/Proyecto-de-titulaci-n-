@@ -241,6 +241,46 @@ class InformeCumplimientoTest(TestCase):
             [segundo])
         self.assertEqual(cliente.get("/api/informes/?desde=ayer").status_code, 400)
 
+    def test_filtros_nivel_resultado_decision_y_repositorio(self):
+        # Informe A: original alto → nuevo bajo (bajó), con decisión final.
+        a = self._enviar().json()["id"]
+        Prediccion.objects.filter(pk=self.original["id"]).update(nivel="alto")
+        Prediccion.objects.filter(pk=self.nuevo["id"]).update(nivel="bajo")
+        self.cliente(self.lider).post(f"/api/informes/{a}/decision/",
+                                      {"decision": "posponer"}, format="json")
+        # Informe B: original medio → nuevo medio (se mantuvo), pendiente.
+        otro = self._analizar(self.dev)
+        self.cliente(self.lider).post(
+            f"/api/predicciones/{otro['id']}/decision/",
+            {"decision": "posponer", "fecha_limite": (
+                timezone.localdate() + timedelta(days=2)).isoformat()}, format="json")
+        segunda = DecisionDespliegue.objects.get(prediccion_id=otro["id"], fecha_limite__isnull=False)
+        nuevo_b = self._analizar(self.dev, atiende_decision=segunda.id)
+        b = self._enviar(asignacion=segunda).json()["id"]
+        Prediccion.objects.filter(pk__in=[otro["id"], nuevo_b["id"]]).update(nivel="medio")
+
+        def ids(consulta):
+            r = self.cliente(self.lider).get(f"/api/informes/{consulta}")
+            self.assertEqual(r.status_code, 200, r.content)
+            return {i["id"] for i in r.json()}
+
+        self.assertEqual(ids("?nivel=bajo"), {a})
+        self.assertEqual(ids("?nivel=medio"), {b})
+        self.assertEqual(ids("?nivel=alto"), set())
+        self.assertEqual(ids("?resultado=bajo"), {a})
+        self.assertEqual(ids("?resultado=mantuvo"), {b})
+        self.assertEqual(ids("?resultado=subio"), set())
+        self.assertEqual(ids("?decision=pendiente"), {b})
+        self.assertEqual(ids("?decision=posponer"), {a})
+        self.assertEqual(ids("?decision=autorizar"), set())
+        self.assertEqual(ids("?repo=TIENDA"), {a, b})
+        self.assertEqual(ids("?repo=otro"), set())
+        # Combinados y con paginación.
+        r = self.cliente(self.lider).get("/api/informes/?resultado=bajo&decision=posponer&pagina=1")
+        self.assertEqual([i["id"] for i in r.json()["resultados"]], [a])
+        for malo in ("?nivel=critico", "?resultado=igual", "?decision=aprobar"):
+            self.assertEqual(self.cliente(self.lider).get(f"/api/informes/{malo}").status_code, 400, malo)
+
     def test_traspaso_al_eliminar_un_usuario(self):
         self._enviar()
         r = self.cliente(self.admin).delete(

@@ -1,8 +1,10 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import { columnasInformes } from "../columnasTablas.js";
-import { errorRango, FILTROS_INICIALES, hayFiltros } from "../filtrosHistorial.js";
-import { consultaInformes, ORDENES_INFORMES } from "../informes.js";
+import { errorRango, hayFiltros } from "../filtrosHistorial.js";
+import {
+  consultaInformes, DECISIONES_FINAL_FILTRO, FILTROS_INFORMES, ORDENES_INFORMES, RESULTADOS_FILTRO,
+} from "../informes.js";
 import { escribirEstado, leerFiltros, leerPaginacion } from "../estadoUrl.js";
 import { useNavegacion } from "../navegacion.jsx";
 import { consultaPaginada } from "../paginacion.js";
@@ -12,12 +14,13 @@ import FiltrosHistorial from "./FiltrosHistorial.jsx";
 import { TablaPaginada } from "./TablaDesplazable.jsx";
 
 // «Informes recibidos» (líder técnico) e «Informes de cumplimiento»
-// (administrador). Fechas, orden y paginación los aplica el backend; por
-// defecto, del más reciente al más antiguo, 25 por página.
+// (administrador). Filtros (mismo diseño que los historiales), orden y
+// paginación los aplica el backend; por defecto, del más reciente al más
+// antiguo, 25 por página.
 export default function InformesRecibidos({ titulo = "Informes recibidos", descripcion, mostrarLider = false }) {
   const abrir = useContext(AbrirInformeContexto);
   const { ruta, navegar } = useNavegacion();
-  const filtros = leerFiltros(ruta.search, FILTROS_INICIALES);
+  const filtros = leerFiltros(ruta.search, FILTROS_INFORMES);
   const paginacion = leerPaginacion(ruta.search);
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState("");
@@ -25,10 +28,10 @@ export default function InformesRecibidos({ titulo = "Informes recibidos", descr
   const peticion = useRef(0);
   const columnas = columnasInformes({ mostrarLider });
 
-  function irA(f, p) {
-    navegar(ruta.pathname + escribirEstado({ filtros: f, iniciales: FILTROS_INICIALES, paginaciones: [["", p]] }));
+  function irA(f, p, opciones) {
+    navegar(ruta.pathname + escribirEstado({ filtros: f, iniciales: FILTROS_INFORMES, paginaciones: [["", p]] }), opciones);
   }
-  const setFiltros = (nuevos) => irA(nuevos, { ...paginacion, pagina: 1 });
+  const setFiltros = (nuevos, opciones) => irA(nuevos, { ...paginacion, pagina: 1 }, opciones);
   const setPaginacion = (p) => irA(filtros, p);
 
   function cargar() {
@@ -42,7 +45,8 @@ export default function InformesRecibidos({ titulo = "Informes recibidos", descr
       .catch((e) => id === peticion.current && setError(e.message))
       .finally(() => id === peticion.current && setCargando(false));
   }
-  useEffect(cargar, [filtros.desde, filtros.hasta, filtros.orden, paginacion.pagina, paginacion.porPagina]);
+  useEffect(cargar, [filtros.desde, filtros.hasta, filtros.nivel, filtros.resultado, filtros.decision, filtros.repo,
+    filtros.orden, paginacion.pagina, paginacion.porPagina]);
 
   // El líder ve marcados los que aún no abrió.
   const nuevo = (i) => !i.leido_en && !mostrarLider;
@@ -83,16 +87,15 @@ export default function InformesRecibidos({ titulo = "Informes recibidos", descr
           id="informes"
           filtros={filtros}
           alCambiar={setFiltros}
+          etiquetaNivel="Nivel de riesgo actual"
+          resultados={RESULTADOS_FILTRO}
+          decisiones={DECISIONES_FINAL_FILTRO}
+          etiquetaDecision="Decisión final"
           ordenes={ORDENES_INFORMES}
-          conNivel={false}
-          conRepositorio={false}
+          alQuitar={() => setFiltros(FILTROS_INFORMES)}
+          puedeQuitar={hayFiltros(filtros)}
         />
         <div className="panel__acciones">
-          {hayFiltros(filtros) && (
-            <button className="boton boton--secundario" type="button" onClick={() => setFiltros(FILTROS_INICIALES)}>
-              Quitar filtros
-            </button>
-          )}
           <button className="boton boton--secundario" type="button" onClick={cargar} disabled={cargando}>
             {cargando ? "Actualizando…" : "Actualizar"}
           </button>

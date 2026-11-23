@@ -10,6 +10,7 @@
 
 from datetime import date
 
+from django.db.models import Case, F, IntegerField, Value, When
 from django.http import HttpResponse
 from rest_framework import mixins, serializers, status
 from rest_framework.decorators import action
@@ -47,6 +48,55 @@ def _fecha(parametros, nombre):
             {nombre: "Use una fecha con el formato AAAA-MM-DD."})
 
 
+RESULTADOS = ("bajo", "mantuvo", "subio")
+
+
+def _rango(campo):
+    return Case(*(When(**{campo: nivel}, then=Value(n))
+                  for n, nivel in enumerate(("bajo", "medio", "alto"))),
+                output_field=IntegerField())
+
+
+def filtrar_informes(consulta, parametros):
+    """Filtros de «Informes recibidos» e «Informes de cumplimiento»:
+    - nivel: bajo, medio o alto (nivel actual: el del análisis nuevo);
+    - resultado: bajo (bajó el nivel), mantuvo o subio, comparando el nivel
+      del análisis original con el del nuevo;
+    - decision: pendiente (sin decisión final) o autorizar, posponer,
+      solicitar_revision;
+    - repo: parte del nombre del repositorio.
+    """
+    nivel = (parametros.get("nivel") or "").strip()
+    if nivel:
+        if nivel not in ("bajo", "medio", "alto"):
+            raise serializers.ValidationError({"nivel": "Use bajo, medio o alto."})
+        consulta = consulta.filter(prediccion_nueva__nivel=nivel)
+    resultado = (parametros.get("resultado") or "").strip()
+    if resultado:
+        if resultado not in RESULTADOS:
+            raise serializers.ValidationError({"resultado": "Use bajo, mantuvo o subio."})
+        consulta = consulta.annotate(
+            rango_original=_rango("prediccion_original__nivel"),
+            rango_nuevo=_rango("prediccion_nueva__nivel"))
+        comparacion = {"bajo": "rango_nuevo__lt", "mantuvo": "rango_nuevo", "subio": "rango_nuevo__gt"}
+        consulta = consulta.filter(**{comparacion[resultado]: F("rango_original")})
+    decision = (parametros.get("decision") or "").strip()
+    if decision:
+        tipos = {d for d, _ in DecisionDespliegue.DECISIONES}
+        if decision == "pendiente":
+            consulta = consulta.filter(decision_final__isnull=True)
+        elif decision in tipos:
+            consulta = consulta.filter(decision_final__decision=decision)
+        else:
+            raise serializers.ValidationError(
+                {"decision": "Use pendiente, autorizar, posponer o solicitar_revision."})
+    repo = (parametros.get("repo") or "").strip()
+    if repo:
+        consulta = consulta.filter(
+            prediccion_original__workflow__repositorio__nombre_completo__icontains=repo)
+    return consulta
+
+
 def enviar_informe(request, asignacion):
     """Lo usa AsignacionViewSet.informe."""
     solicitud = SolicitudInformeSerializer(data=request.data)
@@ -80,6 +130,7 @@ class InformeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             consulta = consulta.filter(enviado_en__date__gte=desde)
         if hasta:
             consulta = consulta.filter(enviado_en__date__lte=hasta)
+        consulta = filtrar_informes(consulta, parametros)
         if parametros.get("orden") == "antiguo":
             return consulta.order_by("enviado_en", "id")
         return consulta.order_by("-enviado_en", "-id")
