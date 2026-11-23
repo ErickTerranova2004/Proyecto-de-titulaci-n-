@@ -98,7 +98,8 @@ export const api = {
     // Todos los repositorios asignados, aunque no tengan workflows utilizables.
     repositoriosAsignados: () => solicitar("/repositorios/?todos=1"),
     modelos: () => solicitar("/modelos/"),
-    activarModelo: (id) => solicitar(`/modelos/${id}/activar/`, { method: "POST" }),
+    activarModelo: (id, confirmacion) =>
+        solicitar(`/modelos/${id}/activar/`, { method: "POST", body: JSON.stringify({ confirmacion }) }),
     supervision: (id) => solicitar(`/modelos/${id}/supervision/`),
     comparacionSombra: () => solicitar("/modelos/comparacion-sombra/"),
     decidir: (id, datos) =>

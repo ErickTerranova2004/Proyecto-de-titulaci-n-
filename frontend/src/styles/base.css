@@ -4190,3 +4190,42 @@ td>.gestion-insignia:first-child {
         margin: 16mm;
     }
 }
+
+/* Panel del administrador: el modelo activo no es el más reciente con fecha de corte. */
+.aviso-modelo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--esp-2) var(--esp-3);
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 var(--esp-3);
+}
+
+.aviso-modelo__texto {
+    flex: 1 1 320px;
+    margin: 0;
+}
+
+/* Modelos: confirmación escribiendo el nombre de la versión. */
+.confirmar-activacion {
+    max-width: 560px;
+    margin-top: var(--esp-3);
+}
+
+.confirmar-activacion__campo {
+    display: grid;
+    gap: var(--esp-1);
+    margin: var(--esp-2) 0 var(--esp-3);
+}
+
+.confirmar-activacion__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--esp-2);
+}
+
+.modelos__activacion {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--texto-xs);
+}

@@ -171,11 +171,17 @@ class ApiAuditadaTest(TestCase):
         self.assertEqual(r.json()["actualizados"], 1)
         auditada(self, workflow, auditoria.USUARIO_SISTEMA, "admin")
 
-        modelo = VersionModelo.objects.order_by("id").first()
+        actual = VersionModelo.objects.get(activo=True)
+        otra = VersionModelo.objects.create(
+            version="v2b", nombre_modelo="Copia", archivo=actual.archivo,
+            archivo_explicacion=actual.archivo_explicacion,
+            metadatos=actual.metadatos)
         self.assertEqual(self.cliente(self.admin).post(
-            f"/api/modelos/{modelo.id}/activar/").status_code, 200)
-        for version in VersionModelo.objects.all():
-            auditada(self, version, "comando:registrar_modelo", "admin")
+            f"/api/modelos/{otra.id}/activar/", {"confirmacion": "v2b"},
+            format="json").status_code, 200)
+        auditada(self, actual, "comando:registrar_modelo", "admin")
+        auditada(self, otra, auditoria.USUARIO_SISTEMA, "admin")
+        auditada(self, otra.activaciones.get(), "admin")
 
 
 @override_settings(GEMINI_API_KEY="")

@@ -56,7 +56,8 @@ DISPOSICION = [
     ["mae_repositorio", "trx_commit", "trx_prediccion",
      "int_prediccion_ejecucion"],
     ["mae_version_modelo", "trx_decision_despliegue"],
-    ["trx_informe_cumplimiento", "trx_descarga_informe"],
+    ["trx_informe_cumplimiento", "trx_descarga_informe",
+     "trx_activacion_modelo"],
 ]
 
 # Vistas de seguridad sobre las tablas de Django (migración 0018).

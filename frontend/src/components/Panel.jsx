@@ -5,7 +5,8 @@ import { formatoMetrica, metricasModelo } from "../metricas.js";
 import { MisAsignaciones } from "./Alarma.jsx";
 import { Alerta, Fecha, NIVELES, NivelRiesgo, NotaCorte, porcentaje } from "./comunes.jsx";
 import { BarrasApiladas, Dona, Embudo, Linea } from "./graficos.jsx";
-import { useNavegacion } from "../navegacion.jsx";
+import { Enlace, useNavegacion } from "../navegacion.jsx";
+import { avisoModeloActivo } from "../modeloActivo.js";
 import { ETIQUETAS } from "./Resultado.jsx";
 import { pasosEmbudo, textoDemostracion } from "../embudo.js";
 
@@ -603,6 +604,19 @@ function TablaRepositorios({ perfil, filas, limites }) {
   );
 }
 
+// Aviso visible si el modelo activo no es la versión más reciente con fecha de
+// corte (p. ej. v1 activado por error desde Modelos).
+export function AvisoModeloActivo({ estado }) {
+  const texto = avisoModeloActivo(estado);
+  if (!texto) return null;
+  return (
+    <div className="alerta aviso-modelo" role="alert">
+      <p className="aviso-modelo__texto"><strong>Modelo activo desactualizado.</strong> {texto}</p>
+      <Enlace href="/modelos" className="boton boton--secundario boton--pequeno">Ir a Modelos</Enlace>
+    </div>
+  );
+}
+
 // Panel del administrador: usuarios por rol, workflows, modelo activo y
 // supervisión, y estado de GitHub. Si un endpoint no responde, el bloque lo
 // indica en lugar de mostrar cifras.
@@ -615,6 +629,7 @@ function PanelAdministrador({ admin, activo, antesDeBloques }) {
   const tasa = (n) => (n.tasa == null ? "—" : `${porcentaje(n.tasa)} (${n.no_completados}/${n.evaluables})`);
   return (
     <>
+      <AvisoModeloActivo estado={resumen?.modelo} />
       <section aria-labelledby="titulo-kpi">
         <h2 id="titulo-kpi" className="solo-lector">Indicadores de la plataforma</h2>
         <div className="kpis">

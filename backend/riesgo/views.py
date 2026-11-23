@@ -31,6 +31,7 @@ from riesgo.serializers import (AsignacionSerializer, PrediccionSerializer,
                                 VersionModeloSerializer)
 from riesgo.services import (analisis_ia, asignaciones, github, planificador,
                              supervision)
+from riesgo.services import modelos as modelos_servicio
 from riesgo.services.sincronizacion import sincronizar_repositorio
 from riesgo.services.pendientes import despliegue_previo
 from riesgo.services.verificacion import enlazar_resultado, etiquetar_run
@@ -688,11 +689,17 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
     @action(detail=True, methods=["post"],
             permission_classes=[EsAdministrador])
     def activar(self, request, pk=None):
+        """Solo versiones con fecha de corte y escribiendo su nombre como
+        confirmación ({"confirmacion": "v2"}); queda en
+        trx_activacion_modelo (services/modelos.py)."""
         version = self.get_object()
-        with transaction.atomic():
-            VersionModelo.objects.update(activo=False)
-            version.activo = True
-            version.save(update_fields=["activo"])
+        try:
+            modelos_servicio.activar(version, request.user,
+                                     request.data.get("confirmacion"))
+        except modelos_servicio.NoActivable as e:
+            return _error(e.mensaje, e.codigo, status.HTTP_400_BAD_REQUEST)
+        logger.warning("Modelo %s activado por %s", version.version,
+                       request.user.username)
         return Response(VersionModeloSerializer(version).data)
 
 
@@ -787,4 +794,6 @@ def resumen_admin(request):
             "validados_disponibles_github": validados.filter(
                 disponible_github=True).count(),
         },
+        # Aviso si el activo no es el más reciente con fecha de corte.
+        "modelo": modelos_servicio.estado(),
     })

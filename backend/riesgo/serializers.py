@@ -280,7 +280,28 @@ def _pendientes(workflow):
 
 
 class VersionModeloSerializer(serializers.ModelSerializer):
+    # Solo se activan versiones con fecha de corte (services/modelos.py).
+    motivo_no_activable = serializers.SerializerMethodField()
+    activable = serializers.SerializerMethodField()
+    ultima_activacion = serializers.SerializerMethodField()
+
     class Meta:
         model = VersionModelo
         fields = ["id", "version", "nombre_modelo", "metadatos", "activo",
-                  "registrado_en"]
+                  "registrado_en", "activable", "motivo_no_activable",
+                  "ultima_activacion"]
+
+    def get_motivo_no_activable(self, version):
+        from riesgo.services.modelos import motivo_no_activable
+        return motivo_no_activable(version)
+
+    def get_activable(self, version):
+        return self.get_motivo_no_activable(version) is None
+
+    def get_ultima_activacion(self, version):
+        """Quién la activó por última vez y cuándo (trx_activacion_modelo)."""
+        fila = version.activaciones.order_by("-activado_en", "-id").first()
+        if fila is None:
+            return None
+        return {"usuario": fila.nombre_usuario, "fecha": fila.activado_en,
+                "origen": fila.origen}

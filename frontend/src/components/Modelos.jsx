@@ -4,21 +4,25 @@ import { Alerta, Fecha, NIVELES, porcentaje } from "./comunes.jsx";
 
 import { formatoMetrica, METRICAS, metricasModelo } from "../metricas.js";
 import { formatoIntervalo } from "../sombra.js";
+import { confirmacionValida } from "../modeloActivo.js";
 
 export default function Modelos({ modelos, esAdmin, alCambiar }) {
   const [error, setError] = useState("");
-  const [activando, setActivando] = useState(null);
+  // Versión que se está confirmando (se escribe su nombre para activarla).
+  const [confirmando, setConfirmando] = useState(null);
+  const [activando, setActivando] = useState(false);
 
-  async function activar(id) {
+  async function activar(modelo, confirmacion) {
     setError("");
-    setActivando(id);
+    setActivando(true);
     try {
-      await api.activarModelo(id);
+      await api.activarModelo(modelo.id, confirmacion);
+      setConfirmando(null);
       await alCambiar();
     } catch (e) {
       setError(e.message);
     } finally {
-      setActivando(null);
+      setActivando(false);
     }
   }
 
@@ -59,7 +63,14 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
                 <tr key={m.id}>
                   <td><code className="codigo">{m.version}</code></td>
                   <td><strong>{m.nombre_modelo}</strong></td>
-                  <td>{m.activo ? <span className="estado estado--activo">Activo</span> : <span className="secundario">Inactivo</span>}</td>
+                  <td>
+                    {m.activo ? <span className="estado estado--activo">Activo</span> : <span className="secundario">Inactivo</span>}
+                    {esAdmin && m.ultima_activacion && (
+                      <span className="secundario modelos__activacion">
+                        Activado por {m.ultima_activacion.usuario} el <Fecha valor={m.ultima_activacion.fecha} />
+                      </span>
+                    )}
+                  </td>
                   <td className="numero">{m.metadatos.filas_entrenamiento}</td>
                   <td>
                     {origen ?? "—"}
@@ -75,14 +86,19 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
                     <td>
                       {m.activo ? (
                         <span className="secundario">En uso</span>
+                      ) : !m.activable ? (
+                        // Sin fecha de corte (v1): solo se evalúa en sombra; el backend también lo rechaza.
+                        <span className="secundario" title={m.motivo_no_activable ?? undefined}>
+                          Solo evaluación en sombra
+                        </span>
                       ) : (
                         <button
                           className="boton boton--secundario boton--pequeno"
                           type="button"
-                          onClick={() => activar(m.id)}
-                          disabled={activando !== null}
+                          onClick={() => { setError(""); setConfirmando(m); }}
+                          disabled={activando}
                         >
-                          {activando === m.id ? "Activando…" : "Activar"}
+                          Activar…
                           <span className="solo-lector"> {m.version}</span>
                         </button>
                       )}
@@ -95,8 +111,62 @@ export default function Modelos({ modelos, esAdmin, alCambiar }) {
         </table>
       </div>
       </div>
+      {esAdmin && confirmando && (
+        <ConfirmarActivacion
+          modelo={confirmando}
+          activo={modelos.find((m) => m.activo)}
+          activando={activando}
+          alConfirmar={(texto) => activar(confirmando, texto)}
+          alCancelar={() => setConfirmando(null)}
+        />
+      )}
       {esAdmin && <Supervision modelos={modelos} />}
     </section>
+  );
+}
+
+// Confirmación para activar una versión: hay que escribir su nombre. La
+// activación queda registrada (quién y cuándo) en trx_activacion_modelo.
+export function ConfirmarActivacion({ modelo, activo, activando, alConfirmar, alCancelar }) {
+  const [texto, setTexto] = useState("");
+  const valido = confirmacionValida(texto, modelo.version);
+  return (
+    <form
+      className="tarjeta confirmar-activacion"
+      aria-labelledby="titulo-confirmar-activacion"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (valido && !activando) alConfirmar(texto);
+      }}
+    >
+      <h2 id="titulo-confirmar-activacion">Activar la versión {modelo.version}</h2>
+      <p>
+        La versión activa hace todos los análisis nuevos y el análisis en lote
+        {activo ? <> y sustituye a <code className="codigo">{activo.version}</code></> : null}. Quedará registrado quién
+        la activó y cuándo.
+      </p>
+      <label className="campo confirmar-activacion__campo">
+        <span>
+          Para confirmar, escriba <code className="codigo">{modelo.version}</code>
+        </span>
+        <input
+          type="text"
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+          autoFocus
+        />
+      </label>
+      <div className="confirmar-activacion__acciones">
+        <button className="boton" type="submit" disabled={!valido || activando}>
+          {activando ? "Activando…" : `Activar ${modelo.version}`}
+        </button>
+        <button className="boton boton--secundario" type="button" onClick={alCancelar} disabled={activando}>
+          Cancelar
+        </button>
+      </div>
+    </form>
   );
 }
 

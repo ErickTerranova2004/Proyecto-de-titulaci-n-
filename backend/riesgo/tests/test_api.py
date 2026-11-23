@@ -14,7 +14,7 @@ from rest_framework.test import APIClient
 
 from riesgo.models import (AccesoRepositorio, DecisionDespliegue,
                            EjecucionWorkflow, Prediccion,
-                           Repositorio, Workflow)
+                           Repositorio, VersionModelo, Workflow)
 from riesgo.services import github
 
 SHA = "a" * 40
@@ -411,10 +411,17 @@ class ApiTest(TestCase):
     # --- Modelos ------------------------------------------------------------
 
     def test_solo_admin_activa_modelos(self):
-        modelo_id = self.cliente(self.dev).get("/api/modelos/").json()[0]["id"]
-        url = f"/api/modelos/{modelo_id}/activar/"
-        self.assertEqual(self.cliente(self.dev).post(url).status_code, 403)
-        self.assertEqual(self.cliente(self.admin).post(url).status_code, 200)
+        actual = VersionModelo.objects.get(activo=True)
+        otra = VersionModelo.objects.create(
+            version="v2b", nombre_modelo="Copia", archivo=actual.archivo,
+            archivo_explicacion=actual.archivo_explicacion,
+            metadatos=actual.metadatos)
+        url = f"/api/modelos/{otra.id}/activar/"
+        datos = {"confirmacion": "v2b"}
+        self.assertEqual(self.cliente(self.dev).post(
+            url, datos, format="json").status_code, 403)
+        self.assertEqual(self.cliente(self.admin).post(
+            url, datos, format="json").status_code, 200)
 
     def test_supervision_compara_con_resultados_reales(self):
         id_ = self.predecir(self.dev).json()["id"]

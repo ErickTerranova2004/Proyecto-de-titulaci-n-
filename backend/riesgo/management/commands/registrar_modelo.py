@@ -7,6 +7,7 @@ from django.core.management.base import CommandError
 
 from riesgo.auditoria import ComandoAuditado
 from riesgo.models import ROLES, VersionModelo
+from riesgo.services.modelos import registrar_activacion
 
 
 class Command(ComandoAuditado):
@@ -32,6 +33,7 @@ class Command(ComandoAuditado):
             if not (Path(settings.MODELOS_DIR) / nombre).exists():
                 raise CommandError(f"Falta {nombre} en {settings.MODELOS_DIR}")
 
+        anterior = VersionModelo.objects.filter(activo=True).first()
         VersionModelo.objects.update(activo=False)
         modelo, creado = VersionModelo.objects.update_or_create(
             version=version,
@@ -43,6 +45,8 @@ class Command(ComandoAuditado):
                 "activo": True,
             },
         )
+        # Historial de activaciones (trx_activacion_modelo).
+        registrar_activacion(modelo, anterior, origen="comando")
         accion = "registrado" if creado else "actualizado"
         self.stdout.write(self.style.SUCCESS(
             f"Modelo {modelo} {accion} y activado. Roles: {', '.join(ROLES)}"))
