@@ -149,8 +149,8 @@ def factores_cambio(original, nueva, n=MAX_FACTORES):
     """Variables cuya contribución SHAP más cambió entre los dos análisis
     (cada uno con su versión del modelo). Si se hicieron con modelos
     distintos (Random Forest y XGBoost), las dos se calculan con el modelo
-    del análisis nuevo: sus valores SHAP no están en la misma escala
-    (probabilidad frente a log-odds) y no se pueden restar."""
+    del análisis nuevo: restar SHAP de modelos distintos mezclaría el cambio
+    del commit con el cambio de modelo."""
     modelo_original = (original.version_modelo
                        if original.version_modelo_id == nueva.version_modelo_id
                        else nueva.version_modelo)

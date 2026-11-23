@@ -56,11 +56,32 @@ class SinModeloActivo(Exception):
     pass
 
 
+# Filas del dataset de entrenamiento que sirven de fondo a SHAP en XGBoost.
+FONDO_SHAP = 200
+
+
 @lru_cache(maxsize=4)
-def _cargar(archivo, archivo_explicacion):
+def _cargar(archivo, archivo_explicacion, fondo=None, columnas=None):
+    """Modelo calibrado, modelo base (sin calibrar) y explicador SHAP.
+
+    Random Forest: TreeExplainer exacto; sus valores ya están en
+    probabilidad. XGBoost (escala_shap = log-odds): con `fondo` (CSV del
+    dataset de entrenamiento) el explicador es intervencional sobre la
+    probabilidad (model_output="probability"), así sus factores también
+    están en puntos de probabilidad y se leen igual que los de Random
+    Forest."""
     modelo = joblib.load(archivo)
     base = joblib.load(archivo_explicacion)
-    explicador = shap.TreeExplainer(base.named_steps["modelo"])
+    estimador = base.named_steps["modelo"]
+    if fondo:
+        datos = pd.read_csv(fondo, usecols=list(columnas))[list(columnas)]
+        datos = datos.sample(n=min(FONDO_SHAP, len(datos)), random_state=42)
+        explicador = shap.TreeExplainer(
+            estimador, data=base.named_steps["prep"].transform(datos),
+            feature_perturbation="interventional",
+            model_output="probability")
+    else:
+        explicador = shap.TreeExplainer(estimador)
     return modelo, base, explicador
 
 
@@ -94,8 +115,26 @@ def _valor_legible(valor):
     return valor
 
 
+def _fondo(version):
+    """CSV del dataset de entrenamiento para el SHAP en probabilidad de los
+    modelos cuyo SHAP exacto está en log-odds (XGBoost); None si no hace
+    falta o no está disponible."""
+    meta = version.metadatos or {}
+    if meta.get("escala_shap") != "log-odds" or not meta.get("dataset"):
+        return None
+    ruta = Path(settings.PROJECT_DIR) / meta["dataset"]
+    return str(ruta) if ruta.exists() else None
+
+
+def _columnas(version):
+    meta = version.metadatos
+    return tuple(meta["variables_categoricas"] + meta["variables_numericas"])
+
+
 def _modelos(version):
-    return _cargar(_ruta(version.archivo), _ruta(version.archivo_explicacion))
+    fondo = _fondo(version)
+    return _cargar(_ruta(version.archivo), _ruta(version.archivo_explicacion),
+                   fondo, _columnas(version) if fondo else None)
 
 
 def _filas(lista_variables, meta):
@@ -140,14 +179,31 @@ def contribuciones(variables, version):
     transformada = pd.DataFrame(
         prep.transform(_filas([variables], version.metadatos)),
         columns=prep.get_feature_names_out())
-    valores = explicador(transformada).values
+    explicacion = explicador(transformada)
+    valores = explicacion.values
     if valores.ndim == 3:
         valores = valores[:, :, 1]
+    fila = valores[0]
+    if (version.metadatos or {}).get("escala_shap") == "log-odds"             and explicador.model_output != "probability":
+        fila = _log_odds_a_probabilidad(fila, explicacion.base_values)
     resultado = {}
-    for nombre, valor in zip(transformada.columns, valores[0]):
+    for nombre, valor in zip(transformada.columns, fila):
         original, _ = _nombre_original(nombre)
         resultado[original] = resultado.get(original, 0.0) + float(valor)
     return resultado
+
+
+def _log_odds_a_probabilidad(fila, base_values):
+    """Sin el dataset de fondo: reparte el cambio de probabilidad
+    (sigmoide(base + suma) − sigmoide(base)) en proporción a cada valor
+    SHAP en log-odds. Conserva el signo y el orden de los factores."""
+    base = float(np.ravel(base_values)[0])
+    total = float(np.sum(fila))
+    if abs(total) < 1e-12:
+        return np.zeros_like(fila)
+    sigmoide = lambda x: 1.0 / (1.0 + math.exp(-x))  # noqa: E731
+    cambio = sigmoide(base + total) - sigmoide(base)
+    return np.asarray(fila) * (cambio / total)
 
 
 def predecir(variables, version=None):

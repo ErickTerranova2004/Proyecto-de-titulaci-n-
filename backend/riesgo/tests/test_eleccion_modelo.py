@@ -194,3 +194,70 @@ class EleccionModeloTest(TestCase):
         datos = informes._analisis(nueva)
         self.assertEqual((datos["version_modelo"], datos["modelo_nombre"]),
                          ("v2-xgb", "XGBoost"))
+
+
+class FactoresEnProbabilidadTest(TestCase):
+    """Los factores SHAP de XGBoost se presentan en puntos de probabilidad,
+    como los de Random Forest (no en log-odds)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        call_command("registrar_modelo", stdout=StringIO())
+        call_command("registrar_modelo", "--modelo", "v2-xgb", "--sin-activar",
+                     stdout=StringIO())
+        cls.xgb = VersionModelo.objects.get(version="v2-xgb")
+        cls.rf = VersionModelo.objects.get(version="v2")
+        meta = cls.rf.metadatos
+        cls.variables = {c: 0 for c in meta["variables_numericas"]}
+        cls.variables.update(event="push", wf_n_prev=12, repo_n_prev=40,
+                             wf_tasa_fallo_prev=0.25, wf_ultimo_fallo=1,
+                             hora_utc=15, dia_semana=2, msg_len=40,
+                             msg_lineas=1, wf_horas_desde_ultimo=3.0)
+
+    def base_y_media(self, version):
+        _, base, explicador = predictor._modelos(version)
+        fila = predictor._filas([self.variables], version.metadatos)
+        import numpy as np
+        return (float(base.predict_proba(fila)[0, 1]),
+                float(np.ravel(explicador.expected_value)[0]), explicador)
+
+    def test_xgboost_en_probabilidad(self):
+        contribuciones = predictor.contribuciones(self.variables, self.xgb)
+        p, media, explicador = self.base_y_media(self.xgb)
+        self.assertEqual(explicador.model_output, "probability")
+        # Suman el cambio de probabilidad (como Random Forest), no log-odds.
+        self.assertAlmostEqual(sum(contribuciones.values()), p - media, places=4)
+        self.assertTrue(all(abs(c) <= 1 for c in contribuciones.values()))
+        resultado = predictor.predecir(self.variables, self.xgb)
+        self.assertTrue(resultado["factores"])
+        for f in resultado["factores"]:
+            self.assertEqual(f["efecto"], "aumenta" if f["contribucion"] > 0 else "reduce")
+
+    def test_random_forest_igual_que_antes(self):
+        contribuciones = predictor.contribuciones(self.variables, self.rf)
+        p, media, explicador = self.base_y_media(self.rf)
+        # TreeExplainer exacto de sklearn (float32): suma con error < 0,001.
+        self.assertAlmostEqual(sum(contribuciones.values()), p - media, places=3)
+
+    def test_sin_dataset_reparte_el_cambio_de_probabilidad(self):
+        import numpy as np
+        fila = np.array([0.8, -0.3, 0.1])
+        convertida = predictor._log_odds_a_probabilidad(fila, np.array([-2.0]))
+        sigmoide = lambda x: 1 / (1 + np.exp(-x))  # noqa: E731
+        self.assertAlmostEqual(convertida.sum(), sigmoide(-1.4) - sigmoide(-2.0))
+        self.assertEqual(list(np.sign(convertida)), [1, -1, 1])
+        self.assertEqual(list(predictor._log_odds_a_probabilidad(
+            np.zeros(2), np.array([0.0]))), [0, 0])
+
+    def test_la_ia_recibe_la_escala(self):
+        from riesgo.services.analisis_ia import SISTEMA
+        self.assertIn("puntos de probabilidad", SISTEMA)
+        self.assertIn("No hables de log-odds", SISTEMA)
+
+    def test_tasa_real_por_nivel_en_la_api_de_modelos(self):
+        admin = test_api.ApiTest._usuario("admin", "administrador", [])
+        modelos = test_api.ApiTest.cliente(self, admin).get("/api/modelos/").json()
+        for m in modelos:
+            self.assertEqual(set(m["tasa_real_por_nivel"]), {"bajo", "medio", "alto"})
+            # Sin despliegues verificados no hay tasa.
+            self.assertIsNone(m["tasa_real_por_nivel"]["alto"]["tasa"])

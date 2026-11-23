@@ -41,6 +41,7 @@ del workflow.
 Reglas:
 - El nivel de riesgo y la probabilidad son del modelo validado: no los \
 recalcules ni los contradigas. Explícalos.
+- "contribucion" de cada factor SHAP está en puntos de probabilidad del modelo (0.05 = 5 puntos): positivo sube el riesgo y negativo lo baja. No hables de log-odds; si no citas el valor, di solo si el factor sube o baja el riesgo.
 - Apóyate solo en los datos recibidos. Si falta información (por ejemplo, \
 no hay ejecuciones previas), dilo en lugar de suponer.
 - "resumen": 2 a 4 frases en español, para un desarrollador, que expliquen \
