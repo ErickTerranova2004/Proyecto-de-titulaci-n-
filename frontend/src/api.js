@@ -85,15 +85,27 @@ export const api = {
             body: JSON.stringify({ uid, token, contrasena, confirmacion }),
         }),
     predecir: (datos) => solicitar("/predicciones/", { method: "POST", body: JSON.stringify(datos) }),
+    // «Comparar ambos»: el análisis que queda como oficial (y la respuesta a la asignación, si la hay).
+    elegirOficial: (id, datos = {}) =>
+        solicitar(`/predicciones/${id}/oficial/`, { method: "POST", body: JSON.stringify(datos) }),
     // consulta: "?desde=…&hasta=…&nivel=…" (src/filtrosHistorial.js).
     historial: (consulta = "") => solicitar(`/predicciones/${consulta}`),
     prediccion: (id) => solicitar(`/predicciones/${id}/`),
     verificar: (id) => solicitar(`/predicciones/${id}/verificar/`, { method: "POST" }),
     // Planificador: estimar un escenario alternativo no guarda nada.
-    estimarEscenario: (id, condiciones) =>
-        solicitar(`/predicciones/${id}/escenario/`, { method: "POST", body: JSON.stringify(condiciones) }),
-    // Mejores ventanas desde mañana; `dias` opcional (por defecto, el del backend).
-    ventanas: (id, dias) => solicitar(`/predicciones/${id}/ventanas/${dias ? `?dias=${dias}` : ""}`),
+    estimarEscenario: (id, condiciones, modelo) =>
+        solicitar(`/predicciones/${id}/escenario/${modelo ? `?modelo=${encodeURIComponent(modelo)}` : ""}`, {
+            method: "POST",
+            body: JSON.stringify(condiciones),
+        }),
+    // Mejores ventanas desde mañana; `dias` opcional (por defecto, el del backend);
+    // `modelo` opcional (por defecto, el del análisis base).
+    ventanas: (id, dias, modelo) => {
+        const q = new URLSearchParams();
+        if (dias) q.set("dias", dias);
+        if (modelo) q.set("modelo", modelo);
+        return solicitar(`/predicciones/${id}/ventanas/${q.size ? `?${q}` : ""}`);
+    },
     repositorios: () => solicitar("/repositorios/"),
     // Todos los repositorios asignados, aunque no tengan workflows utilizables.
     repositoriosAsignados: () => solicitar("/repositorios/?todos=1"),

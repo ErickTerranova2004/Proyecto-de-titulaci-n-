@@ -73,6 +73,7 @@ export default function Pendientes() {
     repositorio: (p) => <strong className="celda-recortada" title={p.repositorio}>{p.repositorio}</strong>,
     riesgo: (p) => <NivelRiesgo nivel={p.nivel} />,
     probabilidad: (p) => <span className="destacado">{porcentaje(p.probabilidad)}</span>,
+    modelo: (p) => <span className="secundario" title={p.version_modelo}>{p.modelo_nombre ?? p.version_modelo}</span>,
     desarrollador: (p) => p.usuario,
     workflow: (p) => <span className="secundario" title={p.workflow_path}>{p.workflow_path.replace(".github/workflows/", "")}</span>,
     acciones: (p) => (

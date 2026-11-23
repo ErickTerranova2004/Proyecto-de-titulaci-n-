@@ -61,6 +61,11 @@ export default function InformesRecibidos({ titulo = "Informes recibidos", descr
     ),
     riesgo: (i) => <><NivelRiesgo nivel={i.nivel_original} /> → <NivelRiesgo nivel={i.nivel_nuevo} /></>,
     diferencia: (i) => textoPuntos(i.diferencia_puntos),
+    modelo: (i) => (
+      <span className="secundario">
+        {i.modelo_original === i.modelo_nuevo ? i.modelo_nuevo : `${i.modelo_original} → ${i.modelo_nuevo}`}
+      </span>
+    ),
     decision: (i) => (i.decision_final
       ? <span className="celda-recortada celda-recortada--decision" title={i.decision_final.texto}>{i.decision_final.texto}</span>
       : <span className="secundario">Pendiente</span>),

@@ -130,6 +130,11 @@ export function Documento({ informe: c, alActualizar }) {
             <tr><th scope="row">Probabilidad</th><td>{porcentaje(o.probabilidad)}</td><td>{porcentaje(n.probabilidad)}</td></tr>
             <tr><th scope="row">Nivel</th><td><NivelRiesgo nivel={o.nivel} /></td><td><NivelRiesgo nivel={n.nivel} /></td></tr>
             <tr><th scope="row">Recomendación</th><td>{o.recomendacion_texto}</td><td>{n.recomendacion_texto}</td></tr>
+            <tr>
+              <th scope="row">Modelo</th>
+              <td>{o.modelo_nombre ?? o.version_modelo} <span className="secundario">({o.version_modelo})</span></td>
+              <td>{n.modelo_nombre ?? n.version_modelo} <span className="secundario">({n.version_modelo})</span></td>
+            </tr>
           </tbody>
         </table>
         <p className={`informe__diferencia informe__diferencia--${cambio}`}>
@@ -139,6 +144,12 @@ export function Documento({ informe: c, alActualizar }) {
 
       <section className="informe__seccion">
         <h2>Factores que más cambiaron</h2>
+        {o.version_modelo !== n.version_modelo && (
+          <p className="secundario">
+            Los dos análisis se hicieron con modelos distintos: para comparar en la misma escala, los factores de ambos se
+            calculan con el modelo del análisis nuevo ({n.modelo_nombre ?? n.version_modelo}).
+          </p>
+        )}
         {c.factores.length === 0 ? (
           <p className="secundario">No hay diferencias de contribución entre los dos análisis.</p>
         ) : (

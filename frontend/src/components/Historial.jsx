@@ -7,7 +7,9 @@ import FiltrosHistorial from "./FiltrosHistorial.jsx";
 import { TablaPaginada } from "./TablaDesplazable.jsx";
 import { columnasHistorial } from "../columnasTablas.js";
 import { escribirEstado, leerFiltros, leerPaginacion } from "../estadoUrl.js";
-import { consultaHistorial, DECISIONES_FILTRO, errorRango, FILTROS_INICIALES, hayFiltros } from "../filtrosHistorial.js";
+import {
+  consultaHistorial, DECISIONES_FILTRO, errorRango, FILTROS_INICIALES, hayFiltros, modelosFiltro,
+} from "../filtrosHistorial.js";
 import { Enlace, useNavegacion } from "../navegacion.jsx";
 import { consultaPaginada } from "../paginacion.js";
 
@@ -43,10 +45,10 @@ const ORIGENES = [
 // van en la dirección (F5 y atrás/adelante los conservan).
 export default function Historial({
   titulo = "Historial de análisis", descripcion, mostrarDesarrollador = true, mostrarSeguimiento = false,
-  conOrigen = false,
+  conOrigen = false, modelos = [],
 }) {
   const { ruta, navegar } = useNavegacion();
-  const inicial = conOrigen ? { ...FILTROS_INICIALES, origen: "interactivo" } : FILTROS_INICIALES;
+  const inicial = { ...FILTROS_INICIALES, modelo: "todos", ...(conOrigen ? { origen: "interactivo" } : {}) };
   const filtros = leerFiltros(ruta.search, inicial);
   const paginacion = leerPaginacion(ruta.search);
   const [datos, setDatos] = useState(null);
@@ -77,7 +79,7 @@ export default function Historial({
       .finally(() => id === peticion.current && setCargando(false));
   }
   useEffect(cargar, [filtros.desde, filtros.hasta, filtros.orden, filtros.origen, filtros.nivel,
-    filtros.decision, filtros.repo, paginacion.pagina, paginacion.porPagina]);
+    filtros.decision, filtros.modelo, filtros.repo, paginacion.pagina, paginacion.porPagina]);
   const filtrado = hayFiltros(filtros, inicial.origen);
   const filas = datos ? datos.resultados : null;
 
@@ -86,6 +88,7 @@ export default function Historial({
     repositorio: (p) => <strong className="celda-recortada" title={p.repositorio}>{p.repositorio}</strong>,
     riesgo: (p) => <NivelRiesgo nivel={p.nivel} />,
     probabilidad: (p) => <span className="destacado">{porcentaje(p.probabilidad)}</span>,
+    modelo: (p) => <span className="secundario" title={p.version_modelo}>{p.modelo_nombre ?? p.version_modelo}</span>,
     decision: (p) => {
       const texto = p.decisiones?.length ? DECISIONES[p.decisiones[0].decision] : "Sin decisión";
       return <span className="celda-recortada celda-recortada--decision" title={texto}>{texto}</span>;
@@ -116,6 +119,7 @@ export default function Historial({
           filtros={filtros}
           alCambiar={setFiltros}
           decisiones={DECISIONES_FILTRO}
+          modelos={modelosFiltro(modelos)}
           origenes={conOrigen ? ORIGENES : undefined}
           alQuitar={() => setFiltros(inicial)}
           puedeQuitar={filtrado}

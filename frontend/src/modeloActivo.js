@@ -21,3 +21,27 @@ export function avisoModeloActivo(estado) {
 // La confirmación coincide con el nombre de la versión (igual que el backend:
 // sin espacios a los lados, distingue mayúsculas).
 export const confirmacionValida = (texto, version) => (texto ?? "").trim() === version;
+
+// --- Modelo de cada análisis (Random Forest o XGBoost, ambos del dataset v2) ---
+
+export const COMPARAR = "comparar";
+export const ROLES_MODELO = { principal: "Principal", alternativo: "Alternativo" };
+
+// Modelos que se pueden elegir en un análisis: con fecha de corte (activables),
+// el principal primero. [{ valor: "v2", texto: "Random Forest (Principal)" }, …]
+export function opcionesModelo(modelos) {
+  return (modelos ?? [])
+    .filter((m) => m.activable !== false)
+    .sort((a, b) => Number(b.activo) - Number(a.activo))
+    .map((m) => ({ valor: m.version, texto: `${m.nombre_modelo} (${ROLES_MODELO[m.activo ? "principal" : "alternativo"]})` }));
+}
+
+export const modeloPrincipal = (modelos) => (modelos ?? []).find((m) => m.activo)?.version ?? "";
+
+// Nombre del modelo de un análisis: «XGBoost (v2-xgb)»; sin nombre, la versión.
+export function etiquetaModelo(prediccion) {
+  if (!prediccion?.version_modelo) return "—";
+  return prediccion.modelo_nombre
+    ? `${prediccion.modelo_nombre} (${prediccion.version_modelo})`
+    : prediccion.version_modelo;
+}

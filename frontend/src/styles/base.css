@@ -4229,3 +4229,26 @@ td>.gestion-insignia:first-child {
     margin-top: 2px;
     font-size: var(--texto-xs);
 }
+
+/* Nuevo análisis: «Comparar ambos» (Random Forest y XGBoost lado a lado). */
+.comparacion-modelos__columnas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+    gap: var(--esp-3);
+    align-items: start;
+}
+
+.comparacion-modelos__columna {
+    display: grid;
+    gap: var(--esp-2);
+    min-width: 0;
+}
+
+.resultado__modelo {
+    margin: 2px 0 0;
+}
+
+/* Planificador: selector del modelo. */
+.planificador__modelo {
+    max-width: 320px;
+}

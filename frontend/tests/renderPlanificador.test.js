@@ -19,7 +19,8 @@ function etiquetas(html) {
 test("los tres historiales y Pendientes tienen los mismos filtros y en el mismo orden", async () => {
   const Historial = await cargar("Historial");
   const Pendientes = await cargar("Pendientes");
-  const comunes = ["Desde", "Hasta", "Nivel de riesgo", "Decisión", "Repositorio", "Orden"];
+  // «Modelo» (Random Forest o XGBoost) solo en los historiales.
+  const comunes = ["Desde", "Hasta", "Nivel de riesgo", "Decisión", "Modelo", "Repositorio", "Orden"];
   for (const props of [{ titulo: "Mi historial", mostrarDesarrollador: false }, { titulo: "Historial del equipo" }]) {
     const html = renderToString(h(Historial, props));
     assert.deepEqual(etiquetas(html), comunes, props.titulo);
@@ -33,7 +34,7 @@ test("los tres historiales y Pendientes tienen los mismos filtros y en el mismo 
   assert.deepEqual(etiquetas(admin), [...comunes, "Origen"]);
   // Pendientes: los mismos, sin «Decisión» (todos están sin decisión).
   const pendientes = renderToString(h(Pendientes, {}));
-  assert.deepEqual(etiquetas(pendientes), comunes.filter((e) => e !== "Decisión"));
+  assert.deepEqual(etiquetas(pendientes), comunes.filter((e) => e !== "Decisión" && e !== "Modelo"));
   assert.match(pendientes, /Quitar filtros/);
 });
 

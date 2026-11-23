@@ -104,12 +104,12 @@ function CampoBuscar({ id, valor, alCambiar }) {
 
 // Barra de filtros común de los historiales, de «Pendientes de decisión» y de
 // los informes, siempre en el mismo orden: desde, hasta, nivel, [resultado],
-// [decisión], repositorio, orden, [origen] y «Quitar filtros». El filtrado lo
+// [decisión], [modelo], repositorio, orden, [origen] y «Quitar filtros». El filtrado lo
 // hace el backend; `alCambiar(filtros, opciones)` recibe los filtros nuevos
 // (con { reemplazar: true } al escribir en el buscador).
 export default function FiltrosHistorial({
   id, filtros, alCambiar, conNivel = true, etiquetaNivel = "Nivel de riesgo", resultados, decisiones,
-  etiquetaDecision = "Decisión", conRepositorio = true, origenes, ordenes = ORDENES, alQuitar, puedeQuitar = false,
+  etiquetaDecision = "Decisión", modelos, conRepositorio = true, origenes, ordenes = ORDENES, alQuitar, puedeQuitar = false,
 }) {
   const cambiar = (campo) => (e) => alCambiar({ ...filtros, [campo]: e.target.value });
   const fijar = (campo) => (valor) => alCambiar({ ...filtros, [campo]: valor });
@@ -157,6 +157,14 @@ export default function FiltrosHistorial({
           <span>{etiquetaDecision}</span>
           <select id={`${id}-decision`} value={filtros.decision} onChange={cambiar("decision")}>
             {decisiones.map(([valor, texto]) => <option key={valor} value={valor}>{texto}</option>)}
+          </select>
+        </label>
+      )}
+      {modelos && (
+        <label className="campo campo--en-linea" htmlFor={`${id}-modelo`}>
+          <span>Modelo</span>
+          <select id={`${id}-modelo`} value={filtros.modelo} onChange={cambiar("modelo")}>
+            {modelos.map(([valor, texto]) => <option key={valor} value={valor}>{texto}</option>)}
           </select>
         </label>
       )}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
+import { COMPARAR, modeloPrincipal, opcionesModelo } from "../modeloActivo.js";
 import {
   commitsPendientes,
   datosPendientes,
@@ -109,6 +110,37 @@ function AvisoAsignacion({ asignacion }) {
   );
 }
 
+// «Comparar ambos»: los análisis de los dos modelos lado a lado (mismas
+// variables). Ninguno es oficial hasta que el usuario elige uno.
+export function ComparacionModelos({ analisis, modelos, eligiendo = null, alElegir }) {
+  return (
+    <section className="comparacion-modelos" aria-labelledby="titulo-comparacion-modelos">
+      <header className="encabezado">
+        <h2 id="titulo-comparacion-modelos">Comparación de modelos</h2>
+        <p className="secundario">
+          Mismo commit y mismas variables, analizados con cada modelo. Ninguno es oficial todavía: elija cuál queda como
+          análisis oficial. Ese es el que verá el líder técnico; el otro se guarda oculto.
+        </p>
+      </header>
+      <div className="comparacion-modelos__columnas">
+        {analisis.map((a) => (
+          <div key={a.id} className="comparacion-modelos__columna">
+            <Resultado prediccion={a} modelos={modelos} enComparacion />
+            <button
+              className="boton"
+              type="button"
+              disabled={eligiendo !== null}
+              onClick={() => alElegir(a)}
+            >
+              {eligiendo === a.id ? "Guardando…" : `Usar ${a.modelo_nombre ?? a.version_modelo} como análisis oficial`}
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // `respuesta`: asignación del líder que este análisis atiende (opcional). Llega
 // con el repositorio, el workflow y la rama del análisis original.
 // `alAnalizar(prediccion)`: avisa del análisis terminado (el Planificador lo
@@ -127,6 +159,13 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState(null);
+  // Modelo del análisis ("" = el principal) y, con «Comparar ambos», los dos
+  // análisis lado a lado hasta que el usuario elige el oficial.
+  const [modelo, setModelo] = useState("");
+  const [comparacion, setComparacion] = useState(null);
+  const [eligiendo, setEligiendo] = useState(null);
+  const opciones = opcionesModelo(modelos);
+  const modeloElegido = modelo || modeloPrincipal(modelos);
   // 409 commit_ya_desplegado: el commit ya se desplegó o se está desplegando.
   const [aviso, setAviso] = useState(null);
   const refResultado = useRef(null);
@@ -143,8 +182,8 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
       .catch((e) => setError(e.message));
   }, []);
   useEffect(() => {
-    if (resultado) refResultado.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [resultado]);
+    if (resultado || comparacion) refResultado.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [resultado, comparacion]);
   const workflows = repos?.find((r) => r.nombre_completo === datos.repositorio)?.workflows || [];
   const workflowElegido = workflows.find((w) => w.path === datos.workflow_path);
 
@@ -173,20 +212,48 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
     setError("");
     setAviso(null);
     setResultado(null);
+    setComparacion(null);
     try {
       let enviados = respuesta
         ? { ...datos, atiende_decision: respuesta.asignacion.id, respuesta_desarrollador: cambios }
         : datos;
+      enviados = { ...enviados, modelo: modeloElegido };
       if (confirmar) enviados = { ...enviados, confirmar_desplegado: true };
       const nuevo = await api.predecir(enviados);
-      setResultado(nuevo);
-      alAnalizar?.(nuevo);
-      if (respuesta) alResponder?.();
+      if (nuevo.comparacion) {
+        // Ninguno es oficial hasta que el usuario elige uno.
+        setComparacion(nuevo.comparacion);
+        return;
+      }
+      terminar(nuevo);
     } catch (err) {
       if (err.estado === 409 && err.datos?.codigo === "commit_ya_desplegado") setAviso(err.datos);
       else setError(err.message);
     } finally {
       setCargando(false);
+    }
+  }
+
+  function terminar(nuevo) {
+    setResultado(nuevo);
+    alAnalizar?.(nuevo);
+    if (respuesta) alResponder?.();
+  }
+
+  async function elegirOficial(analisis) {
+    setError("");
+    setEligiendo(analisis.id);
+    try {
+      const oficial = await api.elegirOficial(
+        analisis.id,
+        respuesta ? { atiende_decision: respuesta.asignacion.id, respuesta_desarrollador: cambios } : {},
+      );
+      setComparacion(null);
+      terminar(oficial);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEligiendo(null);
     }
   }
 
@@ -308,9 +375,35 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
           </div>
         </fieldset>
 
+        <fieldset>
+          <legend>3. Modelo</legend>
+          <div className="campos">
+            <div className="campo">
+              <label htmlFor="campo-modelo">Modelo</label>
+              <select
+                id="campo-modelo"
+                value={modeloElegido}
+                onChange={(e) => setModelo(e.target.value)}
+                aria-describedby="ayuda-modelo"
+                required
+              >
+                {!opciones.length && <option value="">Sin modelos disponibles</option>}
+                {opciones.map((o) => (
+                  <option key={o.valor} value={o.valor}>{o.texto}</option>
+                ))}
+                {opciones.length > 1 && <option value={COMPARAR}>Comparar ambos</option>}
+              </select>
+            </div>
+          </div>
+          <p id="ayuda-modelo" className="secundario">
+            Todo el análisis (probabilidad, nivel, recomendación, factores y texto) sale del modelo elegido. Con «Comparar
+            ambos» verá los dos lado a lado y elegirá cuál queda como análisis oficial para el líder técnico.
+          </p>
+        </fieldset>
+
         {respuesta && (
           <fieldset>
-            <legend>3. Respuesta al líder técnico</legend>
+            <legend>4. Respuesta al líder técnico</legend>
             <div className="campo">
               <label htmlFor="campo-cambios">Qué cambié (opcional)</label>
               <textarea
@@ -342,6 +435,17 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
           </button>
         </div>
       </form>
+
+      {comparacion && (
+        <div ref={refResultado}>
+          <ComparacionModelos
+            analisis={comparacion}
+            modelos={modelos}
+            eligiendo={eligiendo}
+            alElegir={elegirOficial}
+          />
+        </div>
+      )}
 
       {resultado && (
         <div ref={refResultado}>

@@ -26,6 +26,11 @@ export const DECISIONES_FILTRO = [
   ["solicitar_revision", "Solicitar revisión"],
 ];
 
+// Filtro «Modelo» de los historiales: [valor, texto], con «Todos» primero.
+export function modelosFiltro(modelos) {
+  return [["todos", "Todos"], ...(modelos ?? []).map((m) => [m.version, m.nombre_modelo])];
+}
+
 // Mismos filtros y en el mismo orden en los tres historiales y en Pendientes:
 // desde, hasta, nivel, decisión, repositorio, orden (y origen, el
 // administrador).
@@ -71,13 +76,14 @@ export function errorRango(desde, hasta) {
 }
 
 // Parámetros de /api/predicciones/ ("" sin filtros).
-export function consultaHistorial({ desde, hasta, nivel, decision, repo, orden, origen, sinDecision } = {}) {
+export function consultaHistorial({ desde, hasta, nivel, decision, modelo, repo, orden, origen, sinDecision } = {}) {
   const p = new URLSearchParams();
   if (desde) p.set("desde", desde);
   if (hasta) p.set("hasta", hasta);
   if (nivel && nivel !== "todos") p.set("nivel", nivel);
   if (sinDecision) p.set("sin_decision", "1");
   else if (decision && decision !== "todas") p.set("decision", decision);
+  if (modelo && modelo !== "todos") p.set("modelo", modelo);
   if (repo && repo.trim()) p.set("repo", repo.trim());
   if (origen && origen !== "todos") p.set("origen", origen);
   // El backend ya devuelve «reciente» por defecto.
@@ -87,7 +93,8 @@ export function consultaHistorial({ desde, hasta, nivel, decision, repo, orden, 
 }
 
 // Hay algo que «Quitar filtros» pueda limpiar (el orden no cuenta).
-export function hayFiltros({ desde, hasta, nivel, decision, resultado, repo, origen } = {}, origenInicial = "todos") {
+export function hayFiltros({ desde, hasta, nivel, decision, resultado, modelo, repo, origen } = {}, origenInicial = "todos") {
   return Boolean(desde || hasta || (nivel && nivel !== "todos") || (decision && decision !== "todas")
+    || (modelo && modelo !== "todos")
     || (resultado && resultado !== "todos") || (repo && repo.trim()) || (origen && origen !== origenInicial));
 }

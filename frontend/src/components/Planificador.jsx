@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
+import { opcionesModelo } from "../modeloActivo.js";
 import {
   ajustarHora, condicionesIniciales, diasDisponibles, fechaGuion, horaMinima, masReciente,
   NOMBRES_DIA, nombreDia, ordenarRepositorios, PRIMERA_HORA, textoPuntos, ULTIMA_HORA, ZONA,
@@ -43,7 +44,9 @@ function conSigno(valor) {
 // `analisisId` (de /planificador?analisis=<id>): análisis que se preselecciona,
 // también al recargar la página. `inicial`: el mismo análisis si ya se tiene
 // (el último «Nuevo análisis»); si no, se pide al backend.
-export default function Planificador({ inicial: inicialDado, analisisId }) {
+// `modelos`: los seleccionables (Random Forest y XGBoost). Por defecto se usa el
+// modelo del análisis base.
+export default function Planificador({ inicial: inicialDado, analisisId, modelos = [] }) {
   const usuario = useContext(UsuarioContexto)?.usuario;
   const [inicial, setInicial] = useState(
     inicialDado && inicialDado.repositorio && (!analisisId || inicialDado.id === analisisId) ? inicialDado : null,
@@ -59,6 +62,9 @@ export default function Planificador({ inicial: inicialDado, analisisId }) {
   const [resultado, setResultado] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+  // Modelo con el que se estima ("" = el del análisis base).
+  const [modeloPlan, setModeloPlan] = useState("");
+  const opciones = opcionesModelo(modelos);
 
   useEffect(() => {
     api.historial().then(setAnalisis).catch((e) => setError(e.message));
@@ -114,6 +120,7 @@ export default function Planificador({ inicial: inicialDado, analisisId }) {
 
   async function elegirBase(id) {
     setBaseId(id);
+    setModeloPlan("");
     setResultado(null);
     setVentanas(null);
     setCondicionesBase(null);
@@ -142,11 +149,22 @@ export default function Planificador({ inicial: inicialDado, analisisId }) {
     setCargando(true);
     setError("");
     try {
-      setResultado(await api.estimarEscenario(baseId, valores));
+      setResultado(await api.estimarEscenario(baseId, valores, modeloPlan));
     } catch (e) {
       setError(e.message);
     } finally {
       setCargando(false);
+    }
+  }
+
+  async function cambiarModelo(valor) {
+    setModeloPlan(valor === base?.version_modelo ? "" : valor);
+    setResultado(null);
+    setError("");
+    try {
+      setVentanas(await api.ventanas(baseId, undefined, valor));
+    } catch (e) {
+      setError(e.message);
     }
   }
 
@@ -156,6 +174,8 @@ export default function Planificador({ inicial: inicialDado, analisisId }) {
     estimar(valores);
   }
 
+  const modeloEstimacion = modeloPlan || base?.version_modelo || "";
+  const nombreModelo = modelos.find((m) => m.version === modeloEstimacion)?.nombre_modelo ?? modeloEstimacion;
   const cambiar = (campo, valor) => setCondiciones((c) => ajustarHora({ ...c, [campo]: valor }));
   const dias = diasDisponibles();
   const minima = condiciones ? horaMinima(condiciones.fecha) : 0;
@@ -207,6 +227,26 @@ export default function Planificador({ inicial: inicialDado, analisisId }) {
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="campo planificador__modelo">
+              <label htmlFor="plan-modelo">Modelo</label>
+              <select
+                id="plan-modelo"
+                value={modeloEstimacion}
+                disabled={!base}
+                onChange={(e) => cambiarModelo(e.target.value)}
+                aria-describedby="ayuda-plan-modelo"
+              >
+                {!opciones.some((o) => o.valor === modeloEstimacion) && modeloEstimacion && (
+                  <option value={modeloEstimacion}>{modeloEstimacion}</option>
+                )}
+                {opciones.map((o) => <option key={o.valor} value={o.valor}>{o.texto}</option>)}
+              </select>
+              {base && (
+                <p id="ayuda-plan-modelo" className="secundario nota-pie">
+                  Por defecto, el del análisis base ({base.modelo_nombre ?? base.version_modelo}).
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -276,7 +316,7 @@ export default function Planificador({ inicial: inicialDado, analisisId }) {
               Asociado a un pull request
             </label>
             <p className="secundario">
-              Solo se muestran las condiciones que usa el modelo {base?.version_modelo}. Para la fecha y hora elegidas se
+              Solo se muestran las condiciones que usa el modelo {nombreModelo}. Para la fecha y hora elegidas se
               recalculan el día, la hora, los minutos desde el commit y las horas desde la ejecución previa; el resto
               (commit e historial del workflow) se mantiene como en el análisis base
               {condicionesBase && (

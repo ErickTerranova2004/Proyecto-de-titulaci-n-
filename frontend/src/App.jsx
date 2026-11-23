@@ -224,15 +224,15 @@ function Plataforma() {
           />
         )}
         {s === "planificador" && (
-          <Planificador key={idPlanificador ?? "sin-analisis"} analisisId={idPlanificador} inicial={ultimoAnalisis} />
+          <Planificador key={idPlanificador ?? "sin-analisis"} analisisId={idPlanificador} inicial={ultimoAnalisis} modelos={modelos} />
         )}
         {s === "pendientes" && <Pendientes />}
         {s === "historial" && (
           rol === "desarrollador"
-            ? <Historial titulo="Mi historial" descripcion="Desarrollador · sus análisis en sus repositorios asignados" mostrarDesarrollador={false} />
+            ? <Historial titulo="Mi historial" descripcion="Desarrollador · sus análisis en sus repositorios asignados" mostrarDesarrollador={false} modelos={modelos} />
             : rol === "administrador"
-              ? <Historial titulo="Historial de análisis" descripcion="Administrador · análisis de todos los repositorios" mostrarSeguimiento conOrigen />
-              : <Historial titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento />
+              ? <Historial titulo="Historial de análisis" descripcion="Administrador · análisis de todos los repositorios" mostrarSeguimiento conOrigen modelos={modelos} />
+              : <Historial titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento modelos={modelos} />
         )}
         {s === "informes" && (
           rol === "administrador"

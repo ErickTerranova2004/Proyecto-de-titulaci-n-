@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { etiquetaModelo } from "../modeloActivo.js";
 import { api } from "../api.js";
 import {
   Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, hoyLocal, NIVELES, NivelRiesgo, porcentaje, useRoles,
@@ -29,13 +30,15 @@ function contribucion(valor) {
   return `${valor > 0 ? "+" : ""}${valor.toFixed(3)}`;
 }
 
-function Factores({ factores }) {
+function Factores({ factores, escala }) {
   const maximo = Math.max(...factores.map((f) => Math.abs(f.contribucion)), 1e-6);
   return (
     <figure className="factores">
       <figcaption className="secundario">
         Rojo: el factor sube el riesgo. Verde: el factor baja el riesgo. La longitud de cada barra es proporcional a su
         contribución (valor SHAP) en esta predicción.
+        {escala === "log-odds" &&
+          " En XGBoost los valores SHAP están en log-odds (no en puntos de probabilidad): no se comparan con los de Random Forest."}
       </figcaption>
       <ul>
         {factores.map((f) => (
@@ -317,7 +320,9 @@ function Decision({ prediccion, alActualizar }) {
 }
 
 // mostrarResultadoReal = false (Historial): sin el apartado «Resultado real».
-export default function Resultado({ prediccion, modelos, mostrarResultadoReal = true }) {
+// enComparacion (Nuevo análisis → «Comparar ambos»): todavía no es oficial, así
+// que no hay resultado real ni decisión del líder.
+export default function Resultado({ prediccion, modelos, mostrarResultadoReal = true, enComparacion = false }) {
   const [p, setP] = useState(prediccion);
   useEffect(() => setP(prediccion), [prediccion]);
 
@@ -330,7 +335,10 @@ export default function Resultado({ prediccion, modelos, mostrarResultadoReal = 
   return (
     <article className="tarjeta resultado" aria-labelledby={`resultado-${p.id}`}>
       <header>
-        <h2 id={`resultado-${p.id}`}>Resultado del análisis</h2>
+        <h2 id={`resultado-${p.id}`}>{enComparacion ? p.modelo_nombre ?? p.version_modelo : "Resultado del análisis"}</h2>
+        <p className="secundario resultado__modelo">
+          Modelo: <strong>{etiquetaModelo(p)}</strong>
+        </p>
         {p.cambio?.archivos_modificados != null && (
           <p className="secundario">
             Cambio del commit: {p.cambio.archivos_modificados} archivos modificados · +{p.cambio.adiciones} / −
@@ -402,7 +410,7 @@ export default function Resultado({ prediccion, modelos, mostrarResultadoReal = 
 
       <section aria-labelledby={`factores-${p.id}`}>
         <h3 id={`factores-${p.id}`}>Factores que más influyen</h3>
-        <Factores factores={p.factores} />
+        <Factores factores={p.factores} escala={meta?.escala_shap} />
       </section>
 
       <section aria-labelledby={`recomendaciones-${p.id}`}>
@@ -423,12 +431,14 @@ export default function Resultado({ prediccion, modelos, mostrarResultadoReal = 
         )}
       </section>
 
-      {mostrarResultadoReal && <ResultadoReal prediccion={p} alActualizar={setP} />}
+      {mostrarResultadoReal && !enComparacion && <ResultadoReal prediccion={p} alActualizar={setP} />}
 
-      <section aria-labelledby={`decision-${p.id}`}>
-        <h3 id={`decision-${p.id}`}>Decisión del líder técnico</h3>
-        <Decision prediccion={p} alActualizar={setP} />
-      </section>
+      {!enComparacion && (
+        <section aria-labelledby={`decision-${p.id}`}>
+          <h3 id={`decision-${p.id}`}>Decisión del líder técnico</h3>
+          <Decision prediccion={p} alActualizar={setP} />
+        </section>
+      )}
     </article>
   );
 }
