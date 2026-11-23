@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 
-from riesgo import views, views_gestion
+from riesgo import views, views_clave, views_gestion, views_informes
+from riesgo.sesion import iniciar_sesion
 
 router = DefaultRouter()
 router.register("predicciones", views.PrediccionViewSet,
@@ -13,16 +13,24 @@ router.register("repositorios", views.RepositorioViewSet,
                 basename="repositorio")
 router.register("asignaciones", views.AsignacionViewSet,
                 basename="asignacion")
+router.register("informes", views_informes.InformeViewSet, basename="informe")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/auth/token/", obtain_auth_token),
+    # Registra el último acceso (last_login) en cada inicio de sesión.
+    path("api/auth/token/", iniciar_sesion),
+    # Restablecimiento de contraseña por correo (sin sesión).
+    path("api/auth/restablecer/solicitar/", views_clave.solicitar),
+    path("api/auth/restablecer/validar/", views_clave.validar),
+    path("api/auth/restablecer/confirmar/", views_clave.confirmar),
     path("api/yo/", views.yo),
     path("api/integraciones/", views.integraciones),
     path("api/resumen-admin/", views.resumen_admin),
     # Gestión de usuarios, accesos y workflows (solo administrador).
     path("api/gestion/usuarios/", views_gestion.usuarios),
     path("api/gestion/usuarios/<int:pk>/", views_gestion.usuario_detalle),
+    path("api/gestion/usuarios/<int:pk>/restablecer/",
+         views_gestion.usuario_restablecer),
     path("api/gestion/usuarios/<int:pk>/repositorios/",
          views_gestion.usuario_repositorios),
     path("api/gestion/workflows/", views_gestion.workflows),

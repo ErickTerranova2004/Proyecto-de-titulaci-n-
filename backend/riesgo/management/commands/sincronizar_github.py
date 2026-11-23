@@ -1,11 +1,12 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 
+from riesgo.auditoria import ComandoAuditado
 from riesgo.models import Repositorio
 from riesgo.services import github
 from riesgo.services.sincronizacion import sincronizar_repositorio
 
 
-class Command(BaseCommand):
+class Command(ComandoAuditado):
     help = ("Recopila desde GitHub las ejecuciones recientes de los workflows "
             "de despliegue validados y las guarda en la base de datos. "
             "Puede programarse (Programador de tareas de Windows o cron) para "

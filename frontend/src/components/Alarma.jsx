@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import { Alerta, DECISIONES, EstadoAsignacion, FechaDia, NivelRiesgo, textoPlazo } from "./comunes.jsx";
+import EnviarInforme from "./EnviarInforme.jsx";
 
 const INTERVALO_MS = 60 * 1000;
 const URGENTES = ["por_vencer", "vencida"];
@@ -252,6 +253,11 @@ export function MisAsignaciones({ alarma, alAtender, alVerAnalisis }) {
                   <span className="secundario">
                     Cumplida con el análisis #{a.prediccion_respuesta.id}{" "}
                     <NivelRiesgo nivel={a.nivel_original} /> → <NivelRiesgo nivel={a.prediccion_respuesta.nivel} />
+                  </span>
+                )}
+                {a.prediccion_respuesta && (
+                  <span>
+                    <EnviarInforme asignacion={a} alEnviar={() => alarma.recargar()} pequeno />
                   </span>
                 )}
                 {a.estado !== "cumplida" && (

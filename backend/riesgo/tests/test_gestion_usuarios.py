@@ -44,6 +44,67 @@ class EliminarUsuarioTest(TestCase):
         self.assertEqual(Prediccion.objects.filter(usuario=self.dev).count(),
                          1)
 
+    def eliminar_traspasando(self, usuario, destino):
+        return self.cliente(self.admin).delete(
+            f"/api/gestion/usuarios/{usuario.id}/?transferir_a={destino.id}")
+
+    def test_elimina_con_historial_traspasandolo(self):
+        with mock.patch.object(github, "GitHubClient", ClienteFalso):
+            id_ = self.cliente(self.dev).post("/api/predicciones/", DATOS,
+                                              format="json").json()["id"]
+        self.cliente(self.lider).post(f"/api/predicciones/{id_}/decision/",
+                                      {"decision": "autorizar"}, format="json")
+        AccesoRepositorio.objects.filter(usuario=self.dev2).delete()
+
+        r = self.eliminar_traspasando(self.dev, self.dev2)
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual((r.json()["analisis"], r.json()["repositorios"]), (1, 1))
+        self.assertFalse(User.objects.filter(id=self.dev.id).exists())
+        self.assertEqual(Prediccion.objects.get(id=id_).usuario, self.dev2)
+        self.assertTrue(AccesoRepositorio.objects.filter(
+            usuario=self.dev2, repositorio=self.repo).exists())
+
+        # Un administrador también puede recibir el historial (aquí, la
+        # decisión del líder); no recibe accesos porque ya ve todo.
+        r = self.eliminar_traspasando(self.lider, self.admin)
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual((r.json()["decisiones"], r.json()["repositorios"]), (1, 0))
+        self.assertEqual(Prediccion.objects.get(id=id_).decisiones.get().usuario,
+                         self.admin)
+
+    def test_transferir_a_no_numerico_responde_400(self):
+        with mock.patch.object(github, "GitHubClient", ClienteFalso):
+            self.cliente(self.dev).post("/api/predicciones/", DATOS,
+                                        format="json")
+        for valor in ("admin", "1.5", "-3", "1;drop", "%20x"):
+            with self.subTest(transferir_a=valor):
+                r = self.cliente(self.admin).delete(
+                    f"/api/gestion/usuarios/{self.dev.id}/?transferir_a={valor}")
+                self.assertEqual(r.status_code, 400, r.content)
+                self.assertEqual(r.json()["codigo"], "destino_no_valido")
+                self.assertIn("id numérico", r.json()["detail"])
+        # Nada cambió: la cuenta y su análisis siguen.
+        self.assertTrue(User.objects.filter(id=self.dev.id).exists())
+        self.assertEqual(Prediccion.objects.filter(usuario=self.dev).count(), 1)
+        # Con espacios alrededor de un id válido sí funciona.
+        r = self.cliente(self.admin).delete(
+            f"/api/gestion/usuarios/{self.dev.id}/?transferir_a=%20{self.dev2.id}%20")
+        self.assertEqual(r.status_code, 200, r.content)
+
+    def test_traspaso_a_cuenta_no_valida(self):
+        with mock.patch.object(github, "GitHubClient", ClienteFalso):
+            self.cliente(self.dev).post("/api/predicciones/", DATOS,
+                                        format="json")
+        inactivo = test_api.ApiTest._usuario("dev_inactivo", "desarrollador", [])
+        inactivo.is_active = False
+        inactivo.save()
+        for destino in (self.lider, inactivo, self.dev):  # otro rol, inactiva, ella misma
+            r = self.eliminar_traspasando(self.dev, destino)
+            self.assertEqual(r.status_code, 400, destino.username)
+            self.assertEqual(r.json()["codigo"], "destino_no_valido")
+        self.assertTrue(User.objects.filter(id=self.dev.id).exists())
+        self.assertEqual(Prediccion.objects.filter(usuario=self.dev).count(), 1)
+
     def test_no_elimina_su_propia_cuenta(self):
         r = self.eliminar(self.admin)
         self.assertEqual(r.status_code, 400)
@@ -69,3 +130,27 @@ class EliminarUsuarioTest(TestCase):
         self.assertEqual(usuarios["dev"]["analisis"], 1)
         self.assertEqual(usuarios["dev2"]["analisis"], 0)
         self.assertEqual(usuarios["dev2"]["decisiones"], 0)
+
+
+class UltimoAccesoTest(TestCase):
+    """Iniciar sesión en la plataforma registra el «Último acceso»."""
+
+    def test_iniciar_sesion_registra_el_ultimo_acceso(self):
+        from django.utils import timezone
+        usuario = User.objects.create_user("ana", password="Clave-Prueba-2026")
+        self.assertIsNone(usuario.last_login)
+        antes = timezone.now()
+        r = self.client.post("/api/auth/token/", {"username": "ana",
+                                                  "password": "Clave-Prueba-2026"})
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual(r.json()["token"], Token.objects.get(user=usuario).key)
+        usuario.refresh_from_db()
+        self.assertGreaterEqual(usuario.last_login, antes)
+
+    def test_contrasena_incorrecta_no_lo_registra(self):
+        usuario = User.objects.create_user("ana", password="Clave-Prueba-2026")
+        r = self.client.post("/api/auth/token/", {"username": "ana",
+                                                  "password": "otra"})
+        self.assertEqual(r.status_code, 400)
+        usuario.refresh_from_db()
+        self.assertIsNone(usuario.last_login)

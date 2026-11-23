@@ -102,6 +102,20 @@ def validar_respuesta(decision_id, usuario, repositorio, workflow_path):
     return decision
 
 
+def registrar_decision(prediccion, usuario, decision, comentario="",
+                       fecha_limite=None):
+    """Crea una decisión del líder sobre la predicción, con la recomendación
+    vigente y si la acepta. La usan /decision/ y la decisión final del
+    informe de cumplimiento."""
+    recomendada = DecisionDespliegue.SEGUN_RECOMENDACION.get(
+        prediccion.recomendacion)
+    return prediccion.decisiones.create(
+        usuario=usuario, recomendacion=prediccion.recomendacion,
+        acepta_recomendacion=(None if recomendada is None
+                              else decision == recomendada),
+        decision=decision, comentario=comentario, fecha_limite=fecha_limite)
+
+
 def registrar_respuesta(decision, prediccion, respuesta):
     """Enlaza el nuevo análisis y marca la asignación como cumplida."""
     ahora = timezone.now()

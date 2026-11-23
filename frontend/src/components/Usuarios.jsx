@@ -1,11 +1,20 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api.js";
+import { COLUMNAS_USUARIOS } from "../columnasTablas.js";
+import { escribirEstado, leerFiltros, leerPaginacion } from "../estadoUrl.js";
+import { useNavegacion } from "../navegacion.jsx";
+import { consultaPaginada } from "../paginacion.js";
+import { textoEnvio } from "../restablecer.js";
 import { NOMBRES_ROL } from "../roles.js";
+import { candidatosTraspaso, motivoNoEliminar, tieneHistorial } from "../traspaso.js";
 import { Alerta, Fecha } from "./comunes.jsx";
 import { Aviso, Dialogo, Filtros, Indicador } from "./gestion.jsx";
+import { TablaPaginada } from "./TablaDesplazable.jsx";
 
-// Gestión de cuentas: rol, estado, contraseña y repositorios asignados.
-// Los permisos reales los aplica el backend (views_gestion.py).
+// Gestión de cuentas: rol, estado, correo y repositorios asignados. El
+// administrador no escribe contraseñas: envía al usuario un enlace por correo
+// para que la elija él (también al crear la cuenta). Los permisos reales los
+// aplica el backend (views_gestion.py).
 
 const ROLES = ["administrador", "lider_tecnico", "desarrollador"];
 // Roles que solo ven los repositorios que se les asignan.
@@ -16,12 +25,17 @@ const FILTROS = [
   ["lider_tecnico", "Líderes técnicos"],
   ["desarrollador", "Desarrolladores"],
   ["sin_rol", "Sin rol"],
+  ["sin_correo", "Sin correo"],
   ["inactivos", "Inactivos"],
 ];
+
+// Filtro y búsqueda de la tabla en la dirección (?filtro=…&q=…).
+const FILTROS_URL = { filtro: "todos", q: "" };
 
 function cumple(u, filtro) {
   if (filtro === "todos") return true;
   if (filtro === "sin_rol") return !u.rol;
+  if (filtro === "sin_correo") return !u.correo;
   if (filtro === "inactivos") return !u.activo;
   return u.rol === filtro;
 }
@@ -34,38 +48,119 @@ function textoRepositorios(u) {
   return `${n} ${n === 1 ? "repositorio" : "repositorios"}`;
 }
 
+// Celdas de la tabla de cuentas (orden en src/columnasTablas.js).
+function celdasUsuario(gestionar) {
+  return {
+    usuario: (u) => (
+      <div className="gestion-persona">
+        <span className="gestion-avatar" aria-hidden="true">{u.usuario.slice(0, 2).toUpperCase()}</span>
+        <div>
+          <strong>
+            {u.usuario}
+            {u.es_actual && <span className="gestion-insignia">Usted</span>}
+          </strong>
+          <span className="secundario">
+            {u.correo || <span className="gestion-estado gestion-estado--pendiente">Sin correo</span>}
+          </span>
+        </div>
+      </div>
+    ),
+    rol: (u) => (
+      <span className={`gestion-insignia gestion-insignia--${u.rol || "sin-rol"}`}>
+        {u.rol ? NOMBRES_ROL[u.rol] : "Sin rol"}
+      </span>
+    ),
+    estado: (u) => (
+      <>
+        <span className={`gestion-estado gestion-estado--${u.activo ? "ok" : "apagado"}`}>
+          {u.activo ? "Activo" : "Inactivo"}
+        </span>
+        {u.rol && !u.clave_definida && (
+          <span className="gestion-estado gestion-estado--pendiente" title="Aún no eligió su contraseña con el enlace del correo">
+            Contraseña pendiente
+          </span>
+        )}
+      </>
+    ),
+    repositorios: (u) => textoRepositorios(u),
+    acceso: (u) => (u.ultimo_acceso ? <Fecha valor={u.ultimo_acceso} /> : <span className="secundario">Nunca</span>),
+    acciones: (u) => (
+      <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => gestionar(u)}>
+        Gestionar<span className="solo-lector"> la cuenta de {u.usuario}</span>
+      </button>
+    ),
+  };
+}
+
 export default function Usuarios() {
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [filtro, setFiltro] = useState("todos");
-  const [busqueda, setBusqueda] = useState("");
+  // Filtro, búsqueda y página van en la dirección (F5, atrás/adelante).
+  const { ruta, navegar } = useNavegacion();
+  const leidos = leerFiltros(ruta.search, FILTROS_URL);
+  // Un filtro desconocido en la dirección (editada a mano) vale «Todos».
+  const filtro = FILTROS.some(([id]) => id === leidos.filtro) ? leidos.filtro : "todos";
+  const busquedaEnviada = leidos.q;
+  const paginacion = leerPaginacion(ruta.search);
+  const [busqueda, setBusqueda] = useState(busquedaEnviada);
   const [editando, setEditando] = useState(null);
   const [creando, setCreando] = useState(false);
+  const peticion = useRef(0);
 
+  function irA(valores, p, opciones) {
+    navegar(ruta.pathname + escribirEstado({ filtros: valores, iniciales: FILTROS_URL, paginaciones: [["", p]] }), opciones);
+  }
+  const setFiltro = (valor) => irA({ filtro: valor, q: busquedaEnviada }, { ...paginacion, pagina: 1 });
+  const setPaginacion = (p) => irA({ filtro, q: busquedaEnviada }, p);
+
+  // La búsqueda se envía 300 ms después de dejar de escribir; reemplaza la
+  // entrada del historial para no crear una por cada letra.
+  useEffect(() => {
+    const espera = setTimeout(() => {
+      if (busqueda.trim() !== busquedaEnviada) {
+        irA({ filtro, q: busqueda.trim() }, { ...paginacion, pagina: 1 }, { reemplazar: true });
+      }
+    }, 300);
+    return () => clearTimeout(espera);
+  }, [busqueda]);
+  // Atrás/adelante cambia la búsqueda de la dirección: el campo la sigue.
+  useEffect(() => setBusqueda(busquedaEnviada), [busquedaEnviada]);
+
+  // Todas las cuentas (indicadores, avisos y diálogos) y la página de la
+  // tabla, filtrada y paginada en el backend.
   function cargar() {
+    const id = ++peticion.current;
     setCargando(true);
     setError("");
+    const consulta = new URLSearchParams({ filtro });
+    if (busquedaEnviada) consulta.set("q", busquedaEnviada);
     api
-      .gestionUsuarios()
-      .then(setDatos)
-      .catch((e) => setError(e.message))
-      .finally(() => setCargando(false));
+      .gestionUsuarios(consultaPaginada(`?${consulta}`, paginacion))
+      .then((d) => id === peticion.current && setDatos(d))
+      .catch((e) => id === peticion.current && setError(e.message))
+      .finally(() => id === peticion.current && setCargando(false));
   }
-  useEffect(cargar, []);
+  useEffect(cargar, [filtro, busquedaEnviada, paginacion.pagina, paginacion.porPagina]);
 
   function avisar(texto) {
     setAviso(texto);
     setTimeout(() => setAviso(""), 3500);
   }
 
+  // Una cuenta editada se actualiza en las dos listas; una nueva recarga la
+  // página (puede caer en otra página o no cumplir el filtro).
   function reemplazar(u) {
+    if (!datos?.usuarios.some((x) => x.id === u.id)) {
+      cargar();
+      return;
+    }
+    const cambiar = (lista) => lista.map((x) => (x.id === u.id ? u : x));
     setDatos((d) => ({
       ...d,
-      usuarios: d.usuarios.some((x) => x.id === u.id)
-        ? d.usuarios.map((x) => (x.id === u.id ? u : x))
-        : [...d.usuarios, u].sort((a, b) => a.usuario.localeCompare(b.usuario)),
+      usuarios: cambiar(d.usuarios),
+      tabla: d.tabla && { ...d.tabla, resultados: cambiar(d.tabla.resultados) },
     }));
   }
 
@@ -74,16 +169,10 @@ export default function Usuarios() {
     () => Object.fromEntries(FILTROS.map(([id]) => [id, usuarios.filter((u) => cumple(u, id)).length])),
     [usuarios],
   );
-  const texto = busqueda.trim().toLowerCase();
-  const visibles = usuarios.filter(
-    (u) =>
-      cumple(u, filtro) &&
-      (!texto ||
-        u.usuario.toLowerCase().includes(texto) ||
-        u.correo.toLowerCase().includes(texto) ||
-        u.nombre.toLowerCase().includes(texto)),
-  );
+  const tabla = datos?.tabla;
   const sinRepos = usuarios.filter((u) => CON_ACCESOS.includes(u.rol) && !u.repositorios.length).length;
+  // Sin correo no se les puede enviar el enlace para restablecer la contraseña.
+  const sinCorreo = usuarios.filter((u) => !u.correo && u.activo);
 
   return (
     <section className="vista" aria-labelledby="titulo-usuarios">
@@ -106,6 +195,22 @@ export default function Usuarios() {
       <Alerta>{error}</Alerta>
       <Aviso texto={aviso} />
       {!datos && !error && <p role="status" className="secundario">Cargando usuarios…</p>}
+      {datos?.correo && !datos.correo.configurado && (
+        <p className="alerta alerta--aviso" role="status">
+          <strong>El envío de correos no está configurado.</strong> Los enlaces para restablecer contraseñas se
+          escriben en la consola del servidor y no llegan al buzón de los usuarios. Configure EMAIL_HOST y las demás
+          variables EMAIL_* en backend/.env y reinicie el backend.
+        </p>
+      )}
+      {sinCorreo.length > 0 && (
+        <p className="alerta alerta--aviso" role="status">
+          <strong>
+            {sinCorreo.length === 1 ? "1 cuenta activa no tiene" : `${sinCorreo.length} cuentas activas no tienen`} correo
+            registrado:
+          </strong>{" "}
+          {sinCorreo.map((u) => u.usuario).join(", ")}. No se les puede enviar el enlace para restablecer la contraseña.
+        </p>
+      )}
 
       {datos && (
         <>
@@ -117,9 +222,9 @@ export default function Usuarios() {
             <Indicador
               icono="alto"
               titulo="Requieren atención"
-              valor={conteos.sin_rol + sinRepos}
-              nivel={conteos.sin_rol + sinRepos ? "alto" : undefined}
-              detalle={`${conteos.sin_rol} sin rol · ${sinRepos} sin repositorios`}
+              valor={conteos.sin_rol + sinRepos + sinCorreo.length}
+              nivel={conteos.sin_rol + sinRepos + sinCorreo.length ? "alto" : undefined}
+              detalle={`${conteos.sin_rol} sin rol · ${sinRepos} sin repositorios · ${sinCorreo.length} sin correo`}
             />
           </div>
 
@@ -138,59 +243,20 @@ export default function Usuarios() {
               </label>
             </div>
 
-            {!visibles.length ? (
-              <p className="secundario">No hay usuarios que coincidan con el filtro.</p>
+            {!tabla || !tabla.total ? (
+              <p className="secundario">{tabla ? "No hay usuarios que coincidan con el filtro." : "Cargando usuarios…"}</p>
             ) : (
-              <div className="tabla-contenedor">
-                <table>
-                  <caption className="solo-lector">Usuarios de la plataforma</caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Usuario</th>
-                      <th scope="col">Rol</th>
-                      <th scope="col">Repositorios</th>
-                      <th scope="col">Estado</th>
-                      <th scope="col">Último acceso</th>
-                      <th scope="col"><span className="solo-lector">Acciones</span></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visibles.map((u) => (
-                      <tr key={u.id}>
-                        <td>
-                          <div className="gestion-persona">
-                            <span className="gestion-avatar" aria-hidden="true">{u.usuario.slice(0, 2).toUpperCase()}</span>
-                            <div>
-                              <strong>
-                                {u.usuario}
-                                {u.es_actual && <span className="gestion-insignia">Usted</span>}
-                              </strong>
-                              <span className="secundario">{u.correo || "Sin correo"}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={`gestion-insignia gestion-insignia--${u.rol || "sin-rol"}`}>
-                            {u.rol ? NOMBRES_ROL[u.rol] : "Sin rol"}
-                          </span>
-                        </td>
-                        <td>{textoRepositorios(u)}</td>
-                        <td>
-                          <span className={`gestion-estado gestion-estado--${u.activo ? "ok" : "apagado"}`}>
-                            {u.activo ? "Activo" : "Inactivo"}
-                          </span>
-                        </td>
-                        <td>{u.ultimo_acceso ? <Fecha valor={u.ultimo_acceso} /> : <span className="secundario">Nunca</span>}</td>
-                        <td>
-                          <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => setEditando(u)}>
-                            Gestionar<span className="solo-lector"> la cuenta de {u.usuario}</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <TablaPaginada
+                id="usuarios"
+                titulo="Usuarios de la plataforma"
+                columnas={COLUMNAS_USUARIOS}
+                celdas={celdasUsuario(setEditando)}
+                datos={tabla}
+                sustantivo="cuentas"
+                cargando={cargando}
+                alCambiarPagina={setPaginacion}
+                tarjeta={false}
+              />
             )}
           </section>
         </>
@@ -199,10 +265,10 @@ export default function Usuarios() {
       {creando && (
         <DialogoNuevo
           alCerrar={() => setCreando(false)}
-          alCrear={(u) => {
+          alCrear={({ envio, ...u }) => {
             reemplazar(u);
             setCreando(false);
-            avisar(`Usuario ${u.usuario} creado.`);
+            avisar(`Usuario ${u.usuario} creado. ${textoEnvio(u.usuario, envio)}`);
             // Si necesita repositorios, se abre directamente para asignarlos.
             if (CON_ACCESOS.includes(u.rol)) setEditando(u);
           }}
@@ -212,16 +278,29 @@ export default function Usuarios() {
         <DialogoUsuario
           usuario={editando}
           repositorios={datos.repositorios}
+          usuarios={usuarios}
           alCerrar={() => setEditando(null)}
           alGuardar={(u) => {
             reemplazar(u);
             setEditando(null);
             avisar(`Cambios de ${u.usuario} guardados.`);
           }}
-          alEliminar={(u) => {
-            setDatos((d) => ({ ...d, usuarios: d.usuarios.filter((x) => x.id !== u.id) }));
+          alActualizar={(u) => {
+            reemplazar(u);
+            setEditando(u); // muestra el último envío sin cerrar la ventana
+          }}
+          alEliminar={(u, traspaso) => {
             setEditando(null);
-            avisar(`Usuario ${u.usuario} eliminado.`);
+            if (traspaso) {
+              avisar(
+                `Usuario ${u.usuario} eliminado: ${traspaso.analisis} análisis y ${traspaso.decisiones} ` +
+                  `decisiones pasaron a ${traspaso.traspasado_a}.`,
+              );
+              cargar(); // la cuenta que recibe el historial también cambia
+            } else {
+              cargar();
+              avisar(`Usuario ${u.usuario} eliminado.`);
+            }
           }}
         />
       )}
@@ -239,7 +318,7 @@ function SelectorRol({ valor, alCambiar, deshabilitado }) {
 }
 
 function DialogoNuevo({ alCerrar, alCrear }) {
-  const [form, setForm] = useState({ usuario: "", correo: "", contrasena: "", rol: "desarrollador" });
+  const [form, setForm] = useState({ usuario: "", correo: "", rol: "desarrollador" });
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
   const cambiar = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
@@ -262,12 +341,12 @@ function DialogoNuevo({ alCerrar, alCrear }) {
           <input value={form.usuario} onChange={cambiar("usuario")} required autoFocus autoComplete="off" />
         </label>
         <label className="campo"><span>Correo electrónico</span>
-          <input type="email" value={form.correo} onChange={cambiar("correo")} />
+          <input type="email" value={form.correo} onChange={cambiar("correo")} required autoComplete="off" />
         </label>
-        <label className="campo"><span>Contraseña inicial</span>
-          <input type="password" value={form.contrasena} onChange={cambiar("contrasena")} required autoComplete="new-password" />
-        </label>
-        <p className="secundario nota-pie">Mínimo 8 caracteres, no solo números ni una contraseña común.</p>
+        <p className="secundario nota-pie">
+          El usuario recibirá en este correo un enlace para crear su contraseña (vale una hora). Si caduca, envíe
+          otro desde «Gestionar».
+        </p>
         <label className="campo"><span>Rol</span>
           <SelectorRol valor={form.rol} alCambiar={(rol) => setForm({ ...form, rol })} />
         </label>
@@ -281,32 +360,26 @@ function DialogoNuevo({ alCerrar, alCrear }) {
   );
 }
 
-// Motivo por el que la cuenta no se puede eliminar, o null si se puede. La
-// regla real está en views_gestion._eliminar_usuario.
-function motivoNoEliminar(usuario) {
-  if (usuario.es_actual) return "No puede eliminar su propia cuenta.";
-  if (usuario.superusuario) return "El superusuario no se puede eliminar.";
-  if (usuario.analisis || usuario.decisiones) {
-    return (
-      `Tiene ${usuario.analisis} análisis y ${usuario.decisiones} decisiones registradas: para conservar la ` +
-      "trazabilidad no se puede eliminar. Desmarque «Cuenta activa» para quitarle el acceso."
-    );
-  }
-  return null;
-}
-
-function ZonaEliminar({ usuario, alEliminar }) {
+function ZonaEliminar({ usuario, usuarios, alEliminar }) {
   const [confirmando, setConfirmando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
   const [error, setError] = useState("");
-  const motivo = motivoNoEliminar(usuario);
+  const historial = tieneHistorial(usuario);
+  const candidatos = historial ? candidatosTraspaso(usuario, usuarios) : [];
+  const [destino, setDestino] = useState("");
+  const motivo =
+    motivoNoEliminar(usuario) ||
+    (historial && !candidatos.length
+      ? "Tiene historial y no hay ninguna cuenta activa con su mismo rol ni administradora que pueda recibirlo."
+      : null);
+  const nombreDestino = candidatos.find((c) => String(c.id) === destino)?.usuario;
 
   async function eliminar() {
     setEliminando(true);
     setError("");
     try {
-      await api.eliminarUsuario(usuario.id);
-      alEliminar(usuario);
+      const traspaso = await api.eliminarUsuario(usuario.id, historial ? destino : undefined);
+      alEliminar(usuario, historial ? traspaso : null);
     } catch (err) {
       setError(err.message);
       setEliminando(false);
@@ -318,13 +391,45 @@ function ZonaEliminar({ usuario, alEliminar }) {
     <div className="gestion-eliminar">
       {confirmando ? (
         <>
-          <p>
-            ¿Eliminar definitivamente la cuenta <strong>{usuario.usuario}</strong>? Se borrarán también sus accesos a
-            repositorios. Esta acción no se puede deshacer.
-          </p>
+          {historial ? (
+            <>
+              <p>
+                <strong>{usuario.usuario}</strong> tiene {usuario.analisis} análisis y {usuario.decisiones} decisiones.
+                Para conservar la trazabilidad, pasarán a otra cuenta junto con sus repositorios; después se
+                eliminará la cuenta. Esta acción no se puede deshacer.
+              </p>
+              <div className="campo">
+                <label htmlFor="campo-traspaso">Traspasar su historial a</label>
+                <select id="campo-traspaso" value={destino} onChange={(e) => setDestino(e.target.value)}>
+                  <option value="">Seleccione una cuenta</option>
+                  {candidatos.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.usuario} · {NOMBRES_ROL[c.rol] || c.rol}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          ) : (
+            <p>
+              ¿Eliminar definitivamente la cuenta <strong>{usuario.usuario}</strong>? Se borrarán también sus accesos a
+              repositorios. Esta acción no se puede deshacer.
+            </p>
+          )}
           <div className="gestion-dialogo__acciones gestion-dialogo__acciones--inicio">
-            <button type="button" className="boton boton--peligro" onClick={eliminar} disabled={eliminando}>
-              {eliminando ? "Eliminando…" : "Sí, eliminar"}
+            <button
+              type="button"
+              className="boton boton--peligro"
+              onClick={eliminar}
+              disabled={eliminando || (historial && !destino)}
+            >
+              {eliminando
+                ? "Eliminando…"
+                : historial
+                  ? nombreDestino
+                    ? `Traspasar a ${nombreDestino} y eliminar`
+                    : "Traspasar y eliminar"
+                  : "Sí, eliminar"}
             </button>
             <button type="button" className="boton boton--secundario" onClick={() => setConfirmando(false)}>
               No, conservarla
@@ -350,11 +455,72 @@ function ZonaEliminar({ usuario, alEliminar }) {
   );
 }
 
-function DialogoUsuario({ usuario, repositorios, alCerrar, alGuardar, alEliminar }) {
+// Envío del enlace para restablecer la contraseña y último envío registrado.
+function ZonaContrasena({ usuario, cambiosSinGuardar, alActualizar }) {
+  const [enviando, setEnviando] = useState(false);
+  const [aviso, setAviso] = useState("");
+  const [error, setError] = useState("");
+  const ultimo = usuario.ultimo_restablecimiento;
+  const motivo = !usuario.correo
+    ? "Registre un correo y guarde los cambios para poder enviar el enlace."
+    : !usuario.activo
+      ? "La cuenta está desactivada: actívela y guarde los cambios para enviar el enlace."
+      : cambiosSinGuardar
+        ? "Guarde primero el cambio de correo o de estado."
+        : null;
+
+  async function enviar() {
+    setEnviando(true);
+    setError("");
+    setAviso("");
+    try {
+      const r = await api.enviarRestablecimiento(usuario.id);
+      setAviso(textoEnvio(usuario.usuario, r));
+      alActualizar(r.usuario);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <fieldset className="gestion-repos">
+      <legend>Contraseña</legend>
+      <p className="secundario nota-pie">
+        {usuario.clave_definida
+          ? "El administrador no puede ver ni cambiar la contraseña. Envíe un enlace para que el usuario la restablezca."
+          : "El usuario todavía no ha creado su contraseña con el enlace del correo."}
+      </p>
+      {ultimo && (
+        <p className="secundario nota-pie">
+          Último enlace: <Fecha valor={ultimo.solicitado_en} />{" "}
+          {ultimo.origen === "usuario" ? "(lo pidió el usuario)" : `(enviado por ${ultimo.solicitado_por})`}
+          {!ultimo.enviado && " · el envío falló"}
+          {ultimo.medio === "consola" && ultimo.enviado && " · escrito en la consola del servidor"}
+          {ultimo.cambiada_en ? <> · contraseña cambiada el <Fecha valor={ultimo.cambiada_en} /></> : " · sin usar"}
+        </p>
+      )}
+      <button
+        type="button"
+        className="boton boton--secundario"
+        onClick={enviar}
+        disabled={enviando || Boolean(motivo)}
+        aria-describedby={motivo ? "motivo-enlace" : undefined}
+      >
+        {enviando ? "Enviando…" : "Enviar enlace para restablecer contraseña"}
+      </button>
+      {motivo && <p id="motivo-enlace" className="secundario nota-pie">{motivo}</p>}
+      <Aviso texto={aviso} />
+      <Alerta>{error}</Alerta>
+    </fieldset>
+  );
+}
+
+function DialogoUsuario({ usuario, repositorios, usuarios, alCerrar, alGuardar, alActualizar, alEliminar }) {
   const [rol, setRol] = useState(usuario.rol || "");
   const [activo, setActivo] = useState(usuario.activo);
   const [correo, setCorreo] = useState(usuario.correo);
-  const [contrasena, setContrasena] = useState("");
   const [asignados, setAsignados] = useState(() => new Set(usuario.repositorios.map((r) => r.id)));
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
@@ -366,7 +532,6 @@ function DialogoUsuario({ usuario, repositorios, alCerrar, alGuardar, alEliminar
     if ((usuario.rol || "") !== rol) cambios.rol = rol || null;
     if (usuario.activo !== activo) cambios.activo = activo;
     if (usuario.correo !== correo.trim()) cambios.correo = correo.trim();
-    if (contrasena) cambios.contrasena = contrasena;
     const antes = usuario.repositorios.map((r) => r.id).sort().join(",");
     const despues = [...asignados].sort().join(",");
 
@@ -425,15 +590,11 @@ function DialogoUsuario({ usuario, repositorios, alCerrar, alGuardar, alEliminar
           />
         </label>
 
-        <label className="campo"><span>Nueva contraseña (opcional)</span>
-          <input
-            type="password"
-            value={contrasena}
-            onChange={(e) => setContrasena(e.target.value)}
-            placeholder="Dejar vacío para no cambiarla"
-            autoComplete="new-password"
-          />
-        </label>
+        <ZonaContrasena
+          usuario={usuario}
+          cambiosSinGuardar={usuario.correo !== correo.trim() || usuario.activo !== activo}
+          alActualizar={alActualizar}
+        />
 
         {CON_ACCESOS.includes(rol) ? (
           <SelectorRepositorios repositorios={repositorios} asignados={asignados} alCambiar={setAsignados} />
@@ -451,7 +612,7 @@ function DialogoUsuario({ usuario, repositorios, alCerrar, alGuardar, alEliminar
           <button className="boton" disabled={guardando}>{guardando ? "Guardando…" : "Guardar cambios"}</button>
         </div>
       </form>
-      <ZonaEliminar usuario={usuario} alEliminar={alEliminar} />
+      <ZonaEliminar usuario={usuario} usuarios={usuarios} alEliminar={alEliminar} />
     </Dialogo>
   );
 }
@@ -505,6 +666,8 @@ function SelectorRepositorios({ repositorios, asignados, alCambiar }) {
               <button type="button" onClick={() => alternar(r.id)}>
                 + {r.nombre_completo}
                 {r.es_demostracion && <span className="gestion-insignia">demo</span>}
+                {r.es_prueba && <span className="gestion-insignia">prueba</span>}
+                {r.est_registro === "I" && <span className="gestion-insignia">inactivo</span>}
               </button>
             </li>
           ))}

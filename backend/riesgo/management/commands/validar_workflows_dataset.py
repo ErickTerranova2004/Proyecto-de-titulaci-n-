@@ -12,10 +12,11 @@ import csv
 from collections import Counter, defaultdict
 
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from django.db import transaction
 from django.utils import timezone
 
+from riesgo.auditoria import ComandoAuditado
 from riesgo.models import Repositorio, Workflow
 
 CRITERIO = (
@@ -27,7 +28,7 @@ CRITERIO = (
 )
 
 
-class Command(BaseCommand):
+class Command(ComandoAuditado):
     help = "Valida como workflows de despliegue los del dataset final."
 
     def add_arguments(self, parser):

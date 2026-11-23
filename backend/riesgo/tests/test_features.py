@@ -55,7 +55,8 @@ class VariablesCommitTest(SimpleTestCase):
         self.assertEqual(v["rama_principal"], 1)
         self.assertEqual(v["msg_lineas"], 3)
         self.assertEqual(v["retraso_commit_run_min"], 60)
-        self.assertEqual(v["tiene_pr"], 0)
+        # tiene_pr y es_reintento se calculan aparte (test_variables_v2.py).
+        self.assertNotIn("tiene_pr", v)
 
 
 class SeguridadYReglasTest(SimpleTestCase):

@@ -1,0 +1,2007 @@
+[
+ {
+  "id": 1,
+  "repositorio": "Commit451/skyhook",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "Google Cloud Run",
+  "evidencia": "Con push a main, el job deploy despliega el servicio en Google Cloud Run con google-github-actions/deploy-cloudrun@v2.",
+  "url": "https://github.com/Commit451/skyhook/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 61,
+  "conclusiones_muestra": {
+   "success": 55,
+   "failure": 6
+  },
+  "porcentajes": "90 % éxito / 10 % fallo",
+  "estrellas": 385,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 2,
+  "repositorio": "springdoc/springdoc-openapi-demos",
+  "ruta_workflow": ".github/workflows/demos.yml",
+  "plataforma": "Google Cloud Run",
+  "evidencia": "Con push a master, workflow_dispatch, el job deploy despliega el servicio en Google Cloud Run con google-github-actions/deploy-cloudrun@v3.",
+  "url": "https://github.com/springdoc/springdoc-openapi-demos/blob/HEAD/.github/workflows/demos.yml",
+  "ejecuciones_6_meses": 42,
+  "conclusiones_muestra": {
+   "success": 32,
+   "failure": 10
+  },
+  "porcentajes": "76 % éxito / 24 % fallo",
+  "estrellas": 594,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 3,
+  "repositorio": "openwallet-foundation-labs/tsp",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "Google Cloud Run",
+  "evidencia": "Con push a main, workflow_dispatch, el job deploy-intermediaries despliega el servicio en Google Cloud Run con google-github-actions/deploy-cloudrun@v2.",
+  "url": "https://github.com/openwallet-foundation-labs/tsp/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 47,
+  "conclusiones_muestra": {
+   "success": 39,
+   "failure": 8
+  },
+  "porcentajes": "83 % éxito / 17 % fallo",
+  "estrellas": 70,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 4,
+  "repositorio": "pcraig3/hols",
+  "ruta_workflow": ".github/workflows/main.yml",
+  "plataforma": "Google Cloud Run",
+  "evidencia": "Con push a main, **, el job deploy despliega el servicio en Google Cloud Run con google-github-actions/deploy-cloudrun@v3.",
+  "url": "https://github.com/pcraig3/hols/blob/HEAD/.github/workflows/main.yml",
+  "ejecuciones_6_meses": 12,
+  "conclusiones_muestra": {
+   "success": 9,
+   "failure": 3
+  },
+  "porcentajes": "75 % éxito / 25 % fallo",
+  "estrellas": 122,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 5,
+  "repositorio": "infanf/myanili",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "Google Cloud Run",
+  "evidencia": "Con push a beta, el job deploy-beta despliega el servicio en Google Cloud Run con google-github-actions/deploy-cloudrun@v2.",
+  "url": "https://github.com/infanf/myanili/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 38,
+  "conclusiones_muestra": {
+   "success": 35,
+   "cancelled": 2,
+   "failure": 1
+  },
+  "porcentajes": "92 % éxito / 3 % fallo",
+  "estrellas": 24,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 6,
+  "repositorio": "rewiringamerica/api.rewiringamerica.org",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "Google Cloud Run",
+  "evidencia": "Con push a main, release, el job deploy despliega el servicio en Google Cloud Run con google-github-actions/deploy-cloudrun@v3.",
+  "url": "https://github.com/rewiringamerica/api.rewiringamerica.org/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 71,
+  "conclusiones_muestra": {
+   "success": 71
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 11,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 7,
+  "repositorio": "UTDNebula/api-tools",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "Google Cloud Run",
+  "evidencia": "Con workflow_dispatch, push a develop, el job main (environment: deployment) despliega el servicio en Google Cloud Run con google-github-actions/deploy-cloudrun@v2.",
+  "url": "https://github.com/UTDNebula/api-tools/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 12,
+  "conclusiones_muestra": {
+   "success": 11,
+   "failure": 1
+  },
+  "porcentajes": "92 % éxito / 8 % fallo",
+  "estrellas": 12,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 8,
+  "repositorio": "google/neuroglancer",
+  "ruta_workflow": ".github/workflows/build.yml",
+  "plataforma": "Google App Engine",
+  "evidencia": "Con push a master, pull_request, workflow_dispatch, el job deploy despliega la aplicación en Google App Engine con google-github-actions/deploy-appengine@54d5fc7167ec790eb0233905e3cef384221b4619.",
+  "url": "https://github.com/google/neuroglancer/blob/HEAD/.github/workflows/build.yml",
+  "ejecuciones_6_meses": 602,
+  "conclusiones_muestra": {
+   "cancelled": 5,
+   "success": 25,
+   "failure": 61,
+   "action_required": 9
+  },
+  "porcentajes": "25 % éxito / 61 % fallo",
+  "estrellas": 1578,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 9,
+  "repositorio": "everycure-org/matrix",
+  "ruta_workflow": ".github/workflows/docs-deploy.yml",
+  "plataforma": "Google App Engine",
+  "evidencia": "Con workflow_dispatch, push a main, pull_request, el job build_and_deploy (environment: dev) despliega la aplicación en Google App Engine con google-github-actions/deploy-appengine@v2.",
+  "url": "https://github.com/everycure-org/matrix/blob/HEAD/.github/workflows/docs-deploy.yml",
+  "ejecuciones_6_meses": 260,
+  "conclusiones_muestra": {
+   "success": 50,
+   "failure": 18,
+   "skipped": 26,
+   "cancelled": 6
+  },
+  "porcentajes": "50 % éxito / 18 % fallo",
+  "estrellas": 57,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 10,
+  "repositorio": "bramp/myip",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "Google App Engine",
+  "evidencia": "Con push a main, el job deploy despliega la aplicación en Google App Engine con google-github-actions/deploy-appengine@v3.",
+  "url": "https://github.com/bramp/myip/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 21,
+  "conclusiones_muestra": {
+   "success": 21
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 63,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 11,
+  "repositorio": "EastsidePreparatorySchool/epschedule",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "Google App Engine",
+  "evidencia": "Con push a master, el job setup-build-deploy despliega la aplicación en Google App Engine con google-github-actions/deploy-appengine@v2.",
+  "url": "https://github.com/EastsidePreparatorySchool/epschedule/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 10,
+  "conclusiones_muestra": {
+   "success": 10
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 19,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 12,
+  "repositorio": "sqlfluff/sqlfluff-online",
+  "ruta_workflow": ".github/workflows/deploy.yaml",
+  "plataforma": "Google App Engine",
+  "evidencia": "Con push a master, el job run despliega la aplicación en Google App Engine con google-github-actions/deploy-appengine@v3.",
+  "url": "https://github.com/sqlfluff/sqlfluff-online/blob/HEAD/.github/workflows/deploy.yaml",
+  "ejecuciones_6_meses": 57,
+  "conclusiones_muestra": {
+   "success": 53,
+   "failure": 4
+  },
+  "porcentajes": "93 % éxito / 7 % fallo",
+  "estrellas": 38,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 13,
+  "repositorio": "ai-on-gke/website",
+  "ruta_workflow": ".github/workflows/website.yaml",
+  "plataforma": "Google App Engine",
+  "evidencia": "Con push a main, workflow_dispatch, el job build despliega la aplicación en Google App Engine con google-github-actions/deploy-appengine@a343979004148afb93c94c712b467e8e9f01b06b.",
+  "url": "https://github.com/ai-on-gke/website/blob/HEAD/.github/workflows/website.yaml",
+  "ejecuciones_6_meses": 14,
+  "conclusiones_muestra": {
+   "success": 14
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 17,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 14,
+  "repositorio": "janzarsky/scout-planner",
+  "ruta_workflow": ".github/workflows/deploy_frontend.yml",
+  "plataforma": "Google App Engine",
+  "evidencia": "Con push a master, workflow_dispatch, el job deploy_frontend despliega la aplicación en Google App Engine con google-github-actions/deploy-appengine@v2.",
+  "url": "https://github.com/janzarsky/scout-planner/blob/HEAD/.github/workflows/deploy_frontend.yml",
+  "ejecuciones_6_meses": 92,
+  "conclusiones_muestra": {
+   "success": 71,
+   "cancelled": 21
+  },
+  "porcentajes": "77 % éxito / 0 % fallo",
+  "estrellas": 6,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 15,
+  "repositorio": "thecourseforum/theCourseForum2",
+  "ruta_workflow": ".github/workflows/aws.yml",
+  "plataforma": "AWS ECS",
+  "evidencia": "Con workflow_run, el job deploy despliega la definición de tarea en Amazon ECS con aws-actions/amazon-ecs-deploy-task-definition@c465972ecbd160473f22e683363b422a5412a3de.",
+  "url": "https://github.com/thecourseforum/theCourseForum2/blob/HEAD/.github/workflows/aws.yml",
+  "ejecuciones_6_meses": 59,
+  "conclusiones_muestra": {
+   "success": 45,
+   "cancelled": 3,
+   "failure": 10,
+   "skipped": 1
+  },
+  "porcentajes": "76 % éxito / 17 % fallo",
+  "estrellas": 54,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 16,
+  "repositorio": "cogini/phoenix_container_example",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "AWS ECS",
+  "evidencia": "Con push a main, el job deploy-ecs (environment: ${{ needs.config.outputs.environment }}) despliega la definición de tarea en Amazon ECS con aws-actions/amazon-ecs-deploy-task-definition@v2.",
+  "url": "https://github.com/cogini/phoenix_container_example/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 63,
+  "conclusiones_muestra": {
+   "success": 14,
+   "failure": 41,
+   "cancelled": 8
+  },
+  "porcentajes": "22 % éxito / 65 % fallo",
+  "estrellas": 60,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 17,
+  "repositorio": "pongstylin/tactics",
+  "ruta_workflow": ".github/workflows/staging.yaml",
+  "plataforma": "AWS ECS",
+  "evidencia": "Con push a master, workflow_dispatch, el job deploy (environment: production) despliega la definición de tarea en Amazon ECS con aws-actions/amazon-ecs-deploy-task-definition@v2.",
+  "url": "https://github.com/pongstylin/tactics/blob/HEAD/.github/workflows/staging.yaml",
+  "ejecuciones_6_meses": 57,
+  "conclusiones_muestra": {
+   "success": 49,
+   "failure": 8
+  },
+  "porcentajes": "86 % éxito / 14 % fallo",
+  "estrellas": 98,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 18,
+  "repositorio": "fraarrmat11/MS-SIMULATION",
+  "ruta_workflow": ".github/workflows/deploy-ecs.yml",
+  "plataforma": "AWS ECS",
+  "evidencia": "Con workflow_dispatch, el job deploy despliega la definición de tarea en Amazon ECS con aws-actions/amazon-ecs-deploy-task-definition@v2.",
+  "url": "https://github.com/fraarrmat11/MS-SIMULATION/blob/HEAD/.github/workflows/deploy-ecs.yml",
+  "ejecuciones_6_meses": 11,
+  "conclusiones_muestra": {
+   "success": 9,
+   "failure": 2
+  },
+  "porcentajes": "82 % éxito / 18 % fallo",
+  "estrellas": 3,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 19,
+  "repositorio": "pagopa/oneidentity",
+  "ruta_workflow": ".github/workflows/deploy-internal-idp.yml",
+  "plataforma": "AWS ECS",
+  "evidencia": "Con push a main, workflow_dispatch, el job deploy (environment: ${{ matrix.environment }}) despliega la definición de tarea en Amazon ECS con aws-actions/amazon-ecs-deploy-task-definition@0e82244a9c6dac43d70151a94c67ebc4bab18fc5.",
+  "url": "https://github.com/pagopa/oneidentity/blob/HEAD/.github/workflows/deploy-internal-idp.yml",
+  "ejecuciones_6_meses": 45,
+  "conclusiones_muestra": {
+   "success": 44,
+   "failure": 1
+  },
+  "porcentajes": "98 % éxito / 2 % fallo",
+  "estrellas": 2,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 20,
+  "repositorio": "ministryofjustice/CFO-DataManagementSystem",
+  "ruta_workflow": ".github/workflows/deploy-reusable.yml",
+  "plataforma": "AWS ECS",
+  "evidencia": "Con workflow_call, workflow_dispatch, el job deploy (environment: ${{ inputs.environment }}) despliega la definición de tarea en Amazon ECS con aws-actions/amazon-ecs-deploy-task-definition@fc8fc60f3a60ffd500fcb13b209c59d221ac8c8c.",
+  "url": "https://github.com/ministryofjustice/CFO-DataManagementSystem/blob/HEAD/.github/workflows/deploy-reusable.yml",
+  "ejecuciones_6_meses": 12,
+  "conclusiones_muestra": {
+   "success": 9,
+   "failure": 2,
+   "cancelled": 1
+  },
+  "porcentajes": "75 % éxito / 17 % fallo",
+  "estrellas": 7,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 21,
+  "repositorio": "elsa-hanke/elsa-backend",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "AWS ECS",
+  "evidencia": "Con push a main, release/**, pull_request, el job deploy-dev-backend (environment: Development) despliega la definición de tarea en Amazon ECS con aws-actions/amazon-ecs-deploy-task-definition@v2.",
+  "url": "https://github.com/elsa-hanke/elsa-backend/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 1232,
+  "conclusiones_muestra": {
+   "failure": 92,
+   "success": 8
+  },
+  "porcentajes": "8 % éxito / 92 % fallo",
+  "estrellas": 2,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 22,
+  "repositorio": "aghjones/goal-bot",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "AWS Elastic Beanstalk",
+  "evidencia": "Con push, el job deploy despliega la aplicación en AWS Elastic Beanstalk con einaregilsson/beanstalk-deploy@v14.",
+  "url": "https://github.com/aghjones/goal-bot/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 13,
+  "conclusiones_muestra": {
+   "success": 10,
+   "failure": 3
+  },
+  "porcentajes": "77 % éxito / 23 % fallo",
+  "estrellas": 10,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 23,
+  "repositorio": "jamktiko/cooked",
+  "ruta_workflow": ".github/workflows/main.yml",
+  "plataforma": "AWS Elastic Beanstalk",
+  "evidencia": "Con push a main, el job deploy-backend despliega la aplicación en AWS Elastic Beanstalk con einaregilsson/beanstalk-deploy@v22.",
+  "url": "https://github.com/jamktiko/cooked/blob/HEAD/.github/workflows/main.yml",
+  "ejecuciones_6_meses": 39,
+  "conclusiones_muestra": {
+   "success": 38,
+   "failure": 1
+  },
+  "porcentajes": "97 % éxito / 3 % fallo",
+  "estrellas": 3,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 24,
+  "repositorio": "alliance-genome/agr_curation",
+  "ruta_workflow": ".github/workflows/github-release-build-and-deploy.yml",
+  "plataforma": "AWS Elastic Beanstalk",
+  "evidencia": "Con release, el job deploy-to-production despliega la aplicación en AWS Elastic Beanstalk con einaregilsson/beanstalk-deploy@v21.",
+  "url": "https://github.com/alliance-genome/agr_curation/blob/HEAD/.github/workflows/github-release-build-and-deploy.yml",
+  "ejecuciones_6_meses": 42,
+  "conclusiones_muestra": {
+   "failure": 10,
+   "success": 32
+  },
+  "porcentajes": "76 % éxito / 24 % fallo",
+  "estrellas": 6,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 25,
+  "repositorio": "guy-dav/ci_cd_basic_project",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "AWS Elastic Beanstalk",
+  "evidencia": "Con push, el job deploy despliega la aplicación en AWS Elastic Beanstalk con einaregilsson/beanstalk-deploy@v22.",
+  "url": "https://github.com/guy-dav/ci_cd_basic_project/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 13,
+  "conclusiones_muestra": {
+   "success": 8,
+   "failure": 5
+  },
+  "porcentajes": "62 % éxito / 38 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 26,
+  "repositorio": "hongsoohyuk/kotlin-spring",
+  "ruta_workflow": ".github/workflows/blank.yml",
+  "plataforma": "AWS Elastic Beanstalk",
+  "evidencia": "Con push a main, el job deploy (environment: production) despliega la aplicación en AWS Elastic Beanstalk con einaregilsson/beanstalk-deploy@v21.",
+  "url": "https://github.com/hongsoohyuk/kotlin-spring/blob/HEAD/.github/workflows/blank.yml",
+  "ejecuciones_6_meses": 14,
+  "conclusiones_muestra": {
+   "failure": 8,
+   "success": 6
+  },
+  "porcentajes": "43 % éxito / 57 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 27,
+  "repositorio": "rosariozambrana/modulo3-Backend",
+  "ruta_workflow": ".github/workflows/cd.yml",
+  "plataforma": "AWS Elastic Beanstalk",
+  "evidencia": "Con workflow_run, el job deploy despliega la aplicación en AWS Elastic Beanstalk con einaregilsson/beanstalk-deploy@v22.",
+  "url": "https://github.com/rosariozambrana/modulo3-Backend/blob/HEAD/.github/workflows/cd.yml",
+  "ejecuciones_6_meses": 33,
+  "conclusiones_muestra": {
+   "success": 17,
+   "skipped": 6,
+   "failure": 10
+  },
+  "porcentajes": "52 % éxito / 30 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 28,
+  "repositorio": "Northeastern-Electric-Racing/FinishLine",
+  "ruta_workflow": ".github/workflows/sandbox-up.yml",
+  "plataforma": "AWS Elastic Beanstalk",
+  "evidencia": "Con pull_request, workflow_dispatch, el job spin-up (environment: sandbox) despliega la aplicación en AWS Elastic Beanstalk con einaregilsson/beanstalk-deploy@v21.",
+  "url": "https://github.com/Northeastern-Electric-Racing/FinishLine/blob/HEAD/.github/workflows/sandbox-up.yml",
+  "ejecuciones_6_meses": 29,
+  "conclusiones_muestra": {
+   "success": 14,
+   "failure": 14,
+   "cancelled": 1
+  },
+  "porcentajes": "48 % éxito / 48 % fallo",
+  "estrellas": 39,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 29,
+  "repositorio": "vapor/design",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "AWS CloudFormation",
+  "evidencia": "Con push a main, el job build despliega la pila en AWS CloudFormation con aws-actions/aws-cloudformation-github-deploy@81e3b03d2266bcb76c4bcc37a7d71d9cb67838bb.",
+  "url": "https://github.com/vapor/design/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 114,
+  "conclusiones_muestra": {
+   "failure": 1,
+   "success": 99
+  },
+  "porcentajes": "99 % éxito / 1 % fallo",
+  "estrellas": 27,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 30,
+  "repositorio": "haskellweekly/haskellweekly",
+  "ruta_workflow": ".github/workflows/ci.yaml",
+  "plataforma": "AWS CloudFormation",
+  "evidencia": "Con pull_request, push a main, el job aws despliega la pila en AWS CloudFormation con aws-actions/aws-cloudformation-github-deploy@v2.",
+  "url": "https://github.com/haskellweekly/haskellweekly/blob/HEAD/.github/workflows/ci.yaml",
+  "ejecuciones_6_meses": 102,
+  "conclusiones_muestra": {
+   "success": 80,
+   "failure": 20
+  },
+  "porcentajes": "80 % éxito / 20 % fallo",
+  "estrellas": 154,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 31,
+  "repositorio": "brokenhandsio/kiln",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "AWS CloudFormation",
+  "evidencia": "Con push a main, workflow_dispatch, el job deploy despliega la pila en AWS CloudFormation con aws-actions/aws-cloudformation-github-deploy@81e3b03d2266bcb76c4bcc37a7d71d9cb67838bb.",
+  "url": "https://github.com/brokenhandsio/kiln/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 35,
+  "conclusiones_muestra": {
+   "success": 34,
+   "cancelled": 1
+  },
+  "porcentajes": "97 % éxito / 0 % fallo",
+  "estrellas": 59,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 32,
+  "repositorio": "vapor/api-docs",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "AWS CloudFormation",
+  "evidencia": "Con push a main, workflow_call, workflow_dispatch, el job build-and-deploy despliega la pila en AWS CloudFormation con aws-actions/aws-cloudformation-github-deploy@81e3b03d2266bcb76c4bcc37a7d71d9cb67838bb.",
+  "url": "https://github.com/vapor/api-docs/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 15,
+  "conclusiones_muestra": {
+   "success": 15
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 14,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 33,
+  "repositorio": "cdklabs/aws-cdk-notices",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "AWS CloudFormation",
+  "evidencia": "Con push a main, workflow_dispatch, el job prod-WebsiteStack-Deploy despliega la pila en AWS CloudFormation con aws-actions/aws-cloudformation-github-deploy@v2.",
+  "url": "https://github.com/cdklabs/aws-cdk-notices/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 99,
+  "conclusiones_muestra": {
+   "success": 99
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 11,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 34,
+  "repositorio": "concord-consortium/rigse",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "AWS CloudFormation",
+  "evidencia": "Con push, el job deploy despliega la pila en AWS CloudFormation con aws-actions/aws-cloudformation-github-deploy@6901756.",
+  "url": "https://github.com/concord-consortium/rigse/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 60,
+  "conclusiones_muestra": {
+   "failure": 3,
+   "success": 57
+  },
+  "porcentajes": "95 % éxito / 5 % fallo",
+  "estrellas": 9,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 35,
+  "repositorio": "hms-dbmi-cellenics/iac",
+  "ruta_workflow": ".github/workflows/deploy-changed-cf.yaml",
+  "plataforma": "AWS CloudFormation",
+  "evidencia": "Con workflow_dispatch, push a master, pull_request, el job deploy-templates (environment: ${{ matrix.environment.name }}) despliega la pila en AWS CloudFormation con aws-actions/aws-cloudformation-github-deploy@v1.",
+  "url": "https://github.com/hms-dbmi-cellenics/iac/blob/HEAD/.github/workflows/deploy-changed-cf.yaml",
+  "ejecuciones_6_meses": 30,
+  "conclusiones_muestra": {
+   "success": 29,
+   "failure": 1
+  },
+  "porcentajes": "97 % éxito / 3 % fallo",
+  "estrellas": 23,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 36,
+  "repositorio": "ruby-no-kai/sponsor-app",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "AWS Lambda",
+  "evidencia": "Con push a master, main, test, el job deploy-prod (environment: production) actualiza la función en AWS Lambda en el paso 'run'.",
+  "url": "https://github.com/ruby-no-kai/sponsor-app/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 22,
+  "conclusiones_muestra": {
+   "success": 16,
+   "failure": 1,
+   "cancelled": 5
+  },
+  "porcentajes": "73 % éxito / 5 % fallo",
+  "estrellas": 19,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 37,
+  "repositorio": "vapor/penny-bot",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "AWS Lambda",
+  "evidencia": "Con push a main, el job deploy actualiza la función en AWS Lambda en el paso 'Deploy lambdas'.",
+  "url": "https://github.com/vapor/penny-bot/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 35,
+  "conclusiones_muestra": {
+   "success": 26,
+   "failure": 4,
+   "cancelled": 5
+  },
+  "porcentajes": "74 % éxito / 11 % fallo",
+  "estrellas": 26,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 38,
+  "repositorio": "SensorsConnect/IoT-Agentic-Search-Engine",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "AWS Lambda",
+  "evidencia": "Con push a main, deployment, pull_request, el job build-backend actualiza la función en AWS Lambda en el paso 'Update Lambda function image'.",
+  "url": "https://github.com/SensorsConnect/IoT-Agentic-Search-Engine/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 12,
+  "conclusiones_muestra": {
+   "success": 12
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 7,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 39,
+  "repositorio": "fre5h/rnokpp-telegram-bot",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "AWS Lambda",
+  "evidencia": "Con push a main, pull_request, el job deploy (environment: amazon-lambda) actualiza la función en AWS Lambda en el paso 'Deploy to Lambda'.",
+  "url": "https://github.com/fre5h/rnokpp-telegram-bot/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 16,
+  "conclusiones_muestra": {
+   "success": 6,
+   "failure": 10
+  },
+  "porcentajes": "38 % éxito / 62 % fallo",
+  "estrellas": 8,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 40,
+  "repositorio": "RockefellerArchiveCenter/docs-build",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "AWS Lambda",
+  "evidencia": "Con push a development, release, workflow_dispatch, el job deploy (environment: ${{ github.event_name == 'release' && 'base' || github.ref_name }}) actualiza la función en AWS Lambda en el paso 'Deploy lambda'.",
+  "url": "https://github.com/RockefellerArchiveCenter/docs-build/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 26,
+  "conclusiones_muestra": {
+   "success": 26
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 2,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 41,
+  "repositorio": "digital-land/digital-land-lambda",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "AWS Lambda",
+  "evidencia": "Con push a main, workflow_dispatch, el job deploy (environment: ${{ matrix.environment }}) actualiza la función en AWS Lambda en el paso 'Deploy aws Lambda functions'.",
+  "url": "https://github.com/digital-land/digital-land-lambda/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 15,
+  "conclusiones_muestra": {
+   "success": 14,
+   "failure": 1
+  },
+  "porcentajes": "93 % éxito / 7 % fallo",
+  "estrellas": 1,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 42,
+  "repositorio": "aclemons/koinobori",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "AWS Lambda",
+  "evidencia": "Con push a master, el job deploy (environment: dev) actualiza la función en AWS Lambda en el paso 'Update lambdas'.",
+  "url": "https://github.com/aclemons/koinobori/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 89,
+  "conclusiones_muestra": {
+   "success": 82,
+   "cancelled": 6,
+   "failure": 1
+  },
+  "porcentajes": "92 % éxito / 1 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 43,
+  "repositorio": "stryker-mutator/stryker-dashboard",
+  "ruta_workflow": ".github/workflows/e2e.yml",
+  "plataforma": "Azure App Service",
+  "evidencia": "Con workflow_dispatch, merge_group, el job deploy-and-test (environment: Acceptance) despliega la aplicación en Azure App Service con azure/webapps-deploy@v3.",
+  "url": "https://github.com/stryker-mutator/stryker-dashboard/blob/HEAD/.github/workflows/e2e.yml",
+  "ejecuciones_6_meses": 292,
+  "conclusiones_muestra": {
+   "success": 54,
+   "cancelled": 3,
+   "failure": 43
+  },
+  "porcentajes": "54 % éxito / 43 % fallo",
+  "estrellas": 32,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 44,
+  "repositorio": "SciPub-TTS/SciPub-TTS-BE",
+  "ruta_workflow": ".github/workflows/prod_owlreka.yml",
+  "plataforma": "Azure App Service",
+  "evidencia": "Con push a prod, workflow_dispatch, el job deploy despliega la aplicación en Azure App Service con azure/webapps-deploy@v3.",
+  "url": "https://github.com/SciPub-TTS/SciPub-TTS-BE/blob/HEAD/.github/workflows/prod_owlreka.yml",
+  "ejecuciones_6_meses": 108,
+  "conclusiones_muestra": {
+   "success": 95,
+   "failure": 5
+  },
+  "porcentajes": "95 % éxito / 5 % fallo",
+  "estrellas": 2,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 45,
+  "repositorio": "raduplacinta99/TrimURL",
+  "ruta_workflow": ".github/workflows/dotnet-desktop.yml",
+  "plataforma": "Azure App Service",
+  "evidencia": "Con push a main, pull_request, el job deploy despliega la aplicación en Azure App Service con azure/webapps-deploy@v3.",
+  "url": "https://github.com/raduplacinta99/TrimURL/blob/HEAD/.github/workflows/dotnet-desktop.yml",
+  "ejecuciones_6_meses": 60,
+  "conclusiones_muestra": {
+   "success": 57,
+   "failure": 3
+  },
+  "porcentajes": "95 % éxito / 5 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 46,
+  "repositorio": "cacaviana/petraplatform",
+  "ruta_workflow": ".github/workflows/deploy-docs.yml",
+  "plataforma": "Azure App Service",
+  "evidencia": "Con push a main, workflow_dispatch, el job deploy (environment: production) despliega la aplicación en Azure App Service con azure/webapps-deploy@v3.",
+  "url": "https://github.com/cacaviana/petraplatform/blob/HEAD/.github/workflows/deploy-docs.yml",
+  "ejecuciones_6_meses": 16,
+  "conclusiones_muestra": {
+   "success": 15,
+   "failure": 1
+  },
+  "porcentajes": "94 % éxito / 6 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 47,
+  "repositorio": "Tesis-2026/zenda_backend_app",
+  "ruta_workflow": ".github/workflows/main_zendaapilinuxtesis.yml",
+  "plataforma": "Azure App Service",
+  "evidencia": "Con push a main, workflow_dispatch, el job deploy despliega la aplicación en Azure App Service con azure/webapps-deploy@v3.",
+  "url": "https://github.com/Tesis-2026/zenda_backend_app/blob/HEAD/.github/workflows/main_zendaapilinuxtesis.yml",
+  "ejecuciones_6_meses": 33,
+  "conclusiones_muestra": {
+   "success": 30,
+   "failure": 3
+  },
+  "porcentajes": "91 % éxito / 9 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 48,
+  "repositorio": "ishaan-arora-1/gumby",
+  "ruta_workflow": ".github/workflows/main_blinkugc.yml",
+  "plataforma": "Azure App Service",
+  "evidencia": "Con push a main, workflow_dispatch, el job build-and-deploy despliega la aplicación en Azure App Service con azure/webapps-deploy@v2.",
+  "url": "https://github.com/ishaan-arora-1/gumby/blob/HEAD/.github/workflows/main_blinkugc.yml",
+  "ejecuciones_6_meses": 137,
+  "conclusiones_muestra": {
+   "failure": 2,
+   "success": 98
+  },
+  "porcentajes": "98 % éxito / 2 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 49,
+  "repositorio": "MigrationGFA/businesslms",
+  "ruta_workflow": ".github/workflows/main_businesslms(test).yml",
+  "plataforma": "Azure App Service",
+  "evidencia": "Con push a main, workflow_dispatch, el job deploy despliega la aplicación en Azure App Service con azure/webapps-deploy@v3.",
+  "url": "https://github.com/MigrationGFA/businesslms/blob/HEAD/.github/workflows/main_businesslms(test).yml",
+  "ejecuciones_6_meses": 39,
+  "conclusiones_muestra": {
+   "success": 38,
+   "failure": 1
+  },
+  "porcentajes": "97 % éxito / 3 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 50,
+  "repositorio": "anandav/PaperTrade",
+  "ruta_workflow": ".github/workflows/deploy-server.yml",
+  "plataforma": "Azure Container Apps",
+  "evidencia": "Con push a master, workflow_dispatch, el job build-and-deploy despliega el contenedor en Azure Container Apps con azure/container-apps-deploy-action@v1.",
+  "url": "https://github.com/anandav/PaperTrade/blob/HEAD/.github/workflows/deploy-server.yml",
+  "ejecuciones_6_meses": 16,
+  "conclusiones_muestra": {
+   "success": 14,
+   "failure": 2
+  },
+  "porcentajes": "88 % éxito / 12 % fallo",
+  "estrellas": 32,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 51,
+  "repositorio": "HHS/OPRE-OPS",
+  "ruta_workflow": ".github/workflows/prod_fe_build_and_deploy.yml",
+  "plataforma": "Azure Container Apps",
+  "evidencia": "Con workflow_dispatch, el job deploy-frontend despliega el contenedor en Azure Container Apps con azure/container-apps-deploy-action@8dff69dac3367c32ceb2690d8f13adbeab462703.",
+  "url": "https://github.com/HHS/OPRE-OPS/blob/HEAD/.github/workflows/prod_fe_build_and_deploy.yml",
+  "ejecuciones_6_meses": 36,
+  "conclusiones_muestra": {
+   "success": 36
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 13,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 52,
+  "repositorio": "accept-io/midas",
+  "ruta_workflow": ".github/workflows/deploy.yaml",
+  "plataforma": "Azure Container Apps",
+  "evidencia": "Con workflow_dispatch, el job deploy (environment: production) despliega el contenedor en Azure Container Apps con azure/container-apps-deploy-action@v1.",
+  "url": "https://github.com/accept-io/midas/blob/HEAD/.github/workflows/deploy.yaml",
+  "ejecuciones_6_meses": 15,
+  "conclusiones_muestra": {
+   "success": 15
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 15,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 53,
+  "repositorio": "diconium/ethereal-nexus",
+  "ruta_workflow": ".github/workflows/dashboard-dev.yml",
+  "plataforma": "Azure Container Apps",
+  "evidencia": "Con push a main, workflow_dispatch, el job build-and-deploy (environment: playground) despliega el contenedor en Azure Container Apps con azure/container-apps-deploy-action@v2.",
+  "url": "https://github.com/diconium/ethereal-nexus/blob/HEAD/.github/workflows/dashboard-dev.yml",
+  "ejecuciones_6_meses": 14,
+  "conclusiones_muestra": {
+   "success": 9,
+   "failure": 4,
+   "cancelled": 1
+  },
+  "porcentajes": "64 % éxito / 29 % fallo",
+  "estrellas": 4,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 54,
+  "repositorio": "MaciejBuczek/gm-toolset",
+  "ruta_workflow": ".github/workflows/ci-cd.yml",
+  "plataforma": "Azure Container Apps",
+  "evidencia": "Con push a main, el job build_and_publish despliega el contenedor en Azure Container Apps con azure/container-apps-deploy-action@v1.",
+  "url": "https://github.com/MaciejBuczek/gm-toolset/blob/HEAD/.github/workflows/ci-cd.yml",
+  "ejecuciones_6_meses": 24,
+  "conclusiones_muestra": {
+   "success": 23,
+   "failure": 1
+  },
+  "porcentajes": "96 % éxito / 4 % fallo",
+  "estrellas": 1,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 55,
+  "repositorio": "ivanoskytan/temuka-main-api-service",
+  "ruta_workflow": ".github/workflows/cicd.yml",
+  "plataforma": "Azure Container Apps",
+  "evidencia": "Con push a master, el job build-and-deploy despliega el contenedor en Azure Container Apps con azure/container-apps-deploy-action@v1.",
+  "url": "https://github.com/ivanoskytan/temuka-main-api-service/blob/HEAD/.github/workflows/cicd.yml",
+  "ejecuciones_6_meses": 24,
+  "conclusiones_muestra": {
+   "success": 2,
+   "failure": 20,
+   "cancelled": 2
+  },
+  "porcentajes": "8 % éxito / 83 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 56,
+  "repositorio": "niklaserikssoon/K5U1-niklas",
+  "ruta_workflow": ".github/workflows/ci-cd.yml",
+  "plataforma": "Azure Container Apps",
+  "evidencia": "Con push a master, el job deploy despliega el contenedor en Azure Container Apps con azure/container-apps-deploy-action@v1.",
+  "url": "https://github.com/niklaserikssoon/K5U1-niklas/blob/HEAD/.github/workflows/ci-cd.yml",
+  "ejecuciones_6_meses": 14,
+  "conclusiones_muestra": {
+   "success": 6,
+   "failure": 8
+  },
+  "porcentajes": "43 % éxito / 57 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 57,
+  "repositorio": "geekzter/azure-minecraft-docker",
+  "ruta_workflow": ".github/workflows/ci-vanilla.yml",
+  "plataforma": "Azure Functions",
+  "evidencia": "Con push a main, pull_request, schedule, el job terraform despliega las funciones en Azure Functions con azure/functions-action@v1.",
+  "url": "https://github.com/geekzter/azure-minecraft-docker/blob/HEAD/.github/workflows/ci-vanilla.yml",
+  "ejecuciones_6_meses": 24,
+  "conclusiones_muestra": {
+   "success": 22,
+   "failure": 2
+  },
+  "porcentajes": "92 % éxito / 8 % fallo",
+  "estrellas": 64,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 58,
+  "repositorio": "lAnubisl/LostFilmTorrentsFeed",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "Azure Functions",
+  "evidencia": "Con workflow_dispatch, el job backend despliega las funciones en Azure Functions con Azure/functions-action@c5060b3b8bb1ebbcb531abd00c822ecbaa8ea656.",
+  "url": "https://github.com/lAnubisl/LostFilmTorrentsFeed/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 13,
+  "conclusiones_muestra": {
+   "success": 13
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 31,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 59,
+  "repositorio": "git-for-windows/gfw-helper-github-app",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "Azure Functions",
+  "evidencia": "Con push a main, el job deploy (environment: deploy-to-azure) despliega las funciones en Azure Functions con Azure/functions-action@v1.",
+  "url": "https://github.com/git-for-windows/gfw-helper-github-app/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 10,
+  "conclusiones_muestra": {
+   "success": 10
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 8,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 60,
+  "repositorio": "devlead/BitbucketPipelinesShield",
+  "ruta_workflow": ".github/workflows/CakeSdk.yml",
+  "plataforma": "Azure Functions",
+  "evidencia": "Con push a develop, main, master, pull_request, el job deploy (environment: Production) despliega las funciones en Azure Functions con Azure/functions-action@v1.",
+  "url": "https://github.com/devlead/BitbucketPipelinesShield/blob/HEAD/.github/workflows/CakeSdk.yml",
+  "ejecuciones_6_meses": 59,
+  "conclusiones_muestra": {
+   "success": 57,
+   "failure": 2
+  },
+  "porcentajes": "97 % éxito / 3 % fallo",
+  "estrellas": 5,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 61,
+  "repositorio": "dev-protocol/khaos-functions",
+  "ruta_workflow": ".github/workflows/build.yml",
+  "plataforma": "Azure Functions",
+  "evidencia": "Con push a **, repository_dispatch, el job deploy despliega las funciones en Azure Functions con Azure/functions-action@v1.",
+  "url": "https://github.com/dev-protocol/khaos-functions/blob/HEAD/.github/workflows/build.yml",
+  "ejecuciones_6_meses": 81,
+  "conclusiones_muestra": {
+   "failure": 77,
+   "success": 4
+  },
+  "porcentajes": "5 % éxito / 95 % fallo",
+  "estrellas": 1,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 62,
+  "repositorio": "rlule15/azure-cloud-resume",
+  "ruta_workflow": ".github/workflows/backend-deploy.yml",
+  "plataforma": "Azure Functions",
+  "evidencia": "Con workflow_dispatch, push a main, el job build-and-deploy despliega las funciones en Azure Functions con Azure/functions-action@v1.",
+  "url": "https://github.com/rlule15/azure-cloud-resume/blob/HEAD/.github/workflows/backend-deploy.yml",
+  "ejecuciones_6_meses": 10,
+  "conclusiones_muestra": {
+   "success": 3,
+   "failure": 7
+  },
+  "porcentajes": "30 % éxito / 70 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 63,
+  "repositorio": "karlitos1337/5d",
+  "ruta_workflow": ".github/workflows/azure-functions-app-python.yml",
+  "plataforma": "Azure Functions",
+  "evidencia": "Con push a main, el job build-and-deploy (environment: dev) despliega las funciones en Azure Functions con Azure/functions-action@v1.",
+  "url": "https://github.com/karlitos1337/5d/blob/HEAD/.github/workflows/azure-functions-app-python.yml",
+  "ejecuciones_6_meses": 15,
+  "conclusiones_muestra": {
+   "success": 1,
+   "failure": 14
+  },
+  "porcentajes": "7 % éxito / 93 % fallo",
+  "estrellas": 1,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 64,
+  "repositorio": "alkem-io/notifications",
+  "ruta_workflow": ".github/workflows/build-deploy-k8s-dev-hetzner.yml",
+  "plataforma": "Kubernetes",
+  "evidencia": "Con push a develop, el job build-and-deploy despliega los manifiestos en Kubernetes con Azure/k8s-deploy@v7.0.1.",
+  "url": "https://github.com/alkem-io/notifications/blob/HEAD/.github/workflows/build-deploy-k8s-dev-hetzner.yml",
+  "ejecuciones_6_meses": 125,
+  "conclusiones_muestra": {
+   "success": 100
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 3,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 65,
+  "repositorio": "alkem-io/server",
+  "ruta_workflow": ".github/workflows/build-deploy-k8s-dev-hetzner.yml",
+  "plataforma": "Kubernetes",
+  "evidencia": "Con workflow_dispatch, push a develop, el job migrate despliega los manifiestos en Kubernetes con azure/k8s-deploy@v7.0.0.",
+  "url": "https://github.com/alkem-io/server/blob/HEAD/.github/workflows/build-deploy-k8s-dev-hetzner.yml",
+  "ejecuciones_6_meses": 352,
+  "conclusiones_muestra": {
+   "success": 100
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 29,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 66,
+  "repositorio": "ServiceCanada/feedback-viewer",
+  "ruta_workflow": ".github/workflows/main.yml",
+  "plataforma": "Kubernetes",
+  "evidencia": "Con push a main, el job build despliega los manifiestos en Kubernetes con Azure/k8s-deploy@v6.",
+  "url": "https://github.com/ServiceCanada/feedback-viewer/blob/HEAD/.github/workflows/main.yml",
+  "ejecuciones_6_meses": 26,
+  "conclusiones_muestra": {
+   "success": 25,
+   "failure": 1
+  },
+  "porcentajes": "96 % éxito / 4 % fallo",
+  "estrellas": 3,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 67,
+  "repositorio": "FINTLabs/fint-kontroll-role-factory",
+  "ruta_workflow": ".github/workflows/MD.yaml",
+  "plataforma": "Kubernetes",
+  "evidencia": "Con workflow_dispatch, el job cd despliega los manifiestos en Kubernetes con azure/k8s-deploy@v4.",
+  "url": "https://github.com/FINTLabs/fint-kontroll-role-factory/blob/HEAD/.github/workflows/MD.yaml",
+  "ejecuciones_6_meses": 37,
+  "conclusiones_muestra": {
+   "success": 36,
+   "failure": 1
+  },
+  "porcentajes": "97 % éxito / 3 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 68,
+  "repositorio": "ekzhang/sshx",
+  "ruta_workflow": ".github/workflows/ci.yaml",
+  "plataforma": "PaaS (Fly.io)",
+  "evidencia": "Con push a main, pull_request, el job deploy despliega la aplicación en Fly.io en el paso 'run'.",
+  "url": "https://github.com/ekzhang/sshx/blob/HEAD/.github/workflows/ci.yaml",
+  "ejecuciones_6_meses": 16,
+  "conclusiones_muestra": {
+   "failure": 10,
+   "success": 6
+  },
+  "porcentajes": "38 % éxito / 62 % fallo",
+  "estrellas": 7710,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 69,
+  "repositorio": "instantdb/instant",
+  "ruta_workflow": ".github/workflows/js.yml",
+  "plataforma": "PaaS (Fly.io)",
+  "evidencia": "Con push, pull_request, el job deploy-remote-mcp despliega la aplicación en Fly.io en el paso 'Deploy'.",
+  "url": "https://github.com/instantdb/instant/blob/HEAD/.github/workflows/js.yml",
+  "ejecuciones_6_meses": 2477,
+  "conclusiones_muestra": {
+   "success": 87,
+   "action_required": 9,
+   "failure": 4
+  },
+  "porcentajes": "87 % éxito / 4 % fallo",
+  "estrellas": 10561,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 70,
+  "repositorio": "ogrodnek/pyview",
+  "ruta_workflow": ".github/workflows/fly.yml",
+  "plataforma": "PaaS (Fly.io)",
+  "evidencia": "Con push a main, workflow_dispatch, el job deploy despliega la aplicación en Fly.io en el paso 'Deploy to Fly.io'.",
+  "url": "https://github.com/ogrodnek/pyview/blob/HEAD/.github/workflows/fly.yml",
+  "ejecuciones_6_meses": 74,
+  "conclusiones_muestra": {
+   "success": 71,
+   "cancelled": 3
+  },
+  "porcentajes": "96 % éxito / 0 % fallo",
+  "estrellas": 141,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 71,
+  "repositorio": "cloudflare/moq-rs",
+  "ruta_workflow": ".github/workflows/fly.yml",
+  "plataforma": "PaaS (Fly.io)",
+  "evidencia": "Con push a main, el job deploy despliega la aplicación en Fly.io en el paso 'run'.",
+  "url": "https://github.com/cloudflare/moq-rs/blob/HEAD/.github/workflows/fly.yml",
+  "ejecuciones_6_meses": 50,
+  "conclusiones_muestra": {
+   "success": 49,
+   "cancelled": 1
+  },
+  "porcentajes": "98 % éxito / 0 % fallo",
+  "estrellas": 185,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 72,
+  "repositorio": "playfulprogramming/playfulprogramming",
+  "ruta_workflow": ".github/workflows/fly.yml",
+  "plataforma": "PaaS (Fly.io)",
+  "evidencia": "Con push a main, el job deploy_for_prod (environment: production) despliega la aplicación en Fly.io en el paso 'Deploy app'.",
+  "url": "https://github.com/playfulprogramming/playfulprogramming/blob/HEAD/.github/workflows/fly.yml",
+  "ejecuciones_6_meses": 87,
+  "conclusiones_muestra": {
+   "success": 72,
+   "cancelled": 14,
+   "failure": 1
+  },
+  "porcentajes": "83 % éxito / 1 % fallo",
+  "estrellas": 227,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 73,
+  "repositorio": "kodehat/portkey",
+  "ruta_workflow": ".github/workflows/fly.yml",
+  "plataforma": "PaaS (Fly.io)",
+  "evidencia": "Con push a main, el job deploy despliega la aplicación en Fly.io en el paso 'run'.",
+  "url": "https://github.com/kodehat/portkey/blob/HEAD/.github/workflows/fly.yml",
+  "ejecuciones_6_meses": 122,
+  "conclusiones_muestra": {
+   "success": 84,
+   "failure": 8,
+   "cancelled": 8
+  },
+  "porcentajes": "84 % éxito / 8 % fallo",
+  "estrellas": 186,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 74,
+  "repositorio": "jpillora/installer",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "PaaS (Fly.io)",
+  "evidencia": "Con pull_request, push, el job deploy despliega la aplicación en Fly.io en el paso 'run'.",
+  "url": "https://github.com/jpillora/installer/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 15,
+  "conclusiones_muestra": {
+   "success": 15
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 280,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 75,
+  "repositorio": "noddle-dev/noddle-draw",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "PaaS (Railway)",
+  "evidencia": "Con push a main, pull_request, workflow_dispatch, el job deploy despliega el servicio en Railway en el paso 'Deploy ${{ matrix.service }}'.",
+  "url": "https://github.com/noddle-dev/noddle-draw/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 58,
+  "conclusiones_muestra": {
+   "success": 55,
+   "failure": 3
+  },
+  "porcentajes": "95 % éxito / 5 % fallo",
+  "estrellas": 18,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 76,
+  "repositorio": "nicolas-vmaria/SmartCart",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "PaaS (Railway)",
+  "evidencia": "Con push a main, pull_request, el job deploy despliega el servicio en Railway en el paso 'Deploy Backend'.",
+  "url": "https://github.com/nicolas-vmaria/SmartCart/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 48,
+  "conclusiones_muestra": {
+   "failure": 9,
+   "success": 39
+  },
+  "porcentajes": "81 % éxito / 19 % fallo",
+  "estrellas": 4,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 77,
+  "repositorio": "Omiiii04/IITB-Hackathon",
+  "ruta_workflow": ".github/workflows/cd.yml",
+  "plataforma": "PaaS (Railway)",
+  "evidencia": "Con push a main, workflow_dispatch, el job deploy despliega el servicio en Railway en el paso 'Deploy to Railway via CLI (Optional Token Trigger)'.",
+  "url": "https://github.com/Omiiii04/IITB-Hackathon/blob/HEAD/.github/workflows/cd.yml",
+  "ejecuciones_6_meses": 19,
+  "conclusiones_muestra": {
+   "failure": 1,
+   "success": 18
+  },
+  "porcentajes": "95 % éxito / 5 % fallo",
+  "estrellas": 6,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 78,
+  "repositorio": "trindadetiago/map.art",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "PaaS (Railway)",
+  "evidencia": "Con pull_request, push a main, el job deploy despliega el servicio en Railway en el paso 'Deploy ${{ matrix.service }}'.",
+  "url": "https://github.com/trindadetiago/map.art/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 108,
+  "conclusiones_muestra": {
+   "success": 89,
+   "failure": 11
+  },
+  "porcentajes": "89 % éxito / 11 % fallo",
+  "estrellas": 12,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 79,
+  "repositorio": "niemiecjakub/no-more-bets",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "PaaS (Railway)",
+  "evidencia": "Con push a master, el job deploy despliega el servicio en Railway en el paso 'Deploy backend'.",
+  "url": "https://github.com/niemiecjakub/no-more-bets/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 115,
+  "conclusiones_muestra": {
+   "success": 100
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 2,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 80,
+  "repositorio": "Jwongjs/MediSage",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "PaaS (Railway)",
+  "evidencia": "Con push a main, pull_request, el job deploy despliega el servicio en Railway en el paso 'Deploy'.",
+  "url": "https://github.com/Jwongjs/MediSage/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 42,
+  "conclusiones_muestra": {
+   "failure": 30,
+   "success": 12
+  },
+  "porcentajes": "29 % éxito / 71 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 81,
+  "repositorio": "TevBenji/OAuth-2.1-MCP-Gateway",
+  "ruta_workflow": ".github/workflows/ci.yml",
+  "plataforma": "PaaS (Railway)",
+  "evidencia": "Con push a main, pull_request, el job deploy despliega el servicio en Railway en el paso 'Deploy gateway'.",
+  "url": "https://github.com/TevBenji/OAuth-2.1-MCP-Gateway/blob/HEAD/.github/workflows/ci.yml",
+  "ejecuciones_6_meses": 12,
+  "conclusiones_muestra": {
+   "success": 11,
+   "failure": 1
+  },
+  "porcentajes": "92 % éxito / 8 % fallo",
+  "estrellas": 1,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 82,
+  "repositorio": "primefaces/primefaces",
+  "ruta_workflow": ".github/workflows/deploy-showcase.yml",
+  "plataforma": "PaaS (DigitalOcean App Platform)",
+  "evidencia": "Con push a master, 16.X, 15.X, workflow_dispatch, el job build despliega la aplicación en DigitalOcean App Platform con digitalocean/app_action/deploy@cc55bc9b848d25f9c1c9f831cf843fbab3fbfb15.",
+  "url": "https://github.com/primefaces/primefaces/blob/HEAD/.github/workflows/deploy-showcase.yml",
+  "ejecuciones_6_meses": 479,
+  "conclusiones_muestra": {
+   "success": 90,
+   "cancelled": 7,
+   "failure": 3
+  },
+  "porcentajes": "90 % éxito / 3 % fallo",
+  "estrellas": 1944,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 83,
+  "repositorio": "primefaces-extensions/primefaces-extensions",
+  "ruta_workflow": ".github/workflows/deploy-showcase.yml",
+  "plataforma": "PaaS (DigitalOcean App Platform)",
+  "evidencia": "Con push a master, 16.X, workflow_dispatch, el job build despliega la aplicación en DigitalOcean App Platform con digitalocean/app_action/deploy@v2.",
+  "url": "https://github.com/primefaces-extensions/primefaces-extensions/blob/HEAD/.github/workflows/deploy-showcase.yml",
+  "ejecuciones_6_meses": 299,
+  "conclusiones_muestra": {
+   "success": 64,
+   "failure": 35,
+   "cancelled": 1
+  },
+  "porcentajes": "64 % éxito / 35 % fallo",
+  "estrellas": 119,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 84,
+  "repositorio": "asyncapi/cli",
+  "ruta_workflow": ".github/workflows/release-server-api.yml",
+  "plataforma": "PaaS (DigitalOcean App Platform)",
+  "evidencia": "Con release, workflow_dispatch, el job deploy-app despliega la aplicación en DigitalOcean App Platform con digitalocean/app_action/deploy@190f99be3ce4cbbe5d1ca0a63a8ac9d0add205d0.",
+  "url": "https://github.com/asyncapi/cli/blob/HEAD/.github/workflows/release-server-api.yml",
+  "ejecuciones_6_meses": 11,
+  "conclusiones_muestra": {
+   "success": 8,
+   "skipped": 3
+  },
+  "porcentajes": "73 % éxito / 0 % fallo",
+  "estrellas": 276,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 85,
+  "repositorio": "vivid-planet/dextinity-starter",
+  "ruta_workflow": ".github/workflows/update-digital-ocean-deployment.yml",
+  "plataforma": "PaaS (DigitalOcean App Platform)",
+  "evidencia": "Con push a main, el job update-deployment despliega la aplicación en DigitalOcean App Platform con digitalocean/app_action/deploy@v2.",
+  "url": "https://github.com/vivid-planet/dextinity-starter/blob/HEAD/.github/workflows/update-digital-ocean-deployment.yml",
+  "ejecuciones_6_meses": 449,
+  "conclusiones_muestra": {
+   "success": 72,
+   "cancelled": 27,
+   "failure": 1
+  },
+  "porcentajes": "72 % éxito / 1 % fallo",
+  "estrellas": 18,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 86,
+  "repositorio": "opensafely/open-pathology",
+  "ruta_workflow": ".github/workflows/cd.yaml",
+  "plataforma": "PaaS (DigitalOcean App Platform)",
+  "evidencia": "Con workflow_dispatch, push a main, el job deploy despliega la aplicación en DigitalOcean App Platform con digitalocean/app_action/deploy@cc55bc9b848d25f9c1c9f831cf843fbab3fbfb15.",
+  "url": "https://github.com/opensafely/open-pathology/blob/HEAD/.github/workflows/cd.yaml",
+  "ejecuciones_6_meses": 47,
+  "conclusiones_muestra": {
+   "success": 34,
+   "cancelled": 6,
+   "failure": 7
+  },
+  "porcentajes": "72 % éxito / 15 % fallo",
+  "estrellas": 0,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 87,
+  "repositorio": "29th/personnel-v3",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "PaaS (DigitalOcean App Platform)",
+  "evidencia": "Con workflow_run, el job deploy despliega la aplicación en DigitalOcean App Platform con digitalocean/app_action@v1.1.5.",
+  "url": "https://github.com/29th/personnel-v3/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 12,
+  "conclusiones_muestra": {
+   "success": 10,
+   "cancelled": 2
+  },
+  "porcentajes": "83 % éxito / 0 % fallo",
+  "estrellas": 2,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 88,
+  "repositorio": "crhntr/playground",
+  "ruta_workflow": ".github/workflows/cd.yml",
+  "plataforma": "PaaS (DigitalOcean App Platform)",
+  "evidencia": "Con push a main, schedule, el job build despliega la aplicación en DigitalOcean App Platform con digitalocean/app_action/deploy@v2.",
+  "url": "https://github.com/crhntr/playground/blob/HEAD/.github/workflows/cd.yml",
+  "ejecuciones_6_meses": 198,
+  "conclusiones_muestra": {
+   "success": 100
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 3,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 89,
+  "repositorio": "OWASP/threat-dragon",
+  "ruta_workflow": ".github/workflows/push.yaml",
+  "plataforma": "PaaS (Heroku)",
+  "evidencia": "Con push a main, workflow_dispatch, el job heroku_deploy despliega la aplicación en Heroku con akhileshns/heroku-deploy@1b080913896a5d6d44a18e9e208f8eb1fee9b0f7.",
+  "url": "https://github.com/OWASP/threat-dragon/blob/HEAD/.github/workflows/push.yaml",
+  "ejecuciones_6_meses": 22,
+  "conclusiones_muestra": {
+   "failure": 13,
+   "success": 9
+  },
+  "porcentajes": "41 % éxito / 59 % fallo",
+  "estrellas": 1679,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 90,
+  "repositorio": "fbsamples/fbrell",
+  "ruta_workflow": ".github/workflows/main.yml",
+  "plataforma": "PaaS (Heroku)",
+  "evidencia": "Con push a main, el job build despliega la aplicación en Heroku con akhileshns/heroku-deploy@1b080913896a5d6d44a18e9e208f8eb1fee9b0f7.",
+  "url": "https://github.com/fbsamples/fbrell/blob/HEAD/.github/workflows/main.yml",
+  "ejecuciones_6_meses": 13,
+  "conclusiones_muestra": {
+   "success": 13
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 13,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 91,
+  "repositorio": "emerald-legacy/emeralddb",
+  "ruta_workflow": ".github/workflows/main.yml",
+  "plataforma": "PaaS (Heroku)",
+  "evidencia": "Con push a main, release, pull_request, el job deploy-main (environment: beta) despliega la aplicación en Heroku con akhileshns/heroku-deploy@1b080913896a5d6d44a18e9e208f8eb1fee9b0f7.",
+  "url": "https://github.com/emerald-legacy/emeralddb/blob/HEAD/.github/workflows/main.yml",
+  "ejecuciones_6_meses": 50,
+  "conclusiones_muestra": {
+   "success": 47,
+   "failure": 3
+  },
+  "porcentajes": "94 % éxito / 6 % fallo",
+  "estrellas": 2,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 92,
+  "repositorio": "codedthemes/berry-free-react-admin-template",
+  "ruta_workflow": ".github/workflows/prod.yml",
+  "plataforma": "Servidor (SSH)",
+  "evidencia": "Con push a main, pull_request, el job if_merged copia la aplicación al servidor por SSH con easingthemes/ssh-deploy@v4.",
+  "url": "https://github.com/codedthemes/berry-free-react-admin-template/blob/HEAD/.github/workflows/prod.yml",
+  "ejecuciones_6_meses": 14,
+  "conclusiones_muestra": {
+   "skipped": 9,
+   "success": 5
+  },
+  "porcentajes": "36 % éxito / 0 % fallo",
+  "estrellas": 2192,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 93,
+  "repositorio": "ImCa0/just-laws",
+  "ruta_workflow": ".github/workflows/main.yml",
+  "plataforma": "Servidor (SSH)",
+  "evidencia": "Con push a master, pull_request, el job Bulid-and-Deploy copia la aplicación al servidor por SSH con easingthemes/ssh-deploy@main.",
+  "url": "https://github.com/ImCa0/just-laws/blob/HEAD/.github/workflows/main.yml",
+  "ejecuciones_6_meses": 58,
+  "conclusiones_muestra": {
+   "success": 54,
+   "failure": 3,
+   "cancelled": 1
+  },
+  "porcentajes": "93 % éxito / 5 % fallo",
+  "estrellas": 791,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 94,
+  "repositorio": "Zettlr/zettlr-docs",
+  "ruta_workflow": ".github/workflows/build.yml",
+  "plataforma": "Servidor (SSH)",
+  "evidencia": "Con push a master, el job build copia la aplicación al servidor por SSH con easingthemes/ssh-deploy@v5.1.0.",
+  "url": "https://github.com/Zettlr/zettlr-docs/blob/HEAD/.github/workflows/build.yml",
+  "ejecuciones_6_meses": 28,
+  "conclusiones_muestra": {
+   "success": 25,
+   "failure": 3
+  },
+  "porcentajes": "89 % éxito / 11 % fallo",
+  "estrellas": 212,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 95,
+  "repositorio": "WeBankFinTech/fes-design",
+  "ruta_workflow": ".github/workflows/docs.yml",
+  "plataforma": "Servidor (SSH)",
+  "evidencia": "Con workflow_dispatch, push a main, el job build-and-deploy copia la aplicación al servidor por SSH con easingthemes/ssh-deploy@main.",
+  "url": "https://github.com/WeBankFinTech/fes-design/blob/HEAD/.github/workflows/docs.yml",
+  "ejecuciones_6_meses": 13,
+  "conclusiones_muestra": {
+   "success": 8,
+   "failure": 5
+  },
+  "porcentajes": "62 % éxito / 38 % fallo",
+  "estrellas": 145,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 96,
+  "repositorio": "modx-pro/Docs",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "Servidor (SSH)",
+  "evidencia": "Con workflow_dispatch, push a master, el job deploy copia la aplicación al servidor por SSH con easingthemes/ssh-deploy@main.",
+  "url": "https://github.com/modx-pro/Docs/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 476,
+  "conclusiones_muestra": {
+   "success": 99,
+   "failure": 1
+  },
+  "porcentajes": "99 % éxito / 1 % fallo",
+  "estrellas": 70,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 97,
+  "repositorio": "codedthemes/datta-able-free-react-admin-template",
+  "ruta_workflow": ".github/workflows/prod.yml",
+  "plataforma": "Servidor (SSH)",
+  "evidencia": "Con push a main, pull_request, el job if_merged copia la aplicación al servidor por SSH con easingthemes/ssh-deploy@main.",
+  "url": "https://github.com/codedthemes/datta-able-free-react-admin-template/blob/HEAD/.github/workflows/prod.yml",
+  "ejecuciones_6_meses": 12,
+  "conclusiones_muestra": {
+   "skipped": 8,
+   "success": 4
+  },
+  "porcentajes": "33 % éxito / 0 % fallo",
+  "estrellas": 94,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 98,
+  "repositorio": "beda-software/fhir-emr",
+  "ruta_workflow": ".github/workflows/main.yml",
+  "plataforma": "Servidor (SSH)",
+  "evidencia": "Con workflow_run, el job Deploy copia la aplicación al servidor por SSH con easingthemes/ssh-deploy@v2.1.1.",
+  "url": "https://github.com/beda-software/fhir-emr/blob/HEAD/.github/workflows/main.yml",
+  "ejecuciones_6_meses": 77,
+  "conclusiones_muestra": {
+   "success": 74,
+   "failure": 3
+  },
+  "porcentajes": "96 % éxito / 4 % fallo",
+  "estrellas": 132,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 99,
+  "repositorio": "CornellNLP/ConvoKit",
+  "ruta_workflow": ".github/workflows/build-docs.yml",
+  "plataforma": "Servidor (rsync)",
+  "evidencia": "Con push a master, el job build sincroniza la aplicación en el servidor con rsync con burnett01/rsync-deployments@master.",
+  "url": "https://github.com/CornellNLP/ConvoKit/blob/HEAD/.github/workflows/build-docs.yml",
+  "ejecuciones_6_meses": 13,
+  "conclusiones_muestra": {
+   "success": 13
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 653,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ },
+ {
+  "id": 100,
+  "repositorio": "quic-interop/quic-interop-runner",
+  "ruta_workflow": ".github/workflows/deploy.yml",
+  "plataforma": "Servidor (rsync)",
+  "evidencia": "Con push a master, el job deploy sincroniza la aplicación en el servidor con rsync con burnett01/rsync-deployments@2cbb5ed94b73d111d07a40b071b1c7d3c0272435.",
+  "url": "https://github.com/quic-interop/quic-interop-runner/blob/HEAD/.github/workflows/deploy.yml",
+  "ejecuciones_6_meses": 10,
+  "conclusiones_muestra": {
+   "success": 10
+  },
+  "porcentajes": "100 % éxito / 0 % fallo",
+  "estrellas": 295,
+  "asignar_a": [
+   "prueba_lider",
+   "prueba_dev"
+  ],
+  "verificado_el": "2026-11-08"
+ }
+]

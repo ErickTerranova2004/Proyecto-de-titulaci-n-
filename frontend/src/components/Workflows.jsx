@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
 import { Alerta, Fecha } from "./comunes.jsx";
 import { Aviso, Dialogo, Filtros, Indicador } from "./gestion.jsx";
+import { enAlcance, inactivos, textoAlcance } from "../workflowsFiltro.js";
 
 // Workflows de GitHub Actions. Solo los validados y disponibles en GitHub se
 // ofrecen en Nuevo análisis. Validar exige documentar la evidencia.
+// Por defecto solo se muestran los de repositorios activos (src/workflowsFiltro.js).
 
 const FILTROS = [
   ["todos", "Todos", () => true],
@@ -21,6 +23,7 @@ export default function Workflows() {
   const [aviso, setAviso] = useState("");
   const [cargando, setCargando] = useState(false);
   const [filtro, setFiltro] = useState("todos");
+  const [incluirInactivos, setIncluirInactivos] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState(1);
   const [seleccion, setSeleccion] = useState(new Set());
@@ -50,7 +53,10 @@ export default function Workflows() {
     setDatos((d) => ({ ...d, workflows: d.workflows.map((x) => (x.id === w.id ? w : x)) }));
   }
 
-  const workflows = datos ? datos.workflows : [];
+  const registrados = datos ? datos.workflows : [];
+  const workflows = useMemo(() => enAlcance(registrados, incluirInactivos), [registrados, incluirInactivos]);
+  const nInactivos = inactivos(registrados);
+  const alcance = textoAlcance(incluirInactivos);
   const conteos = useMemo(
     () => Object.fromEntries(FILTROS.map(([id, , f]) => [id, workflows.filter(f).length])),
     [workflows],
@@ -119,8 +125,12 @@ export default function Workflows() {
 
       {datos && (
         <>
-          <div className="kpis">
-            <Indicador icono="workflows" titulo="Workflows" valor={conteos.todos} detalle="Registrados en la plataforma" />
+          <p className="secundario" role="status">
+            Contadores y tabla: <strong>{alcance}</strong>
+            {!incluirInactivos && nInactivos > 0 && ` (${nInactivos} workflows de repositorios inactivos ocultos)`}.
+          </p>
+          <div className="kpis" aria-label={`Contadores de workflows: ${alcance}`}>
+            <Indicador icono="workflows" titulo="Workflows" valor={conteos.todos} detalle={`Registrados (${alcance})`} />
             <Indicador icono="verificado" titulo="Utilizables" valor={conteos.utilizables} detalle="Validados y disponibles" />
             <Indicador icono="repositorio" titulo="Validados" valor={conteos.validados} detalle="Con evidencia documentada" />
             <Indicador
@@ -143,6 +153,18 @@ export default function Workflows() {
             <h2 id="titulo-lista-workflows">Workflows registrados</h2>
             <div className="gestion-barra">
               <Filtros opciones={FILTROS} valor={filtro} conteos={conteos} alCambiar={cambiarFiltro} etiqueta="Filtrar workflows" />
+              <label className="campo campo--en-linea">
+                <input
+                  type="checkbox"
+                  checked={incluirInactivos}
+                  onChange={(e) => {
+                    setIncluirInactivos(e.target.checked);
+                    setPagina(1);
+                    setSeleccion(new Set());
+                  }}
+                />{" "}
+                Incluir repositorios inactivos ({nInactivos})
+              </label>
               <label className="campo campo--en-linea gestion-buscar">
                 <span className="solo-lector">Buscar workflow</span>
                 <input
@@ -195,6 +217,8 @@ export default function Workflows() {
                         <td>
                           <strong>{w.repositorio}</strong>
                           {w.demostracion && <span className="gestion-insignia">demo</span>}
+                          {w.prueba && <span className="gestion-insignia">prueba</span>}
+                          {w.repositorio_activo === false && <span className="gestion-insignia">inactivo</span>}
                         </td>
                         <td>
                           <div className="gestion-archivo">
@@ -315,7 +339,7 @@ function DialogoWorkflow({ workflow, patronPorDefecto, alCerrar, alActualizar, a
     <Dialogo titulo="Gestionar workflow" alCerrar={alCerrar} ancho={720}>
       <form onSubmit={guardar}>
         <dl className="gestion-datos">
-          <dt>Repositorio</dt><dd>{actual.repositorio}{actual.demostracion && <span className="gestion-insignia">demo</span>}</dd>
+          <dt>Repositorio</dt><dd>{actual.repositorio}{actual.demostracion && <span className="gestion-insignia">demo</span>}{actual.prueba && <span className="gestion-insignia">prueba</span>}{actual.repositorio_activo === false && <span className="gestion-insignia">inactivo</span>}</dd>
           <dt>Archivo</dt><dd className="gestion-mono">{actual.path}</dd>
           <dt>Validado por</dt>
           <dd>{actual.validado_por ? <>{actual.validado_por} · <Fecha valor={actual.validado_en} /></> : "—"}</dd>

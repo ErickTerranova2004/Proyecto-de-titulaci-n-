@@ -1,9 +1,12 @@
 from django.contrib import admin
 from django.utils import timezone
 
-from riesgo.models import (AccesoRepositorio, Commit, DecisionDespliegue,
-                           EjecucionWorkflow,
-                           Prediccion, Repositorio, VersionModelo, Workflow)
+from riesgo.models import (AccesoRepositorio, ActivacionModelo, Commit,
+                           DecisionDespliegue, DescargaInforme,
+                           DisponibilidadModelo,
+                           EjecucionWorkflow, InformeCumplimiento, Prediccion,
+                           Repositorio, RestablecimientoClave, VersionModelo,
+                           Workflow)
 
 # Textos del admin de Django con la marca de la aplicación. "Ver el sitio"
 # vuelve a la aplicación (servida en "/" por el frontend).
@@ -92,9 +95,40 @@ class DecisionDespliegueAdmin(admin.ModelAdmin):
                        "prediccion_respuesta", "respuesta_desarrollador"]
 
 
+class SoloLectura(admin.ModelAdmin):
+    """Sin alta, cambios ni borrado desde el admin de Django."""
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(VersionModelo)
-class VersionModeloAdmin(admin.ModelAdmin):
-    list_display = ["version", "nombre_modelo", "activo", "registrado_en"]
+class VersionModeloAdmin(SoloLectura):
+    """Solo lectura: el modelo principal se cambia en la pantalla Modelos
+    (escribiendo el nombre de la versión y con registro en
+    trx_activacion_modelo); aquí se podría desactivar sin control."""
+
+    list_display = ["version", "nombre_modelo", "activo", "est_registro",
+                    "registrado_en"]
+
+
+@admin.register(DisponibilidadModelo)
+class DisponibilidadModeloAdmin(SoloLectura):
+    list_display = ["cambiado_en", "version_modelo", "disponible",
+                    "nombre_usuario"]
+
+
+@admin.register(ActivacionModelo)
+class ActivacionModeloAdmin(SoloLectura):
+    list_display = ["activado_en", "version_modelo", "version_anterior",
+                    "nombre_usuario", "origen"]
+    list_filter = ["origen", "version_modelo"]
 
 
 @admin.register(Prediccion)
@@ -103,3 +137,38 @@ class PrediccionAdmin(admin.ModelAdmin):
                     "creada_en", "ejecucion_real"]
     list_filter = ["nivel", "version_modelo"]
     readonly_fields = [f.name for f in Prediccion._meta.fields]
+
+
+@admin.register(RestablecimientoClave)
+class RestablecimientoClaveAdmin(admin.ModelAdmin):
+    """Auditoría de los enlaces de restablecimiento (solo lectura)."""
+
+    list_display = ["nombre_usuario", "origen", "usu_creacion", "correo",
+                    "medio", "enviado", "solicitado_en", "cambiada_en"]
+    list_filter = ["origen", "medio", "enviado"]
+    search_fields = ["nombre_usuario", "correo"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(InformeCumplimiento)
+class InformeCumplimientoAdmin(SoloLectura):
+    """Informes de cumplimiento (solo lectura)."""
+
+    list_display = ["numero", "desarrollador", "lider", "enviado_en",
+                    "correo_enviado", "leido_en", "decision_final"]
+    list_filter = ["correo_enviado"]
+
+
+@admin.register(DescargaInforme)
+class DescargaInformeAdmin(SoloLectura):
+    """Auditoría de las descargas del PDF de los informes (solo lectura)."""
+
+    list_display = ["informe", "nombre_usuario", "formato", "descargado_en"]

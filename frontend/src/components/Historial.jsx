@@ -1,9 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import {
-  Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador,
+  Alerta, CeldaModelo, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, RespuestaDesarrollador,
 } from "./comunes.jsx";
-import Resultado, { ETIQUETAS } from "./Resultado.jsx";
+import FiltrosHistorial from "./FiltrosHistorial.jsx";
+import { TablaPaginada } from "./TablaDesplazable.jsx";
+import { columnasHistorial } from "../columnasTablas.js";
+import { escribirEstado, leerFiltros, leerPaginacion } from "../estadoUrl.js";
+import {
+  consultaHistorial, DECISIONES_FILTRO, errorRango, FILTROS_INICIALES, hayFiltros, modelosFiltro,
+} from "../filtrosHistorial.js";
+import { Enlace, useNavegacion } from "../navegacion.jsx";
+import { consultaPaginada } from "../paginacion.js";
 
 // Seguimiento de la fecha límite de la última decisión (vista / cumplida).
 export function SeguimientoAsignacion({ decision, nivelOriginal }) {
@@ -23,97 +31,125 @@ export function SeguimientoAsignacion({ decision, nivelOriginal }) {
   );
 }
 
+// Origen de los análisis (solo el administrador ve los del lote).
+const ORIGENES = [
+  ["interactivo", "Análisis en la plataforma"],
+  ["lote", "Análisis en lote"],
+  ["todos", "Todos"],
+];
+
 // El backend ya filtra por rol: el desarrollador recibe sus análisis y el
 // líder los de todos los desarrolladores de sus repositorios asignados.
+// Fechas, origen, orden y paginación también se aplican en el backend; por
+// defecto, del más reciente al más antiguo y 25 por página. Filtros y página
+// van en la dirección (F5 y atrás/adelante los conservan).
 export default function Historial({
-  modelos, titulo = "Historial de análisis", descripcion, mostrarDesarrollador = true, mostrarSeguimiento = false,
+  titulo = "Historial de análisis", descripcion, mostrarDesarrollador = true, mostrarSeguimiento = false,
+  conOrigen = false, modelos = [],
 }) {
-  const [filas, setFilas] = useState(null);
+  const { ruta, navegar } = useNavegacion();
+  const inicial = { ...FILTROS_INICIALES, modelo: "todos", ...(conOrigen ? { origen: "interactivo" } : {}) };
+  const filtros = leerFiltros(ruta.search, inicial);
+  const paginacion = leerPaginacion(ruta.search);
+  const [datos, setDatos] = useState(null);
   const [error, setError] = useState("");
-  const [seleccion, setSeleccion] = useState(null);
+  const [cargando, setCargando] = useState(false);
+  const peticion = useRef(0);
+  const columnas = columnasHistorial({ mostrarSeguimiento, mostrarDesarrollador });
 
-  const cargar = () => api.historial().then(setFilas).catch((e) => setError(e.message));
-  useEffect(() => {
-    cargar();
-  }, []);
-
-  if (seleccion) {
-    return (
-      <section className="vista" aria-labelledby="titulo-historial">
-        <h1 id="titulo-historial">{titulo}</h1>
-        <div>
-          <button className="boton boton--secundario" type="button" onClick={() => { setSeleccion(null); cargar(); }}>
-            ← Volver al historial
-          </button>
-        </div>
-        <Resultado prediccion={seleccion} modelos={modelos} />
-      </section>
-    );
+  function irA(nuevosFiltros, nuevaPaginacion, opciones) {
+    navegar(ruta.pathname + escribirEstado({
+      filtros: nuevosFiltros, iniciales: inicial, paginaciones: [["", nuevaPaginacion]],
+    }), opciones);
   }
+  // Cambiar un filtro vuelve a la primera página.
+  const setFiltros = (nuevos, opciones) => irA(nuevos, { ...paginacion, pagina: 1 }, opciones);
+  const setPaginacion = (nueva) => irA(filtros, nueva);
+
+  function cargar() {
+    if (errorRango(filtros.desde, filtros.hasta)) return;
+    // Solo cuenta la respuesta de la última petición (filtros cambiados rápido).
+    const id = ++peticion.current;
+    setCargando(true);
+    setError("");
+    api
+      .historial(consultaPaginada(consultaHistorial(filtros), paginacion))
+      .then((d) => id === peticion.current && setDatos(d))
+      .catch((e) => id === peticion.current && setError(e.message))
+      .finally(() => id === peticion.current && setCargando(false));
+  }
+  useEffect(cargar, [filtros.desde, filtros.hasta, filtros.orden, filtros.origen, filtros.nivel,
+    filtros.decision, filtros.modelo, filtros.repo, paginacion.pagina, paginacion.porPagina]);
+  const filtrado = hayFiltros(filtros, inicial.origen);
+  const filas = datos ? datos.resultados : null;
+
+  const celdas = {
+    fecha: (p) => <Fecha valor={p.creada_en} />,
+    repositorio: (p) => <strong className="celda-recortada" title={p.repositorio}>{p.repositorio}</strong>,
+    riesgo: (p) => <NivelRiesgo nivel={p.nivel} />,
+    probabilidad: (p) => <span className="destacado">{porcentaje(p.probabilidad)}</span>,
+    modelo: (p) => <CeldaModelo analisis={p} />,
+    decision: (p) => {
+      const texto = p.decisiones?.length ? DECISIONES[p.decisiones[0].decision] : "Sin decisión";
+      return <span className="celda-recortada celda-recortada--decision" title={texto}>{texto}</span>;
+    },
+    limite: (p) => <FechaDia valor={p.decisiones?.[0]?.fecha_limite} />,
+    seguimiento: (p) => <SeguimientoAsignacion decision={p.decisiones?.[0]} nivelOriginal={p.nivel} />,
+    desarrollador: (p) => <span className="secundario">{p.usuario}</span>,
+    workflow: (p) => <span className="secundario" title={p.workflow_path}>{p.workflow_path.replace(".github/workflows/", "")}</span>,
+    commit: (p) => <code>{p.head_sha.slice(0, 7)}</code>,
+    acciones: (p) => (
+      <Enlace className="boton boton--secundario boton--pequeno" href={`/analisis/${p.id}?desde=historial`}>
+        Ver detalle<span className="solo-lector"> del análisis {p.id}</span>
+      </Enlace>
+    ),
+  };
 
   return (
     <section className="vista" aria-labelledby="titulo-historial">
       <header className="encabezado">
         <h1 id="titulo-historial">{titulo}</h1>
         <p className="secundario">
-          {descripcion ?? "Análisis visibles según su rol y sus repositorios asignados"}, del más reciente al más antiguo.
+          {descripcion ?? "Análisis visibles según su rol y sus repositorios asignados"}.
         </p>
       </header>
+      <div className="filtros-historial__barra">
+        <FiltrosHistorial
+          id="historial"
+          filtros={filtros}
+          alCambiar={setFiltros}
+          decisiones={DECISIONES_FILTRO}
+          modelos={modelosFiltro(modelos)}
+          origenes={conOrigen ? ORIGENES : undefined}
+          alQuitar={() => setFiltros(inicial)}
+          puedeQuitar={filtrado}
+        />
+        <div className="panel__acciones">
+          <button className="boton boton--secundario" type="button" onClick={cargar} disabled={cargando}>
+            {cargando ? "Actualizando…" : "Actualizar"}
+          </button>
+        </div>
+      </div>
       <Alerta>{error}</Alerta>
-      {!filas && !error && <p role="status" className="secundario">Cargando historial…</p>}
+      {!datos && !error && <p role="status" className="secundario">Cargando historial…</p>}
       {filas && !filas.length && (
         <div className="tarjeta vacio">
-          <p className="secundario">Todavía no hay análisis visibles para su usuario.</p>
+          <p className="secundario">
+            {filtrado ? "No hay análisis con estos filtros." : "Todavía no hay análisis visibles para su usuario."}
+          </p>
         </div>
       )}
       {filas && filas.length > 0 && (
-        <div className="tarjeta tarjeta--tabla">
-          <div className="tabla-contenedor">
-            <table>
-              <caption className="solo-lector">{titulo}</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Fecha</th>
-                  <th scope="col">Repositorio</th>
-                  <th scope="col">Workflow</th>
-                  <th scope="col">Commit</th>
-                  <th scope="col">Riesgo</th>
-                  <th scope="col" className="numero">Probabilidad</th>
-                  <th scope="col">Resultado real</th>
-                  <th scope="col">Decisión</th>
-                  {mostrarSeguimiento && <th scope="col">Fecha límite</th>}
-                  {mostrarSeguimiento && <th scope="col">Seguimiento</th>}
-                  {mostrarDesarrollador && <th scope="col">Desarrollador</th>}
-                  <th scope="col"><span className="solo-lector">Acciones</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filas.map((p) => (
-                  <tr key={p.id}>
-                    <td><Fecha valor={p.creada_en} /></td>
-                    <td><strong>{p.repositorio}</strong></td>
-                    <td className="secundario" title={p.workflow_path}>
-                      {p.workflow_path.replace(".github/workflows/", "")}
-                    </td>
-                    <td><code>{p.head_sha.slice(0, 7)}</code></td>
-                    <td><NivelRiesgo nivel={p.nivel} /></td>
-                    <td className="numero destacado">{porcentaje(p.probabilidad)}</td>
-                    <td>{p.ejecucion_real ? ETIQUETAS[p.ejecucion_real.etiqueta] || p.ejecucion_real.etiqueta : "Pendiente"}</td>
-                    <td>{p.decisiones?.length ? DECISIONES[p.decisiones[0].decision] : "Sin decisión"}</td>
-                    {mostrarSeguimiento && <td><FechaDia valor={p.decisiones?.[0]?.fecha_limite} /></td>}
-                    {mostrarSeguimiento && <td><SeguimientoAsignacion decision={p.decisiones?.[0]} nivelOriginal={p.nivel} /></td>}
-                    {mostrarDesarrollador && <td className="secundario">{p.usuario}</td>}
-                    <td>
-                      <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => setSeleccion(p)}>
-                        Ver detalle<span className="solo-lector"> del análisis {p.id}</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <TablaPaginada
+          id="historial"
+          titulo={titulo}
+          columnas={columnas}
+          celdas={celdas}
+          datos={datos}
+          sustantivo={filtrado ? "análisis con los filtros elegidos" : "análisis"}
+          cargando={cargando}
+          alCambiarPagina={setPaginacion}
+        />
       )}
     </section>
   );

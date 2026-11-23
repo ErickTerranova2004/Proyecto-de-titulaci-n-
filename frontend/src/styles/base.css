@@ -788,6 +788,38 @@ textarea {
     font-weight: 800;
 }
 
+/* Recomendación automática (nivel alto → revisión previa). */
+.recomendacion {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--radio-sm);
+    font-size: var(--texto-sm);
+    border: 1px solid var(--color-bajo);
+    color: var(--color-bajo);
+}
+
+.recomendacion--solicitar_revision {
+    border-color: var(--color-alto);
+    color: var(--color-alto);
+}
+
+.recomendacion__regla {
+    display: block;
+    margin-top: var(--esp-2);
+    font-size: var(--texto-xs);
+}
+
+.insignia-recomendada {
+    margin-left: var(--esp-2);
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: var(--texto-xs);
+    font-weight: 700;
+    background: var(--relleno-suave);
+    border: 1px solid var(--color-acento);
+    color: var(--color-acento);
+}
+
 .recuadro {
     padding: var(--esp-3);
     border: 1px solid var(--borde-suave);
@@ -1038,6 +1070,15 @@ td.destacado {
 .nota-pie {
     margin: var(--esp-3) 0 0;
     font-size: 11px;
+}
+
+/* Comparación en sombra (Modelos → Supervisión). */
+.sombra {
+    margin-top: var(--esp-5);
+}
+
+.sombra .nota {
+    margin-bottom: var(--esp-3);
 }
 
 .vacio {
@@ -3281,6 +3322,112 @@ td>.gestion-insignia:first-child {
     text-transform: capitalize;
 }
 
+/* Nuevo análisis: enlace al Planificador bajo el resultado. */
+.nuevo__planificar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--esp-3);
+    margin-top: var(--esp-3);
+}
+
+.nuevo__planificar p {
+    margin: 0;
+}
+
+/* Día con su fecha (Hoy 18 nov, Mañana 19 nov, Vie 20 nov…). */
+.planificador__dia {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    line-height: 1.2;
+}
+
+.planificador__fecha-dia {
+    font-size: 11px;
+    opacity: 0.75;
+}
+
+.planificador__hoy {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* Diferencia de cada ventana frente al análisis base. */
+.planificador__diferencia {
+    font-size: var(--texto-sm);
+}
+
+.planificador__diferencia.planificador__cambio--baja { color: var(--acento-texto); }
+.planificador__diferencia.planificador__cambio--sube { color: var(--alto-texto); }
+
+.planificador__diferencia .secundario {
+    font-size: var(--texto-xs);
+}
+
+.planificador__nota-utc {
+    margin-top: 6px;
+}
+
+/* La ventana de menor riesgo de los próximos días. */
+.planificador__ventana {
+    position: relative;
+}
+
+.planificador__ventana--mejor {
+    border-color: var(--color-bajo);
+    background: var(--dorado-suave);
+    box-shadow: 0 0 0 1px var(--color-bajo);
+}
+
+.planificador__mejor {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 2px 10px;
+    border-radius: var(--radio-full);
+    background: var(--color-dorado);
+    color: var(--sobre-dorado);
+    font-size: var(--texto-xs);
+    font-weight: 700;
+}
+
+/* Variables de tiempo del análisis original frente al escenario. */
+.planificador__tiempo {
+    width: 100%;
+    margin: var(--esp-3) 0;
+    border-collapse: collapse;
+    font-size: var(--texto-sm);
+}
+
+.planificador__tiempo caption {
+    margin-bottom: 6px;
+    text-align: left;
+}
+
+.planificador__tiempo th,
+.planificador__tiempo td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--borde-suave);
+    text-align: left;
+}
+
+.planificador__tiempo thead th {
+    color: var(--tinta-secundaria);
+    font-size: var(--texto-xs);
+    font-weight: 600;
+}
+
+.planificador__tiempo tbody th {
+    font-weight: 500;
+}
+
+.planificador__tiempo td {
+    text-align: right;
+    white-space: nowrap;
+}
+
 @media (max-width: 900px) {
     .planificador__rejilla {
         grid-template-columns: 1fr;
@@ -3339,4 +3486,772 @@ td>.gestion-insignia:first-child {
 .boton--peligro-suave:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+}
+
+/* Fecha de corte de la supervisión (validación prospectiva). */
+.nota-corte {
+    margin: var(--esp-2) 0;
+    padding: var(--esp-2) var(--esp-3);
+    border-left: 4px solid var(--color-acento);
+    border-radius: var(--radio-sm);
+    background: var(--relleno-suave);
+    font-size: var(--texto-sm);
+}
+
+/* Nuevo análisis: el commit elegido ya se desplegó (o se está desplegando). */
+/* Informativo (no es un error): azul suave con ícono de información. */
+.aviso-desplegado {
+    display: flex;
+    gap: var(--esp-3);
+    align-items: flex-start;
+    margin: var(--esp-2) 0;
+    padding: var(--esp-3);
+    border: 1px solid var(--acento-brillo);
+    border-left: 4px solid var(--color-acento);
+    border-radius: var(--radio-sm);
+    background: var(--acento-suave);
+    color: var(--tinta-principal);
+    font-size: var(--texto-sm);
+}
+
+.aviso-desplegado__icono {
+    display: inline-flex;
+    flex: none;
+    color: var(--color-acento);
+    margin-top: 1px;
+}
+
+.aviso-desplegado__cuerpo {
+    flex: 1;
+    min-width: 0;
+}
+
+.aviso-desplegado p {
+    margin: 0 0 var(--esp-2);
+}
+
+.aviso-desplegado__principal {
+    font-size: var(--texto-base);
+    font-weight: 600;
+}
+
+.aviso-desplegado__secundario {
+    color: var(--tinta-secundaria);
+}
+
+.aviso-desplegado__enlace {
+    display: inline-block;
+    margin-bottom: var(--esp-2);
+    color: var(--acento-texto);
+    font-size: var(--texto-xs);
+}
+
+.aviso-desplegado__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--esp-2);
+    justify-content: flex-end;
+}
+
+/* Límite de errores: aviso en lugar de una sección que falló al renderizar. */
+.limite-errores p {
+    margin: 0 0 var(--esp-2);
+}
+
+.limite-errores p:last-child {
+    margin-bottom: 0;
+}
+
+.limite-errores__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--esp-2);
+}
+
+
+/* Filtros de los historiales y de «Pendientes de decisión» (fechas, nivel,
+   origen y orden; los aplica el backend). */
+
+.filtros-historial__barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--esp-3);
+}
+
+.filtros-historial {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--esp-2) var(--esp-4);
+}
+
+/* Nuevo análisis: asignación del líder que se está respondiendo. */
+.aviso-asignacion {
+    margin: 0 0 var(--esp-4);
+    padding: var(--esp-3) var(--esp-4);
+    border: 1px solid #c8e6c9;
+    border-left: 4px solid var(--color-dorado);
+    border-radius: var(--radio);
+    background: var(--dorado-suave);
+    color: var(--tinta-principal);
+    box-shadow: var(--sombra-sm);
+}
+
+.aviso-asignacion__cabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--esp-3);
+}
+
+.aviso-asignacion__icono {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radio-full);
+    background: var(--color-dorado);
+    color: var(--sobre-dorado);
+}
+
+.aviso-asignacion__etiqueta {
+    margin: 0;
+    color: var(--dorado-texto);
+    font-size: var(--texto-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.aviso-asignacion__decision {
+    margin: 2px 0 0;
+    font-size: var(--texto-lg);
+    line-height: 1.25;
+}
+
+.aviso-asignacion__estado {
+    margin-left: auto;
+}
+
+.aviso-asignacion__mensaje {
+    margin: var(--esp-3) 0 0;
+    padding: var(--esp-2) var(--esp-3);
+    border-radius: var(--radio-sm);
+    background: var(--color-tarjeta);
+    font-size: var(--texto-base);
+    font-style: italic;
+}
+
+.aviso-asignacion__mensaje p {
+    margin: 0;
+}
+
+.aviso-asignacion__mensaje p::before { content: "«"; }
+.aviso-asignacion__mensaje p::after { content: "»"; }
+
+.aviso-asignacion__datos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--esp-2) var(--esp-4);
+    margin: var(--esp-3) 0 0;
+}
+
+.aviso-asignacion__datos dt {
+    color: var(--tinta-secundaria);
+    font-size: var(--texto-xs);
+}
+
+.aviso-asignacion__datos dd {
+    margin: 2px 0 0;
+    font-size: var(--texto-sm);
+}
+
+.aviso-asignacion__datos time {
+    font-family: inherit;
+}
+
+.aviso-asignacion__plazo {
+    color: var(--tinta-secundaria);
+}
+
+.aviso-asignacion__pie {
+    margin: var(--esp-3) 0 0;
+    padding-top: var(--esp-2);
+    border-top: 1px solid #c8e6c9;
+    color: var(--dorado-texto);
+    font-size: var(--texto-xs);
+}
+
+@media (max-width: 560px) {
+    .aviso-asignacion {
+        padding: var(--esp-3);
+    }
+
+    .aviso-asignacion__cabecera {
+        flex-wrap: wrap;
+    }
+
+    .aviso-asignacion__estado {
+        margin-left: 0;
+    }
+}
+
+/* Fecha dd/mm/aaaa: texto propio + calendario nativo oculto (el formato del
+   input type="date" depende del idioma del navegador). */
+.campo-fecha {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.campo-fecha input[type="text"] {
+    width: 9.5em;
+    padding-right: 2.4em;
+    font-variant-numeric: tabular-nums;
+}
+
+.campo-fecha__calendario {
+    position: absolute;
+    right: 0.3em;
+    display: inline-flex;
+    padding: 0.25em;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.campo-fecha__calendario:hover,
+.campo-fecha__calendario:focus-visible {
+    background: rgba(127, 127, 127, 0.15);
+}
+
+.campo-fecha__nativo {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.filtros-historial__buscar {
+    width: 13em;
+}
+
+.filtros-historial__quitar {
+    align-self: center;
+}
+
+.filtros-historial__error {
+    flex-basis: 100%;
+    margin: 0;
+}
+
+/* Avisos que no son errores (correo sin configurar, cuentas sin correo). */
+
+.alerta--aviso {
+    border-color: color-mix(in srgb, var(--color-medio) 45%, transparent);
+    background: color-mix(in srgb, var(--color-medio) 14%, transparent);
+    color: var(--medio-texto);
+    font-weight: 400;
+}
+
+/* Restablecimiento de contraseña: enlaces de texto y tarjeta de una columna. */
+
+.boton-enlace {
+    align-self: center;
+    margin-top: var(--esp-3);
+    padding: 4px 2px;
+    border: 0;
+    background: none;
+    color: var(--acento-texto);
+    font: inherit;
+    font-size: var(--texto-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.boton-enlace:hover {
+    text-decoration-thickness: 2px;
+}
+
+.boton-enlace:focus-visible {
+    outline: 2px solid var(--acento-texto);
+    outline-offset: 2px;
+}
+
+.acceso__tarjeta.acceso__tarjeta--simple {
+    max-width: 480px;
+    min-height: 0;
+    grid-template-columns: 1fr;
+}
+
+.acceso__tarjeta--simple .acceso__monograma {
+    margin-bottom: var(--esp-3);
+}
+
+.acceso__formulario .gestion-aviso {
+    margin-bottom: var(--esp-3);
+}
+
+.acceso__reglas {
+    margin: 0;
+    padding-left: 1.2em;
+}
+
+@media (max-width: 640px) {
+    .filtros-historial,
+    .filtros-historial__barra {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
+/* ------------------------------------------------ Tablas largas */
+/* Altura máxima = ventana menos la barra superior (64 px), el margen del
+   contenido y las dos barras de paginación: la tabla tiene su propio scroll
+   vertical y los encabezados quedan fijos. */
+.tabla-desplazable {
+    --alto-fuera-de-la-tabla: 64px + 56px + 2 * 52px;
+    position: relative;
+}
+
+.tabla-desplazable__arriba {
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 14px;
+    border-bottom: 1px solid var(--borde-suave);
+}
+
+.tabla-desplazable__arriba[hidden] {
+    display: none;
+}
+
+.tabla-desplazable__arriba > div {
+    height: 1px;
+}
+
+.tabla-desplazable__cuerpo {
+    max-height: calc(100vh - (var(--alto-fuera-de-la-tabla)));
+    min-height: 160px;
+    overflow: auto;
+}
+
+.tabla-desplazable__cuerpo:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: -2px;
+}
+
+.tabla-desplazable thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--color-tarjeta);
+    box-shadow: inset 0 -1px 0 var(--borde-suave);
+}
+
+/* Columna de acciones fija a la derecha (siempre a mano al desplazar). */
+.tabla-desplazable--acciones-fijas th.col-acciones,
+.tabla-desplazable--acciones-fijas td.col-acciones {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    background: var(--color-tarjeta);
+    box-shadow: inset 1px 0 0 var(--borde-suave);
+}
+
+.tabla-desplazable--acciones-fijas thead th.col-acciones {
+    z-index: 3;
+}
+
+.tabla-desplazable--acciones-fijas tbody tr:hover td.col-acciones {
+    background: var(--relleno-suave);
+}
+
+/* Textos largos recortados con «…» (el completo, en el title): así fecha,
+   repositorio, riesgo, probabilidad y decisión caben en 1366 px. */
+.celda-recortada {
+    display: inline-block;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+}
+
+.celda-recortada--decision {
+    max-width: 170px;
+}
+
+.tabla-desplazable td.col-fecha,
+.tabla-desplazable td.col-enviado {
+    font-size: var(--texto-xs);
+}
+
+/* Paginación (arriba y abajo de la tabla). */
+.paginacion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--esp-2) var(--esp-3);
+    padding: 10px 16px;
+}
+
+.paginacion--arriba {
+    border-bottom: 1px solid var(--borde-suave);
+}
+
+.paginacion--abajo {
+    border-top: 1px solid var(--borde-suave);
+}
+
+.paginacion__total {
+    margin: 0;
+    font-size: var(--texto-sm);
+}
+
+.paginacion__paginas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.paginacion__boton {
+    min-width: 34px;
+    padding: 5px 9px;
+    border: 1px solid var(--borde-fuerte);
+    border-radius: var(--radio-sm);
+    background: var(--color-tarjeta);
+    color: var(--tinta-principal);
+    font: inherit;
+    font-size: var(--texto-sm);
+    cursor: pointer;
+}
+
+.paginacion__boton:hover:not(:disabled) {
+    background: var(--relleno-hover);
+}
+
+.paginacion__boton[aria-current="page"] {
+    background: var(--color-acento);
+    border-color: var(--color-acento);
+    color: var(--sobre-acento);
+    font-weight: 700;
+}
+
+.paginacion__boton:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.paginacion__salto {
+    padding: 0 4px;
+    color: var(--tinta-tenue);
+}
+
+.paginacion__por-pagina {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--texto-sm);
+}
+
+.paginacion__por-pagina select {
+    width: auto;
+    padding: 4px 8px;
+}
+
+@media (max-width: 640px) {
+    .paginacion__texto {
+        display: none;
+    }
+}
+
+/* ------------------------------------------------ Informes de cumplimiento */
+.informe-enviado {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--esp-2);
+    font-size: var(--texto-sm);
+}
+
+.enviar-informe {
+    display: grid;
+    gap: var(--esp-2);
+    width: 100%;
+    margin-top: var(--esp-2);
+}
+
+.enviar-informe textarea {
+    width: 100%;
+    font: inherit;
+}
+
+.enviar-informe__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--esp-2);
+}
+
+.informe-enlace {
+    margin-top: var(--esp-1);
+}
+
+.informe-nuevo {
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: var(--radio-full);
+    background: var(--color-acento);
+    color: var(--sobre-acento);
+    font-family: var(--fuente);
+    font-size: var(--texto-xs);
+    font-weight: 700;
+}
+
+.informe__barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--esp-2);
+    margin-bottom: var(--esp-3);
+}
+
+.informe__documento {
+    max-width: 960px;
+}
+
+.informe__encabezado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--esp-3);
+    padding-bottom: var(--esp-3);
+    border-bottom: 2px solid var(--color-acento);
+}
+
+.informe__plataforma {
+    margin: 0;
+    color: var(--color-acento);
+    font-size: var(--texto-sm);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.informe__encabezado h1 {
+    margin: 4px 0 0;
+    font-size: var(--texto-xl);
+}
+
+.informe__emision {
+    margin: 0;
+    font-size: var(--texto-sm);
+}
+
+.informe__seccion {
+    margin-top: var(--esp-4);
+    break-inside: avoid;
+}
+
+.informe__seccion h2 {
+    margin: 0 0 var(--esp-2);
+    color: var(--color-acento);
+    font-size: var(--texto-lg);
+}
+
+.informe__datos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--esp-2) var(--esp-4);
+    margin: var(--esp-3) 0 0;
+}
+
+.informe__fila dt {
+    color: var(--tinta-secundaria);
+    font-size: var(--texto-xs);
+}
+
+.informe__fila dd {
+    margin: 2px 0 0;
+}
+
+.informe__tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--texto-sm);
+}
+
+.informe__tabla th,
+.informe__tabla td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--borde-suave);
+    text-align: left;
+    vertical-align: top;
+}
+
+.informe__tabla thead th {
+    background: var(--relleno-suave);
+    color: var(--tinta-secundaria);
+    font-size: var(--texto-xs);
+}
+
+.informe__tabla tbody th {
+    font-weight: 500;
+}
+
+.informe__diferencia {
+    margin: var(--esp-2) 0 0;
+}
+
+.informe__diferencia--baja strong,
+.informe__shap--baja { color: var(--acento-texto); }
+.informe__diferencia--sube strong,
+.informe__shap--sube { color: var(--alto-texto); }
+
+.informe__texto {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.informe__decidir fieldset {
+    display: grid;
+    gap: var(--esp-2);
+    margin-top: var(--esp-3);
+    padding: var(--esp-3);
+    border: 1px solid var(--borde-fuerte);
+    border-radius: var(--radio-sm);
+}
+
+.informe__opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--esp-2) var(--esp-4);
+}
+
+.informe__opcion {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Imprimir: solo el documento del informe, sin menú ni botones. */
+@media print {
+    .lateral,
+    .barra-superior,
+    .no-imprimir {
+        display: none !important;
+    }
+
+    body,
+    .app,
+    .principal,
+    .contenido {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    .informe__documento {
+        max-width: none;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .informe__seccion h2,
+    .informe__plataforma {
+        color: #0d47a1 !important;
+    }
+
+    @page {
+        margin: 16mm;
+    }
+}
+
+/* Panel del administrador: el modelo activo no es el más reciente con fecha de corte. */
+.aviso-modelo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--esp-2) var(--esp-3);
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 var(--esp-3);
+}
+
+.aviso-modelo__texto {
+    flex: 1 1 320px;
+    margin: 0;
+}
+
+/* Modelos: confirmación escribiendo el nombre de la versión. */
+.confirmar-activacion {
+    max-width: 560px;
+    margin-top: var(--esp-3);
+}
+
+.confirmar-activacion__campo {
+    display: grid;
+    gap: var(--esp-1);
+    margin: var(--esp-2) 0 var(--esp-3);
+}
+
+.confirmar-activacion__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--esp-2);
+}
+
+.modelos__activacion {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--texto-xs);
+}
+
+/* Nuevo análisis: «Comparar ambos» (Random Forest y XGBoost lado a lado). */
+.comparacion-modelos__columnas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+    gap: var(--esp-3);
+    align-items: start;
+}
+
+.comparacion-modelos__columna {
+    display: grid;
+    gap: var(--esp-2);
+    min-width: 0;
+}
+
+.resultado__modelo {
+    margin: 2px 0 0;
+}
+
+/* Planificador: selector del modelo. */
+.planificador__modelo {
+    max-width: 320px;
+}
+
+.comparacion-modelos__resumen {
+    margin-bottom: var(--esp-3);
+}
+
+.comparacion-modelos__diferencia {
+    margin: var(--esp-2) 0 0;
 }

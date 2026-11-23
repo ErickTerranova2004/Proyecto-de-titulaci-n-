@@ -14,13 +14,14 @@ from getpass import getpass
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from django.db import transaction
 
+from riesgo.auditoria import ComandoAuditado
 from riesgo.models import ROLES, AccesoRepositorio, Repositorio
 
 
-class Command(BaseCommand):
+class Command(ComandoAuditado):
     help = "Crea o actualiza un usuario con su rol y sus repositorios asignados."
 
     def add_arguments(self, parser):

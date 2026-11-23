@@ -14,7 +14,7 @@ from rest_framework.test import APIClient
 
 from riesgo.models import (AccesoRepositorio, DecisionDespliegue,
                            EjecucionWorkflow, Prediccion,
-                           Repositorio, Workflow)
+                           Repositorio, VersionModelo, Workflow)
 from riesgo.services import github
 
 SHA = "a" * 40
@@ -60,8 +60,19 @@ class ClienteFalso:
     def ejecuciones_repositorio(self, repo, n=100):
         return RUNS
 
+    def pulls_commit(self, repo, sha):
+        return []
+
+    def checks_commit(self, repo, sha):
+        return []
+
     def jobs_intento(self, repo, run_id, intento):
         return self.JOBS
+
+    YAML = ""
+
+    def contenido_workflow(self, repo, workflow_path, ref):
+        return self.YAML
 
     def limite(self):
         return {"limit": 5000, "remaining": 4990, "reset": 1}
@@ -128,7 +139,7 @@ class ApiTest(TestCase):
         self.assertEqual(r.status_code, 201, r.content)
         cuerpo = r.json()
         self.assertIn(cuerpo["nivel"], ["bajo", "medio", "alto"])
-        self.assertEqual(cuerpo["version_modelo"], "v1.1")
+        self.assertEqual(cuerpo["version_modelo"], "v2")
         self.assertEqual(cuerpo["repositorio"], "acme/tienda")
         self.assertEqual(cuerpo["head_sha"], SHA)
         self.assertEqual(len(cuerpo["ejecuciones_previas"]), 3)
@@ -389,18 +400,28 @@ class ApiTest(TestCase):
         self.assertEqual(sum(n["evaluables"] for n in por_nivel.values()), 2)
         self.assertEqual(sum(n["no_completados"] for n in por_nivel.values()), 1)
         self.assertEqual(datos["predicciones_demostracion"], 0)
-        # Al marcar el repositorio como demostración se informa por separado.
+        # Al marcar el repositorio como demostración sus predicciones salen de
+        # todas las métricas y solo se informa cuántas se excluyeron.
         Repositorio.objects.filter(id=self.repo.id).update(es_demostracion=True)
         datos = self.cliente(self.admin).get(f"/api/modelos/{modelo}/supervision/").json()
         self.assertEqual(datos["predicciones_demostracion"], 4)
+        self.assertEqual((datos["predicciones"], datos["verificadas"], datos["evaluables"]), (0, 0, 0))
+        self.assertIsNone(datos["brier"])
 
     # --- Modelos ------------------------------------------------------------
 
     def test_solo_admin_activa_modelos(self):
-        modelo_id = self.cliente(self.dev).get("/api/modelos/").json()[0]["id"]
-        url = f"/api/modelos/{modelo_id}/activar/"
-        self.assertEqual(self.cliente(self.dev).post(url).status_code, 403)
-        self.assertEqual(self.cliente(self.admin).post(url).status_code, 200)
+        actual = VersionModelo.objects.get(activo=True)
+        otra = VersionModelo.objects.create(
+            version="v2b", nombre_modelo="Copia", archivo=actual.archivo,
+            archivo_explicacion=actual.archivo_explicacion,
+            metadatos=actual.metadatos)
+        url = f"/api/modelos/{otra.id}/activar/"
+        datos = {"confirmacion": "v2b"}
+        self.assertEqual(self.cliente(self.dev).post(
+            url, datos, format="json").status_code, 403)
+        self.assertEqual(self.cliente(self.admin).post(
+            url, datos, format="json").status_code, 200)
 
     def test_supervision_compara_con_resultados_reales(self):
         id_ = self.predecir(self.dev).json()["id"]

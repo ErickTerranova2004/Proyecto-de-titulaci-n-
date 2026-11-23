@@ -36,23 +36,37 @@ def es_lider(usuario):
 
 def tiene_acceso(usuario, repositorio):
     return es_admin(usuario) or AccesoRepositorio.objects.filter(
-        usuario=usuario, repositorio=repositorio).exists()
+        usuario=usuario, repositorio=repositorio, est_registro="A").exists()
 
 
 def repositorios_visibles(usuario):
     consulta = Repositorio.objects.all()
     if es_admin(usuario):
         return consulta
-    return consulta.filter(accesos__usuario=usuario)
+    # Mismo filter(): la condición de estado es sobre el mismo acceso.
+    return consulta.filter(accesos__usuario=usuario,
+                           accesos__est_registro="A")
 
 
 def predicciones_visibles(usuario):
+    """Análisis que ve el usuario. Los desactivados (est_registro='I', p. ej.
+    los de los casos de prueba) y todos los de repositorios inactivos
+    (también los del lote, que solo cuentan para la historia del modelo v1)
+    no salen en historiales, paneles, pendientes, asignaciones ni en el
+    Planificador; se conservan para la auditoría y la supervisión."""
     consulta = Prediccion.objects.select_related(
         "usuario", "version_modelo", "workflow__repositorio", "commit",
-        "ejecucion_real")
+        "ejecucion_real").filter(est_registro="A",
+                                 workflow__repositorio__est_registro="A")
     if es_admin(usuario):
         return consulta
-    consulta = consulta.filter(workflow__repositorio__accesos__usuario=usuario)
+    # El líder técnico y el desarrollador solo ven los análisis hechos en la
+    # plataforma: los del lote (cuenta analisis_lote) evalúan despliegues que
+    # ya ocurrieron y no admiten decisión ni asignación.
+    consulta = consulta.filter(
+        origen="interactivo",
+        workflow__repositorio__accesos__usuario=usuario,
+        workflow__repositorio__accesos__est_registro="A")
     if not es_lider(usuario):
         consulta = consulta.filter(usuario=usuario)
     return consulta

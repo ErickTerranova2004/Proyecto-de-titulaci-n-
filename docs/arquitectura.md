@@ -18,7 +18,7 @@ flowchart LR
 
 ## Modelo de datos (PostgreSQL)
 
-Nombres de tabla de Django: `riesgo_<modelo>` para la aplicación y `auth_*` / `authtoken_token` para usuarios, roles y tokens. PK = clave primaria, FK = clave foránea, UK = participa en una restricción de unicidad.
+Este documento usa los nombres de los modelos y campos de Django (Python). En la base de datos, las tablas y columnas propias llevan los nombres del diagrama entidad-relación (`docs/modelo_er.png`): ver [Nombres en la base de datos](#nombres-en-la-base-de-datos-diagrama-er). Usuarios, roles y tokens siguen en las tablas de Django (`auth_*`, `authtoken_token`). PK = clave primaria, FK = clave foránea, UK = participa en una restricción de unicidad.
 
 ```mermaid
 erDiagram
@@ -193,13 +193,70 @@ Las métricas del cambio (`archivos_modificados`, `adiciones`, `eliminaciones`) 
 
 Las FK hacia `REPOSITORIO`, `WORKFLOW`, `COMMIT`, `VERSION_MODELO` y `EJECUCION_WORKFLOW` usan `PROTECT`: no se puede borrar un elemento referenciado por una predicción, para conservar la trazabilidad. `ACCESO_REPOSITORIO` usa `CASCADE`, porque si se borra el usuario o el repositorio desaparece el acceso. `DECISION_DESPLIEGUE` usa `CASCADE` hacia la predicción y `PROTECT` hacia el usuario que decidió.
 
+**Cuentas de usuario.** Una cuenta sin análisis ni decisiones se elimina directamente desde «Usuarios y accesos». Una cuenta con historial también se puede eliminar, pero antes el administrador elige a qué cuenta se traspasa: otra cuenta activa con el mismo rol o una administradora (`views_gestion.destino_traspaso_valido`). Sus análisis, decisiones, workflows validados, accesos asignados y repositorios pasan a esa cuenta en una transacción y después se borra (`DELETE /api/gestion/usuarios/{id}/?transferir_a={id}`); sin destino, la API responde 409. Las columnas de auditoría conservan quién creó cada registro. No se puede eliminar la propia cuenta ni el superusuario.
+
+**Último acceso.** `POST /api/auth/token/` (`riesgo/sesion.py`) emite la señal `user_logged_in` de Django, que actualiza `auth_user.last_login`: es el «Último acceso» de cada usuario.
+
+### Nombres en la base de datos (diagrama ER)
+
+Desde la migración `0017_nombres_er` las tablas y columnas propias usan los nombres del diagrama entidad-relación (`docs/modelo_er.png`; versión actualizada desde el esquema: `docs/modelo_er_actualizado.png`) mediante `Meta.db_table` y `db_column`; los nombres en Python (modelos, campos, API y frontend) no cambiaron. Prefijos de tabla: `mae_` (maestras o catálogos), `trx_` (transaccionales) e `int_` (intermedias N:M). Prefijos de columna: `id_` (claves), `cod_` (códigos externos), `nom_`, `des_`, `tip_`, `est_`, `es_` (booleanos), `num_`, `val_`, `fec_`, `jsn_` (JSON), `rut_` (rutas) y `hsh_` (resúmenes).
+
+| Modelo (Django) | Tabla | Clave primaria |
+|---|---|---|
+| `Repositorio` | `mae_repositorio` | `id_repositorio` |
+| `Workflow` | `mae_workflow` | `id_workflow` |
+| `VersionModelo` | `mae_version_modelo` | `id_version_modelo` |
+| `Commit` | `trx_commit` | `id_commit` |
+| `EjecucionWorkflow` | `trx_ejecucion_workflow` | `id_ejecucion_workflow` |
+| `Prediccion` | `trx_prediccion` | `id_prediccion` |
+| `DecisionDespliegue` | `trx_decision_despliegue` | `id_decision_despliegue` |
+| `AccesoRepositorio` | `int_acceso_repositorio` | `id_acceso_repositorio` |
+| `PrediccionEjecucion` (`Prediccion.ejecuciones_previas`) | `int_prediccion_ejecucion` | `id_prediccion_ejecucion` |
+| `SeguimientoLote` (no está en el ER) | `trx_seguimiento_lote` | `id_seguimiento_lote` |
+| `PendienteDespliegue` (no está en el ER) | `trx_pendiente_despliegue` | `id_pendiente_despliegue` |
+| `RestablecimientoClave` (no está en el ER) | `trx_restablecimiento_clave` | `id_restablecimiento_clave` |
+| `InformeCumplimiento` (no está en el ER) | `trx_informe_cumplimiento` | `id_informe_cumplimiento` |
+| `DescargaInforme` (no está en el ER) | `trx_descarga_informe` | `id_descarga_informe` |
+
+La columna de cada campo es su `db_column` en `backend/riesgo/models.py`; la lista completa, con tipos, está en la prueba `backend/riesgo/tests/test_esquema_er.py`, que compara la base de datos con el diagrama (`ER`) y lo que la implementación tiene y el diagrama original no recoge (`EXTRA`). Índices, restricciones y secuencias se nombran `pk_<tabla>`, `fk_<tabla>_<columna>`, `uk_<tabla>_<columnas>`, `ck_<tabla>_<columna>`, `ix_<tabla>_<columnas>[_like]` y `sq_<tabla>_<columna>` (migración `0018`).
+
+**Usuarios, roles y tokens.** Se mantienen las tablas de Django (cambiar el modelo de usuario a mitad del proyecto obligaría a rehacer migraciones, usuarios y tokens). Para consultar con los nombres del ER hay vistas de **solo lectura** (un trigger rechaza cualquier escritura):
+
+| Entidad del ER | Vista | Tabla de Django | Equivalencias |
+|---|---|---|---|
+| `seg_usuario` | `seg_usuario` | `auth_user` | `id_usuario` = `id`, `nom_usuario` = `username`, `hsh_clave` = `password` (hash PBKDF2 de Django), `es_superusuario` = `is_superuser`, `est_registro` = `A` si `is_active` (si no, `I`), `fec_creacion` = `date_joined` |
+| `seg_grupo` | `seg_grupo` | `auth_group` | `id_grupo` = `id`, `nom_grupo` = `name` (roles: `desarrollador`, `lider_tecnico`, `administrador`) |
+| `int_usuario_grupo` | `int_usuario_grupo` | `auth_user_groups` | `id_usuario_grupo` = `id` (bigint en Django; int en el ER), `id_usuario` = `user_id`, `id_grupo` = `group_id` |
+| `seg_token` | `seg_token` | `authtoken_token` | `cod_token` = `key`, `id_usuario` = `user_id`, `fec_creacion` = `created` |
+
+En las vistas, las columnas de auditoría que Django no guarda (`usu_creacion`, `usu_modificacion`, `fec_modificacion`) son nulas. `auth_user` tiene además `first_name`, `last_name`, `email`, `is_staff`, `last_login` y `date_joined`, y Django crea sus tablas internas (`auth_permission`, `auth_group_permissions`, `auth_user_user_permissions`, `django_content_type`, `django_migrations`, `django_session`, `django_admin_log`), que no forman parte del modelo del dominio.
+
+**Auditoría (migración `0019`, `backend/riesgo/auditoria.py`).** Todas las tablas propias heredan del modelo abstracto `Auditoria`: `est_registro` (`char(1)`, `A`/`I`; solo `mae_repositorio` usa `I`; no hay borrado lógico `E`), `usu_creacion`, `fec_creacion`, `usu_modificacion` y `fec_modificacion`. Las fechas de creación que ya existían se conservan con `db_column="fec_creacion"` (`creado_en`, `registrado_en`, `creada_en`) y `SeguimientoLote.actualizado_en` es `fec_modificacion`. Se llenan en todas las vías de escritura: `save()`/`create()`/`get_or_create()`/`update_or_create()`/`bulk_create()` (campos que se calculan al guardar), `save(update_fields=…)` (el modelo añade los campos de modificación) y `QuerySet.update()`/`bulk_update()` (`AuditoriaQuerySet`). El usuario es el de la petición (`MiddlewareAuditoria`; DRF copia el usuario del token a la petición), el del comando (`ComandoAuditado`: `analisis_lote` en el lote, el `--validado-por` en `registrar_repos_v2`, `comando:<nombre>` en los demás) o `sistema` fuera de ambos (shell, pruebas). Filas anteriores a la auditoría: el usuario conocido (dueño de la predicción o de la decisión, quien asignó el acceso o validó el workflow, `analisis_lote` en lo del lote) o `migracion_0019`. Lo prueba `backend/riesgo/tests/test_auditoria.py`.
+
+**Diferencias con el diagrama original.** El diagrama actualizado (`docs/modelo_er_actualizado.drawio` y `.png`, generados desde la base de datos con `scripts/generar_diagrama_er.py --png`) ya las recoge: (1) `auth_user_groups.id` es `bigint` (el original dice `int`); (2) `est_registro` admite `A`/`I` (sin `E`); (3) campos y tablas nuevos: `es_demostracion` y `es_prueba` (repositorio); `tip_recomendacion`, `jsn_analisis_ia`, `tip_origen` y `fec_momento_variables` (predicción); recomendación, aceptación, fecha límite, vista, cumplimiento y respuesta del desarrollador (decisión, con una segunda FK a predicción: `id_prediccion_respuesta`), y las tablas `trx_seguimiento_lote` y `trx_pendiente_despliegue`.
+
 ## Flujo de una predicción
 
 1. El usuario elige un repositorio con acceso asignado y uno de sus workflows validados (`GET /api/repositorios/`).
 2. El backend valida las entradas y busca el repositorio por nombre. Si no lo encuentra, consulta GitHub y lo busca por `github_id`, por si fue renombrado. Después comprueba el **acceso** y que el workflow esté **validado**.
 3. Consulta GitHub (commit, historial del workflow e historial del repositorio) y calcula las mismas variables del entrenamiento, usando solo ejecuciones completadas antes del momento de la predicción.
-4. Calcula la probabilidad calibrada, el nivel de riesgo, los factores SHAP y las recomendaciones con su código de regla.
-5. En una transacción guarda el `COMMIT`, las `EJECUCION_WORKFLOW` previas (enlazadas en `PREDICCION_EJECUCIONES_PREVIAS`) y la `PREDICCION`.
+4. Calcula la probabilidad calibrada, el nivel de riesgo, los factores SHAP y la recomendación automática (alto → «Solicitar revisión previa»; bajo o medio → «Permitir el despliegue»).
+5. Redacta el análisis explicado (ver [Análisis con IA](#análisis-con-ia)): un resumen y recomendaciones `IA01`, `IA02`… o, si no hay IA disponible, las recomendaciones por reglas con su código.
+6. En una transacción guarda el `COMMIT`, las `EJECUCION_WORKFLOW` previas (enlazadas en `PREDICCION_EJECUCIONES_PREVIAS`) y la `PREDICCION`.
+
+### Análisis con IA
+
+`backend/riesgo/services/analisis_ia.py`. La IA **solo redacta**: recibe la probabilidad, el nivel, los factores SHAP, las variables y el contexto del commit (sin el nombre del autor) y devuelve un resumen y de 1 a 5 recomendaciones con la variable en que se basan (`IA01`, `IA02`…). No recalcula ni cambia la probabilidad, el nivel ni la recomendación automática.
+
+| Variable (`backend/.env`) | Valor por defecto | Uso |
+|---|---|---|
+| `IA_PROVEEDOR` | `claude` | `claude`, `gemini` o `reglas` |
+| `CLAUDE_API_KEY` | — | Clave de Anthropic; se pasa explícitamente al SDK (no se lee `ANTHROPIC_API_KEY`) |
+| `CLAUDE_MODELO` | `claude-haiku-5-5` | Modelo de Claude |
+| `GEMINI_API_KEY`, `GEMINI_MODELO` | —, `gemini-3.5-flash` | Proveedor alternativo |
+| `IA_TIMEOUT` | `90` | Segundos máximos de espera |
+
+Con Claude se usa el SDK oficial (`anthropic`) con salida estructurada (`client.messages.parse` con el esquema Pydantic `Analisis`), esfuerzo `low` y sin reintentos, para que la espera nunca supere `IA_TIMEOUT`. Si falta la clave del proveedor, la llamada falla (tiempo agotado, conexión, 4xx/5xx), la respuesta no cumple el esquema o el modelo la rechaza (`stop_reason: "refusal"`), el análisis sale **por reglas** (`recomendaciones.py`) y `analisis_ia.error` indica el motivo: nunca un error 500. En las pruebas automáticas `IA_PROVEEDOR` es siempre `reglas` (`config/settings.py`): ninguna prueba llama a una API de pago; las de Claude y Gemini la simulan.
 
 ## Verificación del resultado real
 
@@ -222,6 +279,12 @@ Lo que ve cada rol lo decide la asignación de repositorios (`ACCESO_REPOSITORIO
 El líder técnico (o el administrador) puede fijar una fecha límite al decidir, o añadirla o cambiarla después. El comentario de la decisión es el mensaje que recibe el desarrollador. Una predicción puede tener varias decisiones: **la fecha límite y las marcas valen solo para la última**. Una *asignación* es la última decisión de una predicción con `fecha_limite`; su estado se calcula al consultar, con días locales de `America/Guayaquil` (`timezone.localdate()`): **cumplida** (tiene `cumplida_en`), **vencida** (faltan menos de 0 días), **por vencer** (faltan 0 o 1) o **pendiente**. Cambiar la fecha vuelve a dejar la asignación como no vista.
 
 La alarma funciona dentro de la aplicación: consulta `/api/asignaciones/` cada 60 s y al volver a la pestaña, muestra una campana con contador, un aviso al entrar con la asignación más próxima y recordatorios ("vence mañana", "vence hoy", "vencida"). Si el usuario lo permite tras pulsar un botón, usa notificaciones del navegador para asignaciones nuevas o por vencer. El correo es opcional y está desactivado por defecto (`CORREO_ASIGNACIONES=1`; sin `EMAIL_HOST` se usa el backend de consola).
+
+**Restablecimiento de contraseña.** El administrador no escribe ni cambia contraseñas ajenas: desde «Usuarios y accesos» envía al correo del usuario un enlace `FRONTEND_URL/restablecer/<uid>/<token>` (también al crear la cuenta, que queda sin contraseña utilizable hasta usarlo). El usuario puede pedirlo él mismo con «¿Olvidó su contraseña?» en el inicio de sesión; la respuesta es la misma exista o no el correo. El token es el de Django (`PasswordResetTokenGenerator`): caduca en una hora (`PASSWORD_RESET_TIMEOUT`) y es de un solo uso, porque depende del hash de la contraseña. La nueva contraseña pasa las reglas de `AUTH_PASSWORD_VALIDATORS` y, al guardarla, se cierran las sesiones abiertas de la cuenta. Cada envío (quién lo pidió, a qué correo, por SMTP o consola, si funcionó) y la fecha del cambio quedan en `trx_restablecimiento_clave`. Las rutas públicas (`/api/auth/restablecer/…`) no usan sesión y tienen un límite propio de 20 peticiones por hora e IP.
+
+**Filtros de los historiales.** `GET /api/predicciones/` admite `desde` y `hasta` (AAAA-MM-DD, día de America/Guayaquil, ambos incluidos), `nivel` (`bajo`, `medio`, `alto`), `sin_decision=1`, `origen` (`interactivo`, `lote`) y `orden` (`reciente` por defecto, o `antiguo`). Los usan «Mi historial», «Historial del equipo», el historial del administrador y «Pendientes de decisión»; siempre sobre lo que el rol ya puede ver.
+
+**Informe de cumplimiento.** Cuando el desarrollador cumple una asignación con un nuevo análisis, «Enviar informe al líder» (en «Mis asignaciones» y bajo el resultado del nuevo análisis) le pide un comentario obligatorio con los cambios y crea una fila en `trx_informe_cumplimiento` (`POST /api/asignaciones/<id>/informe/`, uno por asignación), ligada a la asignación, al análisis original, al nuevo, al desarrollador y al líder que dio la indicación. El informe reúne los datos del despliegue, la indicación del líder, la comparación de los dos análisis (probabilidad, nivel, recomendación y diferencia en puntos), las variables cuya contribución SHAP más cambió, el comentario, el resumen y las recomendaciones de la IA del análisis nuevo y la decisión final. El líder lo ve en «Informes recibidos» (`GET /api/informes/`, con `desde`, `hasta` y `orden`; el administrador, en «Informes de cumplimiento») y, si el correo está configurado y tiene correo, recibe el enlace `FRONTEND_URL/?informe=<id>`. Desde el informe registra su decisión final (`POST /api/informes/<id>/decision/`), que es una decisión más sobre el análisis nuevo, así que también aparece en historiales y pendientes. «Descargar PDF» lo genera el backend con ReportLab (`GET /api/informes/<id>/pdf/`) y cada descarga queda en `trx_descarga_informe`; «Imprimir» usa la hoja de estilos de impresión del navegador. Solo lo ven el desarrollador autor, el líder destinatario y los administradores; al eliminar una cuenta, sus informes se traspasan con el resto del historial.
 
 ### Respuesta del desarrollador a una asignación
 
@@ -284,7 +347,7 @@ Al quitar un acceso, el usuario deja de ver ese repositorio y sus predicciones.
 
 ## Interfaz: pantalla → elemento → tabla.campo
 
-Cada dato visible viene de la API y, por ella, de la base de datos. Prefijo de tablas: `riesgo_` (por ejemplo, `prediccion` = `riesgo_prediccion`). Los textos marcados como *presentación* son rótulos fijos de la interfaz, no datos.
+Cada dato visible viene de la API y, por ella, de la base de datos. Se indican el modelo y el campo de Django; su tabla y columna en la base de datos están en [Nombres en la base de datos](#nombres-en-la-base-de-datos-diagrama-er) (por ejemplo, `prediccion.creada_en` = `trx_prediccion.fec_creacion`). Los textos marcados como *presentación* son rótulos fijos de la interfaz, no datos.
 
 | Pantalla | Elemento (HTML) | Endpoint | tabla.campo |
 |---|---|---|---|

@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { etiquetaModelo } from "../modeloActivo.js";
 import { api } from "../api.js";
 import {
   Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, hoyLocal, NIVELES, NivelRiesgo, porcentaje, useRoles,
 } from "./comunes.jsx";
+import { aceptaRecomendacion, decisionRecomendada, RECOMENDACIONES } from "../recomendacion.js";
+import { INTERVALO_SEGUIMIENTO, siguientePaso } from "../seguimiento.js";
 
 // Textos de presentación para los códigos de EjecucionWorkflow.etiqueta y
 // EjecucionWorkflow.subtipo_etiqueta (los códigos vienen de la API).
@@ -12,6 +15,8 @@ const ETIQUETAS = {
   excluida_sin_intento: "Sin intento de despliegue (no evaluable)",
   excluida_ambigua: "Ambigua: falló otro job con el despliegue completado (no evaluable)",
   excluida_otro_resultado: "Cancelada u omitida (no evaluable)",
+  excluida_sin_jobs: "El workflow no llegó a arrancar (no evaluable)",
+  excluida_no_produccion: "Despliegue a un entorno no productivo (no evaluable)",
 };
 const SUBTIPOS = {
   antes_del_despliegue: "Falló antes de llegar al despliegue",
@@ -31,7 +36,7 @@ function Factores({ factores }) {
     <figure className="factores">
       <figcaption className="secundario">
         Rojo: el factor sube el riesgo. Verde: el factor baja el riesgo. La longitud de cada barra es proporcional a su
-        contribución (valor SHAP) en esta predicción.
+        contribución (valor SHAP, en puntos de probabilidad) en esta predicción.
       </figcaption>
       <ul>
         {factores.map((f) => (
@@ -55,41 +60,11 @@ function Factores({ factores }) {
   );
 }
 
-// Pasos para conseguir la ejecución real cuando la verificación queda pendiente.
-// La regla está en PrediccionViewSet.verificar: mismo workflow y mismo commit,
-// ejecución terminada e iniciada después del análisis.
-function PasosPendiente({ pendiente }) {
-  return (
-    <div className="nota" role="status">
-      <p><strong>{pendiente.detail}</strong></p>
-      <p className="secundario">Para obtener el resultado real:</p>
-      <ol>
-        <li>
-          Ejecute el workflow <code className="codigo">{pendiente.workflow_path}</code> en GitHub sobre el commit{" "}
-          <code className="codigo">{pendiente.sha_corto}</code> de {pendiente.repositorio}.
-        </li>
-        <li>
-          Espere a que la ejecución termine: mientras el seguimiento automático esté activo, la plataforma la enlaza sola.
-        </li>
-      </ol>
-      <p>
-        <a href={pendiente.url_actions}>Abrir el workflow en GitHub Actions</a>
-      </p>
-    </div>
-  );
-}
-
-// Seguimiento automático: mientras la verificación quede pendiente se vuelve a
-// consultar GitHub cada INTERVALO_SEGUIMIENTO, como máximo DURACION_SEGUIMIENTO.
-const INTERVALO_SEGUIMIENTO = 30_000;
-const DURACION_SEGUIMIENTO = 2 * 60 * 60 * 1000;
-
+// Seguimiento automático (src/seguimiento.js): empieza al abrir el análisis y,
+// mientras la verificación quede pendiente, vuelve a consultar GitHub cada
+// INTERVALO_SEGUIMIENTO, como máximo DURACION_SEGUIMIENTO. Si la página se
+// cierra, la tarea programada del lote enlaza el resultado (cada 4 h).
 function ResultadoReal({ prediccion, alActualizar }) {
-  const [pendiente, setPendiente] = useState(null);
-  const [error, setError] = useState("");
-  const [cargando, setCargando] = useState(false);
-  const [siguiendo, setSiguiendo] = useState(false);
-  const [ultimaConsulta, setUltimaConsulta] = useState(null);
   const temporizador = useRef(null);
   const inicio = useRef(0);
   const real = prediccion.ejecucion_real;
@@ -97,100 +72,43 @@ function ResultadoReal({ prediccion, alActualizar }) {
   function detener() {
     clearTimeout(temporizador.current);
     temporizador.current = null;
-    setSiguiendo(false);
   }
 
-  useEffect(() => () => clearTimeout(temporizador.current), []);
-
   async function consultar() {
-    setCargando(true);
-    setError("");
     try {
       const respuesta = await api.verificar(prediccion.id);
-      setUltimaConsulta(new Date());
-      if (respuesta.estado !== "pendiente") {
+      const paso = siguientePaso(respuesta, Date.now() - inicio.current);
+      if (paso === "enlazado") {
         detener();
-        setPendiente(null);
         alActualizar(respuesta);
         return;
       }
-      setPendiente(respuesta);
-      if (Date.now() - inicio.current >= DURACION_SEGUIMIENTO) {
+      if (paso === "detener") {
         detener();
         return;
       }
-      setSiguiendo(true);
       temporizador.current = setTimeout(consultar, INTERVALO_SEGUIMIENTO);
-    } catch (e) {
+    } catch {
       detener();
-      setError(e.message);
-    } finally {
-      setCargando(false);
     }
   }
 
-  function verificar() {
-    clearTimeout(temporizador.current);
+  // El seguimiento empieza solo al abrir un análisis sin resultado real.
+  useEffect(() => {
+    if (real) return undefined;
     inicio.current = Date.now();
-    setPendiente(null);
     consultar();
-  }
+    return () => clearTimeout(temporizador.current);
+  }, [prediccion.id]);
 
-  if (!real) {
-    return (
-      <div className="recuadro">
-        <p className="secundario">
-          Aún no se ha enlazado la ejecución real. Se enlaza la primera ejecución terminada del mismo workflow y del
-          mismo commit que haya empezado después de este análisis.
-        </p>
-        {siguiendo ? (
-          <button className="boton boton--secundario" type="button" onClick={detener}>
-            Detener seguimiento
-          </button>
-        ) : (
-          <button className="boton" type="button" disabled={cargando} onClick={verificar}>
-            {cargando ? "Consultando GitHub…" : "Verificar resultado real"}
-          </button>
-        )}
-        {siguiendo && (
-          <p className="secundario" role="status">
-            {cargando ? "Consultando GitHub…" : "Seguimiento automático activo"}: se consulta GitHub cada 30 s y el
-            resultado se enlaza en cuanto la ejecución termine.
-            {ultimaConsulta && (
-              <> Última consulta: {ultimaConsulta.toLocaleTimeString("es-EC", { timeZone: "America/Guayaquil" })}.</>
-            )}
-          </p>
-        )}
-        {!siguiendo && pendiente && (
-          <p className="secundario">El seguimiento automático está detenido. Pulse «Verificar resultado real» para reanudarlo.</p>
-        )}
-        {pendiente?.ejecucion_github ? (
-          <EjecucionGitHub ejecucion={pendiente.ejecucion_github} />
-        ) : (
-          pendiente && <PasosPendiente pendiente={pendiente} />
-        )}
-        <Alerta>{error}</Alerta>
-      </div>
-    );
-  }
-  return <DatosEjecucion real={real} className="datos recuadro" />;
-}
-
-// Resultado en GitHub de una ejecución del mismo commit que empezó antes del
-// análisis: se muestra, pero no se enlaza ni cuenta en la supervisión.
-function EjecucionGitHub({ ejecucion }) {
+  // Sin resultado real el apartado no se muestra: el seguimiento sigue en
+  // segundo plano y, al enlazarse la ejecución, aparece con sus datos.
+  if (!real) return null;
   return (
-    <div className="nota" role="status">
-      <p><strong>Resultado real en GitHub</strong></p>
-      <DatosEjecucion real={ejecucion} className="datos" />
-      <p className="secundario">
-        Esta ejecución empezó antes del análisis, por eso no se enlaza ni cuenta en la supervisión del modelo. Si llega
-        una ejecución posterior, se enlazará automáticamente.
-        {ejecucion.url && (
-          <> <a href={ejecucion.url}>Ver la ejecución en GitHub</a>.</>
-        )}
-      </p>
-    </div>
+    <section aria-labelledby={`real-${prediccion.id}`}>
+      <h3 id={`real-${prediccion.id}`}>Resultado real</h3>
+      <DatosEjecucion real={real} className="datos recuadro" />
+    </section>
   );
 }
 
@@ -275,7 +193,10 @@ function CambiarFechaLimite({ prediccion, actual, alActualizar }) {
 
 function Decision({ prediccion, alActualizar }) {
   const { puedeDecidir } = useRoles();
-  const [decision, setDecision] = useState("");
+  // La recomendación de la plataforma viene marcada; el líder puede
+  // aceptarla o elegir otra decisión.
+  const recomendada = decisionRecomendada(prediccion.recomendacion);
+  const [decision, setDecision] = useState(recomendada);
   const [comentario, setComentario] = useState("");
   const [fechaLimite, setFechaLimite] = useState("");
   const [error, setError] = useState("");
@@ -288,7 +209,7 @@ function Decision({ prediccion, alActualizar }) {
     setEnviando(true);
     try {
       alActualizar(await api.decidir(prediccion.id, { decision, comentario, fecha_limite: fechaLimite || null }));
-      setDecision("");
+      setDecision(recomendada);
       setComentario("");
       setFechaLimite("");
     } catch (e) {
@@ -305,6 +226,15 @@ function Decision({ prediccion, alActualizar }) {
           {decisiones.map((d, i) => (
             <li key={d.id ?? d.creada_en}>
               <strong>{DECISIONES[d.decision] || d.decision}</strong> · {d.usuario} · <Fecha valor={d.creada_en} />
+              {d.acepta_recomendacion != null && (
+                <span className="secundario">
+                  {" "}
+                  ·{" "}
+                  {d.acepta_recomendacion
+                    ? "aceptó la recomendación"
+                    : `cambió la recomendación (${RECOMENDACIONES[d.recomendacion] ?? d.recomendacion})`}
+                </span>
+              )}
               {d.comentario && <p>{d.comentario}</p>}
               {i === 0 && <Seguimiento decision={d} />}
             </li>
@@ -317,6 +247,12 @@ function Decision({ prediccion, alActualizar }) {
         <form className="formulario" onSubmit={enviar}>
           <fieldset>
             <legend>Registrar decisión</legend>
+            {recomendada && (
+              <p className="secundario" id={`ayuda-recomendacion-${prediccion.id}`}>
+                La plataforma recomienda «{RECOMENDACIONES[prediccion.recomendacion]}» (nivel{" "}
+                {NIVELES[prediccion.nivel]?.toLowerCase()}); aparece marcada. Puede aceptarla o elegir otra decisión.
+              </p>
+            )}
             {Object.entries(DECISIONES).map(([codigo, texto]) => (
               <label key={codigo} className="opcion">
                 <input
@@ -328,8 +264,14 @@ function Decision({ prediccion, alActualizar }) {
                   required
                 />
                 {texto}
+                {codigo === recomendada && <span className="insignia-recomendada">Recomendada</span>}
               </label>
             ))}
+            {aceptaRecomendacion(prediccion.recomendacion, decision) === false && (
+              <p className="secundario" role="status">
+                Va a cambiar la recomendación de la plataforma. Explique el motivo en el comentario.
+              </p>
+            )}
             <div className="campo">
               <label htmlFor={`comentario-${prediccion.id}`}>Comentario (opcional)</label>
               <textarea
@@ -375,20 +317,31 @@ function Decision({ prediccion, alActualizar }) {
   );
 }
 
-export default function Resultado({ prediccion, modelos }) {
+// mostrarResultadoReal = false (Historial): sin el apartado «Resultado real».
+// enComparacion (Nuevo análisis → «Comparar ambos»): todavía no es oficial, así
+// que no hay resultado real ni decisión del líder.
+export default function Resultado({ prediccion, modelos, mostrarResultadoReal = true, enComparacion = false }) {
   const [p, setP] = useState(prediccion);
   useEffect(() => setP(prediccion), [prediccion]);
 
-  const meta = modelos.find((m) => m.version === p.version_modelo)?.metadatos;
+  const modelo = modelos.find((m) => m.version === p.version_modelo);
+  const meta = modelo?.metadatos;
   const limites = meta?.limites_riesgo;
-  // Tasa de fallos observada por nivel en la evaluación del modelo. Solo se
-  // muestra si VersionModelo.metadatos la contiene.
-  const tasaNivel = meta?.tasa_fallos_por_nivel?.[p.nivel];
+  // Tasa de fallos observada en este nivel con despliegues reales (supervisión
+  // del modelo). Sin casos suficientes no se muestra nada.
+  const tasaNivel = modelo?.tasa_real_por_nivel?.[p.nivel];
 
   return (
     <article className="tarjeta resultado" aria-labelledby={`resultado-${p.id}`}>
       <header>
-        <h2 id={`resultado-${p.id}`}>Resultado del análisis</h2>
+        <h2 id={`resultado-${p.id}`}>
+          {enComparacion
+            ? `${p.modelo_nombre ?? p.version_modelo}${modelo ? (modelo.activo ? " · Principal" : " · Alternativo") : ""}`
+            : "Resultado del análisis"}
+        </h2>
+        <p className="secundario resultado__modelo">
+          Modelo: <strong>{etiquetaModelo(p)}</strong>
+        </p>
         {p.cambio?.archivos_modificados != null && (
           <p className="secundario">
             Cambio del commit: {p.cambio.archivos_modificados} archivos modificados · +{p.cambio.adiciones} / −
@@ -410,17 +363,30 @@ export default function Resultado({ prediccion, modelos }) {
             <output>{porcentaje(p.probabilidad)}</output>
           </dd>
         </div>
+        {p.recomendacion && (
+          <div>
+            <dt>Recomendación de la plataforma</dt>
+            <dd>
+              <strong className={`recomendacion recomendacion--${p.recomendacion}`}>
+                {RECOMENDACIONES[p.recomendacion]}
+              </strong>
+              <span className="secundario recomendacion__regla">
+                {p.recomendacion === "solicitar_revision"
+                  ? "Nivel alto: revisar el cambio antes de desplegar."
+                  : "Nivel bajo o medio: se puede desplegar."}{" "}
+                Decide el líder técnico.
+              </span>
+            </dd>
+          </div>
+        )}
       </dl>
 
       <div className="resultado__explicacion">
-      {tasaNivel ? (
+      {tasaNivel?.tasa != null && (
         <p>
-          En la evaluación, falló el {porcentaje(tasaNivel.tasa)} de los casos con este nivel ({tasaNivel.n} ejecuciones
-          de prueba del modelo {p.version_modelo}).
-        </p>
-      ) : (
-        <p className="secundario">
-          La tasa de fallos observada por nivel no está registrada en los metadatos del modelo {p.version_modelo}.
+          Con despliegues reales, no se completó el {porcentaje(tasaNivel.tasa)} de los análisis de{" "}
+          {modelo.nombre_modelo} con nivel {NIVELES[p.nivel]?.toLowerCase() ?? p.nivel} ({tasaNivel.no_completados} de{" "}
+          {tasaNivel.evaluables} despliegues verificados).
         </p>
       )}
       {limites && (
@@ -465,15 +431,14 @@ export default function Resultado({ prediccion, modelos }) {
         )}
       </section>
 
-      <section aria-labelledby={`real-${p.id}`}>
-        <h3 id={`real-${p.id}`}>Resultado real</h3>
-        <ResultadoReal prediccion={p} alActualizar={setP} />
-      </section>
+      {mostrarResultadoReal && !enComparacion && <ResultadoReal prediccion={p} alActualizar={setP} />}
 
-      <section aria-labelledby={`decision-${p.id}`}>
-        <h3 id={`decision-${p.id}`}>Decisión del líder técnico</h3>
-        <Decision prediccion={p} alActualizar={setP} />
-      </section>
+      {!enComparacion && (
+        <section aria-labelledby={`decision-${p.id}`}>
+          <h3 id={`decision-${p.id}`}>Decisión del líder técnico</h3>
+          <Decision prediccion={p} alActualizar={setP} />
+        </section>
+      )}
     </article>
   );
 }

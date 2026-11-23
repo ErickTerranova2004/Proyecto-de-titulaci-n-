@@ -1,0 +1,93 @@
+# Usuarios de prueba para revisar la interfaz
+
+Solo para el entorno local de desarrollo. **Las contraseñas no se publican
+aquí** (el repositorio es público). Para entrar con una de estas cuentas, use
+«¿Olvidó su contraseña?» en la pantalla de inicio de sesión (llega un enlace
+de restablecimiento al correo de la cuenta) o pida al administrador que le
+envíe el enlace desde «Usuarios y accesos».
+
+| Usuario | Rol | Repositorios |
+|---|---|---|
+| `revision_admin` | Administrador | Ve todos (además tiene asignados los 198 del dataset v2) |
+| `revision_lider` | Líder técnico | Los 198 del dataset v2 |
+| `revision_dev` | Desarrollador | Los 198 del dataset v2 |
+| `analisis_lote` | Sin rol (sin contraseña: no puede iniciar sesión) | Autor de las predicciones del análisis en lote |
+
+Los tres primeros forman el grupo que revisa la validación prospectiva de v2.
+El desarrollador solo ve sus propios análisis; las predicciones del lote
+(usuario `analisis_lote`) las ven el líder técnico y el administrador.
+
+## Cómo se crearon
+
+```powershell
+cd backend
+# Sin --password la contraseña se pide por teclado (no queda en el historial).
+venv\Scripts\python.exe manage.py crear_usuario revision_admin --rol administrador
+venv\Scripts\python.exe manage.py crear_usuario revision_lider --rol lider_tecnico
+venv\Scripts\python.exe manage.py crear_usuario revision_dev --rol desarrollador
+venv\Scripts\python.exe manage.py registrar_repos_v2 --validado-por revision_admin `
+    --asignar revision_dev revision_lider revision_admin --aplicar
+venv\Scripts\python.exe manage.py analizar_lote --usuario analisis_lote
+```
+
+`registrar_repos_v2` no carga ejecuciones históricas. `analizar_lote` se puede
+repetir: solo analiza las ejecuciones posteriores a la fecha de corte que
+hayan terminado desde la vez anterior (`--contar` solo las cuenta).
+
+## Análisis en lote programado (cada 4 h)
+
+Cada pasada (1) enlaza el resultado real de los análisis interactivos
+pendientes de los últimos 30 días (repos reales y demo), aunque nadie tenga la
+pestaña abierta, y (2) analiza las ejecuciones nuevas de los 198 workflows,
+listando solo desde la pasada anterior menos 48 h (con ETag: un 304 no gasta
+cuota). Se salta las ejecuciones ya enlazadas a un análisis interactivo del
+mismo modelo, para no contar dos veces un despliegue en la supervisión.
+
+- Script: `scripts\analizar_lote.cmd` (se puede ejecutar a mano); lo lanza
+  oculto `scripts\analizar_lote_oculto.vbs`.
+- Tarea: `tesis\analizar_lote` del Programador de tareas, cada 4 h desde las
+  00:00, también con batería; si el equipo estaba apagado, se ejecuta al
+  encenderlo. Necesita la sesión iniciada y PostgreSQL encendido.
+- Log diario: `logs\lote_AAAAMMDD.log`; cada pasada termina con
+  `=== Codigo de salida N (fecha)` (0 = bien).
+
+```powershell
+# ¿Corrió? Última ejecución, resultado (0 = bien) y la siguiente
+Get-ScheduledTaskInfo -TaskPath "\tesis\" -TaskName analizar_lote
+Get-Content logs\lote_$(Get-Date -Format yyyyMMdd).log -Tail 15 -Encoding UTF8
+
+# Lanzar una pasada ahora
+Start-ScheduledTask -TaskPath "\tesis\" -TaskName analizar_lote
+
+# Desactivar / volver a activar / eliminar
+Disable-ScheduledTask -TaskPath "\tesis\" -TaskName analizar_lote
+Enable-ScheduledTask  -TaskPath "\tesis\" -TaskName analizar_lote
+Unregister-ScheduledTask -TaskPath "\tesis\" -TaskName analizar_lote -Confirm:$false
+```
+
+## Levantar la plataforma
+
+Requisitos: PostgreSQL encendido, `backend\.env` configurado, `backend\venv`
+con las dependencias y `npm ci` ejecutado en `frontend`.
+
+Todo en uno (abre dos ventanas y el navegador):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\iniciar_demo.ps1
+```
+
+O por separado, cada uno en su terminal:
+
+```powershell
+# Backend (http://127.0.0.1:8000)
+cd backend
+venv\Scripts\python.exe manage.py migrate
+venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000
+
+# Frontend (http://localhost:5174)
+cd frontend
+npx vite --port 5174
+```
+
+Para ver dos perfiles a la vez, use ventanas distintas (normal, incógnito u
+otro navegador): la sesión se guarda en el navegador.

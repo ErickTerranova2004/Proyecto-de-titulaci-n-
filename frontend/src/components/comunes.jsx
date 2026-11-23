@@ -5,6 +5,9 @@ import { createContext, useContext } from "react";
 // Usuario autenticado (respuesta de /api/yo/) disponible para todas las vistas.
 export const UsuarioContexto = createContext(null);
 
+// Abre un informe de cumplimiento por su id (lo da App). Null fuera de App.
+export const AbrirInformeContexto = createContext(null);
+
 export function useRoles() {
   const roles = useContext(UsuarioContexto)?.roles ?? [];
   return {
@@ -16,7 +19,7 @@ export function useRoles() {
 export const DECISIONES = {
   autorizar: "Autorizar el despliegue",
   posponer: "Posponer el despliegue",
-  solicitar_revision: "Solicitar revisión adicional",
+  solicitar_revision: "Solicitar revisión previa del cambio",
 };
 
 export const NIVELES = { bajo: "Bajo", medio: "Medio", alto: "Alto" };
@@ -35,7 +38,7 @@ export function Fecha({ valor }) {
 }
 
 // Fechas límite: solo días (sin hora) en la zona del backend.
-const ZONA = "America/Guayaquil";
+import { ZONA } from "../zona.js";
 
 // Fecha de hoy en America/Guayaquil con formato AAAA-MM-DD (input type="date").
 export function hoyLocal() {
@@ -43,6 +46,21 @@ export function hoyLocal() {
 }
 
 // Muestra una fecha AAAA-MM-DD sin convertirla de zona horaria.
+// Validación prospectiva: la supervisión solo cuenta ejecuciones que
+// empezaron después de la más reciente del entrenamiento (fecha de corte).
+export function NotaCorte({ supervision }) {
+  if (!supervision?.fecha_corte) return null;
+  return (
+    <p className="nota-corte">
+      <strong>Evaluado con ejecuciones no vistas en el entrenamiento</strong>: solo cuentan las que empezaron después
+      del <Fecha valor={supervision.fecha_corte} /> (la más reciente del dataset de {supervision.version}).
+      {supervision.predicciones_lote > 0 && ` ${supervision.predicciones_lote} analizadas en lote.`}
+      {supervision.predicciones_anteriores_al_corte > 0 &&
+        ` No cuentan ${supervision.predicciones_anteriores_al_corte} predicciones de ejecuciones anteriores al corte.`}
+    </p>
+  );
+}
+
 export function FechaDia({ valor }) {
   if (!valor) return "—";
   const [a, m, d] = valor.split("-").map(Number);
@@ -94,6 +112,18 @@ export function RespuestaDesarrollador({ nivelOriginal, respuesta, comentario })
     </span>
   );
 }
+
+// Celda «Modelo» de las tablas (Historial y Pendientes).
+export function CeldaModelo({ analisis }) {
+  return (
+    <span className="secundario" title={analisis.version_modelo}>
+      {analisis.modelo_nombre ?? analisis.version_modelo}
+    </span>
+  );
+}
+
+// «68.1 % (109/160)» o «—»: tasa de no completados de un nivel.
+export const textoTasa = (n) => (n.tasa == null ? "—" : `${porcentaje(n.tasa)} (${n.no_completados}/${n.evaluables})`);
 
 export function NivelRiesgo({ nivel, grande = false }) {
   return (

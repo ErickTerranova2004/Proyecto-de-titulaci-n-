@@ -1,14 +1,206 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
-import { Alerta, DECISIONES, Fecha } from "./comunes.jsx";
+import { COMPARAR, modeloPrincipal, opcionesModelo } from "../modeloActivo.js";
+import {
+  commitsPendientes,
+  datosPendientes,
+  ordenarRepos,
+  pendientesRepo,
+  textoPendientes,
+  workflowInicial,
+} from "../pendientes.js";
+import {
+  Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, textoPlazo,
+} from "./comunes.jsx";
+import { RECOMENDACIONES } from "../recomendacion.js";
+import { TEXTO_SECUNDARIO_DESPLEGADO, textoDesplegado } from "../desplegado.js";
+import EnviarInforme from "./EnviarInforme.jsx";
 import Resultado from "./Resultado.jsx";
 
 // Mismas opciones que acepta el backend (SolicitudPrediccionSerializer.EVENTOS).
 const EVENTOS = ["push", "workflow_dispatch", "release", "pull_request", "schedule", "workflow_run"];
 
+// «17 nov 2026, 16:18»: fecha legible de la asignación (sin estilo monoespaciado).
+function fechaLegible(valor) {
+  if (!valor) return "";
+  return new Date(valor).toLocaleString("es-EC", {
+    day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+}
+
+// Aviso informativo (azul suave) cuando el commit ya se desplegó o se está
+// desplegando: cuándo y cómo terminó, qué implica para la validación y un
+// enlace discreto a la ejecución en GitHub. `children`: los botones.
+export function AvisoDesplegado({ aviso, children, ahora }) {
+  const ejecucion = aviso.ejecucion || {};
+  return (
+    <div className="aviso-desplegado" role="status">
+      <span className="aviso-desplegado__icono" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4M12 8h.01" />
+        </svg>
+      </span>
+      <div className="aviso-desplegado__cuerpo">
+        <p className="aviso-desplegado__principal">{textoDesplegado(ejecucion, ahora)}</p>
+        <p className="aviso-desplegado__secundario">{TEXTO_SECUNDARIO_DESPLEGADO}</p>
+        {ejecucion.url && (
+          <a className="aviso-desplegado__enlace" href={ejecucion.url} target="_blank" rel="noreferrer">
+            Ver la ejecución en GitHub
+          </a>
+        )}
+        {children && <div className="aviso-desplegado__acciones">{children}</div>}
+      </div>
+    </div>
+  );
+}
+
+// Tarjeta con la asignación del líder que este análisis responde.
+function AvisoAsignacion({ asignacion }) {
+  const decision = DECISIONES[asignacion.decision] ?? asignacion.decision;
+  return (
+    <section className="aviso-asignacion" role="status" aria-labelledby="titulo-asignacion">
+      <div className="aviso-asignacion__cabecera">
+        <span className="aviso-asignacion__icono" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+        </span>
+        <div>
+          <p className="aviso-asignacion__etiqueta">Respondiendo a una asignación</p>
+          <h2 id="titulo-asignacion" className="aviso-asignacion__decision">{decision}</h2>
+        </div>
+        {asignacion.estado && (
+          <span className="aviso-asignacion__estado">
+            <EstadoAsignacion estado={asignacion.estado} />
+          </span>
+        )}
+      </div>
+
+      {asignacion.mensaje && (
+        <blockquote className="aviso-asignacion__mensaje">
+          <p>{asignacion.mensaje}</p>
+        </blockquote>
+      )}
+
+      <dl className="aviso-asignacion__datos">
+        <div>
+          <dt>Asignada por</dt>
+          <dd><strong>{asignacion.lider}</strong></dd>
+        </div>
+        <div>
+          <dt>Fecha</dt>
+          <dd><time dateTime={asignacion.creada_en}>{fechaLegible(asignacion.creada_en)}</time></dd>
+        </div>
+        <div>
+          <dt>Fecha límite</dt>
+          <dd>
+            {asignacion.fecha_limite ? (
+              <>
+                <FechaDia valor={asignacion.fecha_limite} />
+                <span className="aviso-asignacion__plazo"> · {textoPlazo(asignacion)}</span>
+              </>
+            ) : (
+              "Sin fecha límite"
+            )}
+          </dd>
+        </div>
+      </dl>
+
+      <p className="aviso-asignacion__pie">Al terminar este análisis, la asignación quedará cumplida.</p>
+    </section>
+  );
+}
+
+// «Comparar ambos»: los análisis de los dos modelos lado a lado (mismas
+// variables). Ninguno es oficial hasta que el usuario elige uno.
+export function ComparacionModelos({ analisis, modelos, eligiendo = null, alElegir }) {
+  return (
+    <section className="comparacion-modelos" aria-labelledby="titulo-comparacion-modelos">
+      <header className="encabezado">
+        <h2 id="titulo-comparacion-modelos">Comparación de modelos</h2>
+        <p className="secundario">
+          Mismo commit y mismas variables, analizados con cada modelo. Ninguno es oficial todavía: elija cuál queda como
+          análisis oficial. Ese es el que verá el líder técnico; el otro se guarda oculto.
+        </p>
+      </header>
+      <ResumenComparacion analisis={analisis} />
+      <div className="comparacion-modelos__columnas">
+        {analisis.map((a) => (
+          <div key={a.id} className="comparacion-modelos__columna">
+            <Resultado prediccion={a} modelos={modelos} enComparacion />
+            <button
+              className="boton"
+              type="button"
+              disabled={eligiendo !== null}
+              onClick={() => alElegir(a)}
+            >
+              {eligiendo === a.id ? "Guardando…" : "Usar como análisis oficial"}
+              <span className="solo-lector"> ({a.modelo_nombre ?? a.version_modelo})</span>
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+const nombre = (a) => a.modelo_nombre ?? a.version_modelo;
+
+// Resumen arriba de la comparación: probabilidad, nivel y recomendación de
+// cada modelo y la diferencia entre los dos.
+export function ResumenComparacion({ analisis }) {
+  if (analisis.length < 2) return null;
+  const [a, b] = analisis;
+  const puntos = (b.probabilidad - a.probabilidad) * 100;
+  const diferencia = Math.abs(puntos) < 0.05
+    ? `${nombre(a)} y ${nombre(b)} estiman la misma probabilidad.`
+    : `${nombre(b)} estima ${Math.abs(puntos).toFixed(1).replace(".", ",")} puntos ${puntos > 0 ? "más" : "menos"} que ${nombre(a)}.`;
+  const coinciden = a.nivel === b.nivel && a.recomendacion === b.recomendacion;
+  return (
+    <div className="tarjeta comparacion-modelos__resumen">
+      <div className="tabla-contenedor">
+        <table>
+          <caption className="solo-lector">Resumen de la comparación de modelos</caption>
+          <thead>
+            <tr>
+              <th scope="col"><span className="solo-lector">Dato</span></th>
+              {analisis.map((x) => <th key={x.id} scope="col">{nombre(x)}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Probabilidad</th>
+              {analisis.map((x) => <td key={x.id} className="destacado">{porcentaje(x.probabilidad)}</td>)}
+            </tr>
+            <tr>
+              <th scope="row">Nivel</th>
+              {analisis.map((x) => <td key={x.id}><NivelRiesgo nivel={x.nivel} /></td>)}
+            </tr>
+            <tr>
+              <th scope="row">Recomendación</th>
+              {analisis.map((x) => <td key={x.id}>{RECOMENDACIONES[x.recomendacion] ?? "—"}</td>)}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="comparacion-modelos__diferencia">
+        <strong>{diferencia}</strong>{" "}
+        {coinciden
+          ? "Coinciden en el nivel y en la recomendación."
+          : "No coinciden en el nivel o en la recomendación: revise los factores de cada uno antes de elegir."}
+      </p>
+    </div>
+  );
+}
+
 // `respuesta`: asignación del líder que este análisis atiende (opcional). Llega
 // con el repositorio, el workflow y la rama del análisis original.
-export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
+// `alAnalizar(prediccion)`: avisa del análisis terminado (el Planificador lo
+// preselecciona). `alPlanificar(prediccion)`: abre el Planificador con él; sin
+// esta función (roles sin Planificador) no se muestra el botón.
+export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnalizar, alPlanificar }) {
   const [repos, setRepos] = useState(null);
   const [datos, setDatos] = useState({
     repositorio: respuesta?.repositorio ?? "",
@@ -21,39 +213,117 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState(null);
+  // Modelo del análisis ("" = el principal) y, con «Comparar ambos», los dos
+  // análisis lado a lado hasta que el usuario elige el oficial.
+  const [modelo, setModelo] = useState("");
+  const [comparacion, setComparacion] = useState(null);
+  const [eligiendo, setEligiendo] = useState(null);
+  const opciones = opcionesModelo(modelos);
+  // Con un solo modelo disponible no hay selector: se usa el principal.
+  const conSelector = opciones.length > 1;
+  const modeloElegido = (conSelector && modelo) || modeloPrincipal(modelos);
+  // 409 commit_ya_desplegado: el commit ya se desplegó o se está desplegando.
+  const [aviso, setAviso] = useState(null);
   const refResultado = useRef(null);
-  const campo = (nombre) => (e) => setDatos({ ...datos, [nombre]: e.target.value });
+  const refCommit = useRef(null);
+  const campo = (nombre) => (e) => {
+    setAviso(null);
+    setDatos({ ...datos, [nombre]: e.target.value });
+  };
 
   useEffect(() => {
-    api.repositorios().then(setRepos).catch((e) => setError(e.message));
+    api
+      .repositorios()
+      .then((r) => setRepos(ordenarRepos(r)))
+      .catch((e) => setError(e.message));
   }, []);
   useEffect(() => {
-    if (resultado) refResultado.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [resultado]);
+    if (resultado || comparacion) refResultado.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [resultado, comparacion]);
   const workflows = repos?.find((r) => r.nombre_completo === datos.repositorio)?.workflows || [];
+  const workflowElegido = workflows.find((w) => w.path === datos.workflow_path);
+
+  // Con commits pendientes se rellenan commit, rama y evento; si no, se vacía
+  // el commit (podría ser de otro repositorio).
+  function conWorkflow(base, workflow) {
+    const relleno = datosPendientes(workflow, EVENTOS);
+    return { ...base, workflow_path: workflow?.path || "", ...(relleno ?? { head_sha: "" }) };
+  }
 
   function elegirRepositorio(e) {
     const repo = repos.find((r) => r.nombre_completo === e.target.value);
     setError("");
-    setDatos({ ...datos, repositorio: e.target.value, workflow_path: repo?.workflows[0]?.path || "" });
+    setAviso(null);
+    setDatos(conWorkflow({ ...datos, repositorio: e.target.value }, workflowInicial(repo)));
   }
 
-  async function enviar(e) {
-    e.preventDefault();
+  function elegirWorkflow(e) {
+    setAviso(null);
+    setDatos(conWorkflow(datos, workflows.find((w) => w.path === e.target.value)));
+  }
+
+  async function enviar(e, confirmar = false) {
+    e?.preventDefault();
     setCargando(true);
     setError("");
+    setAviso(null);
     setResultado(null);
+    setComparacion(null);
     try {
-      const enviados = respuesta
+      let enviados = respuesta
         ? { ...datos, atiende_decision: respuesta.asignacion.id, respuesta_desarrollador: cambios }
         : datos;
-      setResultado(await api.predecir(enviados));
-      if (respuesta) alResponder?.();
+      enviados = { ...enviados, modelo: modeloElegido };
+      if (confirmar) enviados = { ...enviados, confirmar_desplegado: true };
+      const nuevo = await api.predecir(enviados);
+      if (nuevo.comparacion) {
+        // Ninguno es oficial hasta que el usuario elige uno.
+        setComparacion(nuevo.comparacion);
+        return;
+      }
+      if (modeloElegido === COMPARAR) {
+        // Un backend sin reiniciar ignora «Comparar ambos» y hace un solo análisis.
+        setError(
+          `El servidor no devolvió la comparación: hizo un solo análisis con ${nuevo.modelo_nombre ?? nuevo.version_modelo}. ` +
+            "Reinicie el backend (scripts\\iniciar_demo.ps1) y vuelva a intentarlo.",
+        );
+      }
+      terminar(nuevo);
     } catch (err) {
-      setError(err.message);
+      if (err.estado === 409 && err.datos?.codigo === "commit_ya_desplegado") setAviso(err.datos);
+      else setError(err.message);
     } finally {
       setCargando(false);
     }
+  }
+
+  function terminar(nuevo) {
+    setResultado(nuevo);
+    alAnalizar?.(nuevo);
+    if (respuesta) alResponder?.();
+  }
+
+  async function elegirOficial(analisis) {
+    setError("");
+    setEligiendo(analisis.id);
+    try {
+      const oficial = await api.elegirOficial(
+        analisis.id,
+        respuesta ? { atiende_decision: respuesta.asignacion.id, respuesta_desarrollador: cambios } : {},
+      );
+      setComparacion(null);
+      terminar(oficial);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEligiendo(null);
+    }
+  }
+
+  function elegirOtroCommit() {
+    setAviso(null);
+    setDatos({ ...datos, head_sha: "" });
+    refCommit.current?.focus();
   }
 
   return (
@@ -65,14 +335,7 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
         </p>
       </header>
 
-      {respuesta && (
-        <p className="nota" role="status">
-          Respondiendo a la asignación de <strong>{respuesta.asignacion.lider}</strong> del{" "}
-          <Fecha valor={respuesta.asignacion.creada_en} />: {DECISIONES[respuesta.asignacion.decision]}
-          {respuesta.asignacion.mensaje && <> · «{respuesta.asignacion.mensaje}»</>}. Al terminar este análisis la
-          asignación quedará cumplida.
-        </p>
-      )}
+      {respuesta && <AvisoAsignacion asignacion={respuesta.asignacion} />}
 
       <form className="tarjeta formulario" onSubmit={enviar} aria-describedby="ayuda-nuevo">
         <p id="ayuda-nuevo" className="secundario">
@@ -85,9 +348,14 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
               <label htmlFor="campo-repositorio">Repositorio</label>
               <select id="campo-repositorio" value={datos.repositorio} onChange={elegirRepositorio} required>
                 <option value="">Seleccione un repositorio</option>
-                {repos?.map((r) => (
-                  <option key={r.id} value={r.nombre_completo}>{r.nombre_completo}</option>
-                ))}
+                {repos?.map((r) => {
+                  const marca = textoPendientes(pendientesRepo(r));
+                  return (
+                    <option key={r.id} value={r.nombre_completo}>
+                      {marca ? `${r.nombre_completo} — ${marca}` : r.nombre_completo}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div className="campo">
@@ -95,12 +363,19 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
               <select
                 id="campo-workflow"
                 value={datos.workflow_path}
-                onChange={campo("workflow_path")}
+                onChange={elegirWorkflow}
                 required
                 disabled={!workflows.length}
               >
                 {workflows.length ? (
-                  workflows.map((w) => <option key={w.path} value={w.path}>{w.path}</option>)
+                  workflows.map((w) => {
+                    const marca = textoPendientes(commitsPendientes(w));
+                    return (
+                      <option key={w.path} value={w.path}>
+                        {marca ? `${w.path} — ${marca}` : w.path}
+                      </option>
+                    );
+                  })
                 ) : (
                   <option value="">Sin workflows disponibles</option>
                 )}
@@ -109,6 +384,12 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
           </div>
           {datos.repositorio && !workflows.length && (
             <Alerta>Este repositorio no tiene workflows de despliegue validados.</Alerta>
+          )}
+          {repos?.some((r) => pendientesRepo(r)) && (
+            <p className="secundario">
+              Primero aparecen los repositorios con commits pendientes de desplegar: analícelos antes de su próximo
+              despliegue para poder compararlos con el resultado real.
+            </p>
           )}
           {!repos && !error && <p className="secundario" role="status">Cargando repositorios accesibles…</p>}
           {repos && !repos.length && (
@@ -136,6 +417,7 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
             <div className="campo">
               <label htmlFor="campo-commit">Commit (SHA, opcional)</label>
               <input
+                ref={refCommit}
                 id="campo-commit"
                 value={datos.head_sha}
                 onChange={campo("head_sha")}
@@ -156,9 +438,36 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
           </div>
         </fieldset>
 
+        {conSelector && (
+        <fieldset>
+          <legend>3. Modelo</legend>
+          <div className="campos">
+            <div className="campo">
+              <label htmlFor="campo-modelo">Modelo</label>
+              <select
+                id="campo-modelo"
+                value={modeloElegido}
+                onChange={(e) => setModelo(e.target.value)}
+                aria-describedby="ayuda-modelo"
+                required
+              >
+                {opciones.map((o) => (
+                  <option key={o.valor} value={o.valor}>{o.texto}</option>
+                ))}
+                <option value={COMPARAR}>Comparar ambos</option>
+              </select>
+            </div>
+          </div>
+          <p id="ayuda-modelo" className="secundario">
+            Todo el análisis (probabilidad, nivel, recomendación, factores y texto) sale del modelo elegido. Con «Comparar
+            ambos» verá los dos lado a lado y elegirá cuál queda como análisis oficial para el líder técnico.
+          </p>
+        </fieldset>
+        )}
+
         {respuesta && (
           <fieldset>
-            <legend>3. Respuesta al líder técnico</legend>
+            <legend>{conSelector ? "4" : "3"}. Respuesta al líder técnico</legend>
             <div className="campo">
               <label htmlFor="campo-cambios">Qué cambié (opcional)</label>
               <textarea
@@ -174,6 +483,16 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
         )}
 
         <Alerta>{error}</Alerta>
+        {aviso && (
+          <AvisoDesplegado aviso={aviso}>
+            <button className="boton boton--secundario" type="button" onClick={elegirOtroCommit}>
+              Elegir otro commit
+            </button>
+            <button className="boton" type="button" disabled={cargando} onClick={() => enviar(null, true)}>
+              Analizar de todos modos
+            </button>
+          </AvisoDesplegado>
+        )}
         <div className="formulario__acciones">
           <button className="boton" type="submit" disabled={cargando}>
             {cargando ? "Consultando GitHub…" : "Estimar riesgo de despliegue"}
@@ -181,9 +500,39 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder }) {
         </div>
       </form>
 
+      {comparacion && (
+        <div ref={refResultado}>
+          <ComparacionModelos
+            analisis={comparacion}
+            modelos={modelos}
+            eligiendo={eligiendo}
+            alElegir={elegirOficial}
+          />
+        </div>
+      )}
+
       {resultado && (
         <div ref={refResultado}>
           <Resultado prediccion={resultado} modelos={modelos} />
+          {respuesta && (
+            <div className="tarjeta nuevo__planificar">
+              <p className="secundario">
+                La asignación de <strong>{respuesta.asignacion.lider}</strong> quedó cumplida con este análisis. Envíele
+                un informe con los cambios que hizo para que registre su decisión final.
+              </p>
+              <EnviarInforme asignacion={{ id: respuesta.asignacion.id, respuesta_desarrollador: cambios }} />
+            </div>
+          )}
+          {alPlanificar && (
+            <div className="tarjeta nuevo__planificar">
+              <p className="secundario">
+                ¿Y si despliega en otro momento? El Planificador estima el riesgo de este mismo análisis en otro día u hora.
+              </p>
+              <button className="boton" type="button" onClick={() => alPlanificar(resultado)}>
+                Abrir en el planificador
+              </button>
+            </div>
+          )}
         </div>
       )}
     </section>

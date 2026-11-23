@@ -20,6 +20,7 @@ const ICONOS = {
     workflows: "M4 6h16M4 12h10M4 18h6M17 15l3 3-3 3",
     modelos: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z",
     integraciones: "M9 7H6a5 5 0 0 0 0 10h3M15 7h3a5 5 0 0 1 0 10h-3M8 12h8",
+    informes: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M9 13h6M9 17h6M9 9h1",
 };
 
 const seccion = (id, texto, icono, enlace) => ({ id, texto, icono: ICONOS[icono], enlace });
@@ -36,10 +37,13 @@ export const SECCIONES = {
         seccion("panel", "Panel del equipo", "panel"),
         seccion("pendientes", "Pendientes de decisión", "pendientes"),
         seccion("historial", "Historial del equipo", "historial"),
+        seccion("informes", "Informes recibidos", "informes"),
         seccion("nuevo", "Nuevo análisis", "nuevo"),
     ],
     administrador: [
         seccion("panel", "Panel de administración", "panel"),
+        seccion("historial", "Historial de análisis", "historial"),
+        seccion("informes", "Informes de cumplimiento", "informes"),
         seccion("usuarios", "Usuarios y accesos", "usuarios"),
         seccion("workflows", "Workflows", "workflows"),
         seccion("modelos", "Modelos", "modelos"),

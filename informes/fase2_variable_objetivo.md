@@ -37,7 +37,11 @@ Fecha: 2026-10-15. Evidencia: `informes/informe_niveles_despliegue.md`,
 **Variable objetivo `y` (despliegue no completado):**
 - `y = 0`: el paso de despliegue se ejecutó y el workflow terminó en `success`.
 - `y = 1`: el intento no se completó. El workflow falló antes de llegar al despliegue (compilación o pruebas del pipeline), durante el despliegue o en un paso posterior del mismo job.
-- **Excluidas:** ejecuciones exitosas sin paso de despliegue (no hubo intento), fallos en otro job con el despliegue completado (ambiguas), y ejecuciones `cancelled`, `skipped` o `action_required`.
+- **Excluidas:** ejecuciones exitosas sin paso de despliegue (no hubo intento), fallos en otro job con el despliegue completado (ambiguas), ejecuciones `cancelled`, `skipped` o `action_required`, y ejecuciones que terminaron **sin ningún job** (`startup_failure`, YAML inválido, permisos del workflow…): no llegaron a arrancar, así que no son un intento de despliegue y no cuentan como y = 1. *(Añadido el 2026-11-08 al construir el dataset de repositorios reales; ver `informes/informe_filtrado_repos_reales.md`.)*
+- **Solo entornos de producción:** también se excluyen las ejecuciones cuyo despliegue va a un entorno no productivo (staging, dev, test, QA, preview, demo, beta, sandbox, nightly…). Si el workflow despliega a staging y a producción, solo cuenta el despliegue a producción. Un repositorio cuyo workflow no despliega nunca a producción queda fuera del dataset (criterio 2). En la plataforma el entorno se reconoce por el nombre del job o del paso; si el workflow falla antes de cualquier despliegue no se puede saber a qué entorno iba. En el dataset ese caso se resuelve por la rama: solo cuentan las ramas desde las que hubo algún despliegue completado a producción. *(Añadido el 2026-11-08.)*
+- **Ejecuciones manuales con entorno indeterminado:** se excluyen las ejecuciones `workflow_dispatch` cuyo entorno de destino no se puede determinar. Son las de un workflow cuyo `workflow_dispatch` tiene un input que elige el entorno (de tipo `environment`, o con nombre como `environment`, `env`, `stage` o `target` y valor libre u opciones no productivas) y en el que ningún job declara un entorno literal ni lo indica en su nombre. También se excluyen las ejecuciones manuales que fallan antes de desplegar cuando un input decide el entorno o si se despliega a producción (p. ej. `deploy_production: true/false`), porque no se sabe si el intento iba a producción. La etiqueta es `excluida_entorno_indeterminado`. Caso de origen: `dimagi/open-chat-studio`, donde la ejecución manual puede elegir `dev` o `prod`. *(Añadido el 2026-11-09 por decisión del autor.)*
+- **Entorno resuelto en tiempo de ejecución (regla 7 del dataset):** muchos workflows deciden el entorno al ejecutarse: por la rama (`main` → staging, `production` → prod), por ser o no una *prerelease*, o con la salida de otro job. En el dataset el entorno real se obtiene, por este orden: (1) del entorno que GitHub registró para el job (API de Deployments); (2) de las expresiones `${{ }}` del workflow evaluadas con la rama y el evento de la ejecución; (3) del nombre o el archivo del workflow («Deploy Staging», `deploy-test.yaml`); y (4) de la rama, si su nombre es no productivo (`dev`, `develop`, `staging`, `preprod`…; las excepciones revisadas a mano se documentan en el informe). Además, la regla de la rama del punto anterior se aplica a **todos** los repositorios, así que un fallo antes del despliegue en una rama sin despliegues completados a producción (por ejemplo, la rama de un pull request) no cuenta como y = 1. Esta regla solo restringe: nunca convierte en producción una ejecución que antes no lo era. *(Añadido el 2026-11-09, a raíz de la muestra de validación final de 50 ejecuciones.)*
+- **Hosting estático:** publicar archivos estáticos (Cloudflare Pages, Netlify, GitHub Pages, sitio web en S3, Firebase Hosting, Azure Static Web Apps…) no es desplegar una aplicación y no cuenta como despliegue. Si en el workflow también se despliega un backend, cuenta solo ese despliegue; un repositorio que solo publica en hosting estático queda fuera del dataset (criterio 2). *(Añadido el 2026-11-08.)*
 
 ## 5. Cambio de alcance (declaración explícita)
 
@@ -50,7 +54,17 @@ Las conclusiones de la tesis deben limitarse a este alcance. La estrategia A que
 
 ## 6. Aplicación de la regla a ejecuciones reales en la plataforma
 
-Al verificar una predicción (`POST /api/predicciones/{id}/verificar/`), la plataforma aplica esta misma regla a la ejecución real. Usa el resultado **exacto de cada paso** que da la API de jobs de GitHub (`backend/riesgo/services/etiquetado.py`). Un paso se considera de despliegue si su nombre coincide con `Workflow.patron_paso_despliegue`.
+Al verificar una predicción (`POST /api/predicciones/{id}/verificar/`), la plataforma aplica esta misma regla a la ejecución real. Usa el resultado **exacto de cada paso** que da la API de jobs de GitHub (`backend/riesgo/services/etiquetado.py`). Un paso es de despliegue a producción según estas señales, por orden de prioridad:
+1. **El job no está omitido** (`skipped`): sus pasos no cuentan.
+2. **Entorno del job:** si el job declara `environment`, ese entorno decide si es producción. Si no lo declara, se usan los nombres del job y del paso, y no deben coincidir con `PATRON_NO_PRODUCCION` (staging, dev, test, preview, demo, beta…).
+3. **Acción o comando de despliegue conocido** en el `uses` o el `run` del paso: `deploy-cloudrun`, `amazon-ecs-deploy-task-definition`, `webapps-deploy`, `gcloud run deploy`, `sam deploy`, `helm upgrade`, etc. Se descartan las variantes `--dry-run` y `plan`.
+4. **Nombre del paso:** debe contener un verbo de despliegue (`Workflow.patron_paso_despliegue`) y no ser un paso auxiliar (dry-run, versión, URL, instalación, setup, status, matriz de despliegue…).
+
+Tampoco cuentan las variantes que no despliegan: `--dry-run`, `plan` y `ansible-playbook --syntax-check` o `--check`. `PATRON_NO_PRODUCCION` reconoce además `preprod`, `nonprod`, `acceptance`, `pull_request`, los sufijos camelCase (`reserveRecAdminTest`) y los entornos de una sola sigla (`at`, `acc`, `tst`). Si falla un job que declara un entorno no productivo (por ejemplo, «Deploy Dev» con `environment: DEV`), la ejecución se excluye como no productiva y no cuenta como y = 1. *(Regla 7, 2026-11-09.)*
+
+En todos los casos, los pasos de hosting estático no cuentan. Se reconocen por el paso (nombre, `uses` o `run`) o por el nombre del job, como en un job «Deploy to Cloudflare Pages» cuyo paso «Deploy» usa `wrangler-action`. *(Ajuste del 2026-11-09, a raíz de la segunda muestra de 30 ejecuciones y=0.)*
+
+La API de jobs de GitHub no devuelve el `environment` del job ni el `uses`/`run` de cada paso. El script del dataset los toma del YAML del workflow; la plataforma, por ahora, solo dispone de los nombres.
 
 | `etiqueta` | `subtipo_etiqueta` | y | Condición |
 |---|---|:-:|---|
@@ -61,7 +75,51 @@ Al verificar una predicción (`POST /api/predicciones/{id}/verificar/`), la plat
 | `excluida_ambigua` | — | — | Falló otro job y el despliegue terminó bien (caso novu) |
 | `excluida_sin_intento` | — | — | Workflow `success` sin paso de despliegue en `success` |
 | `excluida_otro_resultado` | — | — | `cancelled`, `skipped`, `action_required`… |
+| `excluida_sin_jobs` | — | — | Workflow `failure` sin ningún job: no llegó a arrancar (`startup_failure`, YAML inválido…) |
+| `excluida_no_produccion` | — | — | Solo se desplegó, o falló el despliegue, en un entorno no productivo (job o paso con staging, dev, test, preview, demo, beta…), o falló un job con un entorno no productivo |
+| `excluida_entorno_indeterminado` | — | — | Solo en el dataset: ejecución manual (`workflow_dispatch`) cuyo entorno de destino no se puede determinar (ver sección 4) |
 
 La etiqueta se llama **"despliegue no completado"**, nunca "fallo real de despliegue". Solo el subtipo `en_paso_de_despliegue` aporta evidencia directa de un fallo *durante* el despliegue. Guardar ese subtipo es lo que permitirá, con el tiempo, construir la etiqueta de fallo real que hoy no existe en los datos públicos.
 
 Diferencia con el entrenamiento: en GHALogs el paso fallido se **infería** (último paso registrado). En la plataforma se **observa** con la API de jobs. Por eso las etiquetas de la plataforma son más precisas que las del dataset de entrenamiento.
+
+## 7. Métricas de la propuesta que no se pueden obtener (2026-11-10)
+
+La propuesta enumera seis grupos de métricas de entrada: commits, archivos modificados, pruebas fallidas, bugs, vulnerabilidades y cobertura. Con un token de GitHub **de solo lectura** sobre **repositorios de terceros** (todos los del dataset), la cobertura de cada una es:
+
+| Métrica | Variables del modelo v2 | Fuente |
+|---|---|---|
+| Commits | `msg_*`, `autor_bot`, `retraso_commit_run_min`, `tiene_pr` | Commit y sus pull requests |
+| Archivos modificados | `archivos_modificados`, `lineas_anadidas`, `lineas_borradas` | `/commits/{sha}` (máximo 300 archivos listados; las líneas cuentan todo el cambio) |
+| Pruebas fallidas | `checks_n_prev`, `checks_fallidos_prev`, `checks_tasa_fallo_prev` | Checks del mismo commit terminados **antes** del inicio del despliegue, sin los del propio workflow de despliegue. Incluyen pruebas, compilación y análisis: es una aproximación, no un recuento de pruebas unitarias |
+| Bugs | Solo indirecta: `msg_fix` | Mensaje del commit |
+| **Vulnerabilidades** | **No disponible** | Las alertas de Dependabot, de code scanning y de secret scanning exigen permisos de administración o de seguridad sobre el repositorio, que no se tienen en repositorios de terceros |
+| **Cobertura** | **No disponible** | GitHub no la calcula; la publican servicios externos (Codecov, Coveralls) solo en algunos repositorios y con formatos distintos |
+
+Las dos últimas quedan fuera del modelo por una limitación de acceso a los datos, no por decisión de diseño. En una organización que use la plataforma con sus propios repositorios (token con permisos de seguridad y un servicio de cobertura) se podrían añadir con el mismo esquema: calcularlas con lo que existía antes del inicio del despliegue.
+
+## 8. Regla 8: pasos que no despliegan y pull requests (2026-11-11)
+
+Corrige dos errores encontrados al verificar el dataset v2. No cambia la definición de la etiqueta; aplica la regla de la sección 4 con más precisión.
+
+- **Pasos que GitHub añade alrededor de una acción.** «Build owner/acción@v» construye la imagen de una acción de Docker al empezar el job y se ejecuta **aunque el paso real se omita** con `if:`; «Pre …» y «Post …» son la preparación y la limpieza de otro paso (el «Pre» también se ejecuta aunque el paso se omita). Ninguno cuenta como despliegue. Se aplica igual en la plataforma (`backend/riesgo/services/etiquetado.py`, `PATRON_PASO_DE_GITHUB`) y en el dataset.
+- **Fallos en pull requests.** Un fallo antes del despliegue solo cuenta si la ejecución habría desplegado (sección 4). En un pull request el despliegue suele estar limitado a push: si, con el YAML del commit de esa ejecución, todos los pasos de despliegue (o sus jobs) tienen un `if:` que los limita a push, a una rama o a una etiqueta, el fallo se excluye (`excluida_no_produccion`). Los pull requests cuyo despliegue sí se ejecutó (y=0) se mantienen.
+- **Datos que GitHub ya no conserva.** Al re-etiquetar, las ejecuciones borradas o cuyos pasos ya no se conservan mantienen la etiqueta calculada cuando los pasos existían (no pasan a «sin intento»).
+
+## 9. Regla 9: «deployment» no es el verbo (2026-11-11)
+
+El patrón de verbos (`PATRON_DESPLIEGUE`, `\bdeploy`) también aceptaba el sustantivo «deployment(s)», así que pasos que solo hablan de un despliegue contaban como despliegue. Cambios, iguales en la plataforma (migración `0011`, que actualizó los 672 workflows con el patrón por defecto) y en el dataset:
+
+- `\bdeploy(?!ments?\b)`: «Read deployment resource metadata», «Deployment Report» o «Generate deployment package» ya no cuentan; «Deploy», «Deploying», «Deployed» y «deploy-api» siguen contando.
+- «key» deja de marcar un paso como auxiliar cuando es el medio del despliegue («deploy - executing remote ssh commands using ssh key»). «Set GitHub Deploy Key» sigue siendo auxiliar.
+
+Búsqueda sin API (YAML del commit de cada fila y=0): 21 filas en 2 repositorios cuya única evidencia era un paso con «deployment», y 294 filas en 16 repositorios con un paso así junto a otro paso de despliegue. Al re-etiquetar los 17 repositorios con la API cambiaron **6 filas** del dataset (y=0 → excluida):
+
+| Repositorio | Filas | Motivo |
+|---|---:|---|
+| wevm/frog | 2 | `workflow_dispatch` en la rama `ci/cloudflare-sts-preflight`: el job `preflight` lee metadatos de Cloudflare; no despliega |
+| alliance-genome/agr_curation | 4 | Versiones candidatas (`-rc`): solo se ejecutó `deploy-to-beta`; `deploy-to-production` se omitió. Antes las marcaba y=0 «Generate deployment package» |
+
+Las 19 filas de allcll/allcll-frontend siguen siendo y=0 (despliegue por SSH a un servidor con `environment: production`), ahora por el paso correcto. Cinco filas de TIS-SYNC y TIS-TCS ya no conservan sus pasos y mantienen la etiqueta; su job tiene además el paso «Deploy Amazon ECS task definition».
+
+Revisión a mano de las 11 filas de pull request que quedan (2026-11-11): todas correctas. En ServiceCanada/feedback-cron (9) el workflow se ejecuta en `pull_request` a `main` sin `if:` y despliega con `Azure/k8s-deploy` al clúster `tbs-prod-aks`; en ImCa0/just-laws (2) el PR de la rama `codex` despliega con `easingthemes/ssh-deploy` al servidor nginx. Todos los PR vienen de ramas del mismo repositorio, no de forks.

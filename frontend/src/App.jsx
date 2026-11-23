@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { api, CLAVE_SESION, sesion, urlAdmin } from "./api.js";
 import { Campana, useAsignaciones, VentanaAsignaciones } from "./components/Alarma.jsx";
+import AnalisisDetalle from "./components/AnalisisDetalle.jsx";
 import AtenderAsignacion from "./components/AtenderAsignacion.jsx";
-import { Alerta, UsuarioContexto } from "./components/comunes.jsx";
+import { AbrirInformeContexto, Alerta, UsuarioContexto } from "./components/comunes.jsx";
 import Historial from "./components/Historial.jsx";
+import InformeDetalle from "./components/InformeDetalle.jsx";
+import InformesRecibidos from "./components/InformesRecibidos.jsx";
 import Integraciones from "./components/Integraciones.jsx";
 import Login from "./components/Login.jsx";
 import Modelos from "./components/Modelos.jsx";
@@ -11,9 +14,13 @@ import NuevoAnalisis from "./components/NuevoAnalisis.jsx";
 import Panel from "./components/Panel.jsx";
 import Pendientes from "./components/Pendientes.jsx";
 import Planificador from "./components/Planificador.jsx";
+import Restablecer, { enlaceRestablecer } from "./components/Restablecer.jsx";
 import Usuarios from "./components/Usuarios.jsx";
 import Workflows from "./components/Workflows.jsx";
+import { LimiteErrores } from "./limiteErrores.js";
+import { Enlace, NavegacionContexto, useNavegacion, useRuta } from "./navegacion.jsx";
 import { NOMBRES_ROL, rolPrincipal, seccionesDe } from "./roles.js";
+import { interpretarRuta, redireccion, rutaDe, seccionActiva } from "./rutas.js";
 import { debeReiniciar, escucharSesion } from "./sesion.js";
 
 const NOMBRE = "Riesgo de despliegue";
@@ -21,15 +28,30 @@ const SUBTITULO = "Inteligencia para decisiones de despliegue";
 // Perfil del panel según el rol (Panel.jsx usa el mismo diseño para todos).
 const PERFIL_PANEL = { desarrollador: "desarrollador", lider_tecnico: "lider", administrador: "administrador" };
 
+// Cada pantalla tiene su dirección (src/rutas.js). La del enlace del correo
+// (/restablecer/<uid>/<token>) es pública: se muestra con o sin sesión.
 export default function App() {
+  const navegacion = useRuta();
+  const enlace = enlaceRestablecer(navegacion.ruta.pathname);
+  return (
+    <NavegacionContexto.Provider value={navegacion}>
+      {enlace ? <Restablecer uid={enlace.uid} token={enlace.token} /> : <Plataforma />}
+    </NavegacionContexto.Provider>
+  );
+}
+
+function Plataforma() {
+  const { ruta, navegar } = useNavegacion();
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(Boolean(sesion.token()));
-  const [vista, setVista] = useState(null);
   const [modelos, setModelos] = useState([]);
   // La ventana de asignaciones sale en cada ingreso hasta pulsar "Más tarde".
   const [ventanaCerrada, setVentanaCerrada] = useState(false);
+  // Vistas internas sin dirección propia: se cierran al navegar.
   const [atendiendo, setAtendiendo] = useState(null);
   const [respuesta, setRespuesta] = useState(null);
+  // Último «Nuevo análisis» terminado: el Planificador lo preselecciona.
+  const [ultimoAnalisis, setUltimoAnalisis] = useState(null);
   const usuarioRef = useRef(null);
   usuarioRef.current = usuario;
 
@@ -37,12 +59,13 @@ export default function App() {
   const nombreUsuario = usuario ? usuario.usuario : null;
   // La alarma de asignaciones solo se activa para el desarrollador.
   const alarma = useAsignaciones(rol === "desarrollador");
+  const destino = interpretarRuta(ruta.pathname, ruta.search);
 
   function reiniciarVista() {
-    setVista(null);
     setVentanaCerrada(false);
     setAtendiendo(null);
     setRespuesta(null);
+    setUltimoAnalisis(null);
   }
 
   const cargarUsuario = () =>
@@ -84,13 +107,33 @@ export default function App() {
     });
   }, [Boolean(usuario)]);
 
-  if (cargando) return <p className="cargando" role="status">Cargando plataforma…</p>;
-  if (!usuario) return <Login alEntrar={cargarUsuario} />;
+  // Atrás/adelante o cualquier navegación cierra «Atender asignación» y, al
+  // salir de «Nuevo análisis», la respuesta a una asignación.
+  useEffect(() => {
+    setAtendiendo(null);
+    if (destino.seccion !== "nuevo") setRespuesta(null);
+  }, [ruta.pathname]);
 
-  const secciones = seccionesDe(rol);
-  // Si la vista elegida no existe para el rol, se vuelve al panel del rol.
-  const actual = secciones.find((s) => s.id === vista && !s.enlace) || secciones[0] || null;
-  const idActual = actual ? actual.id : null;
+  const secciones = usuario ? seccionesDe(rol) : [];
+  const permitidas = secciones.filter((s) => !s.enlace).map((s) => s.id);
+  // "/", dirección desconocida, sección sin permiso o enlace antiguo del
+  // correo: se reemplaza la dirección (atrás no vuelve a la incorrecta).
+  const otra = usuario ? redireccion(destino, permitidas) : null;
+  useEffect(() => {
+    if (otra) navegar(otra, { reemplazar: true });
+  }, [otra]);
+
+  if (cargando) return <p className="cargando" role="status">Cargando plataforma…</p>;
+  // Sin sesión: el inicio de sesión en la misma dirección; al entrar se
+  // muestra la pantalla pedida (o el panel si el rol no la tiene).
+  if (!usuario) return <Login alEntrar={cargarUsuario} />;
+  if (otra) return <p className="cargando" role="status">Cargando…</p>;
+
+  const activa = seccionActiva(destino);
+  const actual = secciones.find((s) => s.id === activa) || null;
+  const titulo = destino.tipo === "analisis" ? `Análisis #${destino.id}`
+    : destino.tipo === "informe" ? "Informe de cumplimiento"
+      : atendiendo ? "Atender asignación" : (actual ? actual.texto : "");
 
   function salir() {
     sesion.cerrar();
@@ -99,15 +142,15 @@ export default function App() {
     reiniciarVista();
   }
 
-  function irA(id) {
-    setAtendiendo(null);
-    if (id !== "nuevo") setRespuesta(null);
-    setVista(id);
+  // Menú: el Planificador abre el último análisis si lo hay.
+  function rutaMenu(id) {
+    if (id === "planificador" && ultimoAnalisis) return `${rutaDe(id)}?analisis=${ultimoAnalisis.id}`;
+    return rutaDe(id);
   }
 
   function verAsignaciones() {
     setVentanaCerrada(true);
-    irA("panel");
+    navegar(rutaDe("panel"));
     setTimeout(() => {
       const bloque = document.getElementById("mis-asignaciones");
       if (bloque) bloque.scrollIntoView({ behavior: "smooth" });
@@ -127,11 +170,86 @@ export default function App() {
       rama: prediccion ? prediccion.rama : undefined,
     });
     setAtendiendo(null);
-    setVista("nuevo");
+    navegar(rutaDe("nuevo"));
+  }
+
+  const abrirInforme = (id) => navegar(`/informes/${id}`);
+  const idPlanificador = Number(new URLSearchParams(ruta.search).get("analisis")) || null;
+
+  let contenido;
+  if (atendiendo) {
+    contenido = (
+      <AtenderAsignacion
+        key={atendiendo.id}
+        asignacion={atendiendo}
+        modelos={modelos}
+        alNuevoAnalisis={nuevoAnalisisDeRespuesta}
+        alVolver={() => setAtendiendo(null)}
+      />
+    );
+  } else if (destino.tipo === "analisis") {
+    contenido = <AnalisisDetalle key={destino.id} id={destino.id} modelos={modelos} />;
+  } else if (destino.tipo === "informe") {
+    contenido = <InformeDetalle key={destino.id} id={destino.id} />;
+  } else {
+    const s = destino.seccion;
+    contenido = (
+      <>
+        {s === "panel" && (
+          <Panel
+            key={rol}
+            perfil={PERFIL_PANEL[rol]}
+            modelos={modelos}
+            alNuevoAnalisis={rol === "administrador" ? undefined : () => navegar(rutaDe("nuevo"))}
+            alActualizar={cargarModelos}
+            alarma={rol === "desarrollador" ? alarma : undefined}
+            alAtender={atender}
+          />
+        )}
+        {s === "nuevo" && (
+          <NuevoAnalisis
+            key={respuesta ? respuesta.asignacion.id : "nuevo"}
+            modelos={modelos}
+            respuesta={respuesta}
+            alResponder={() => alarma.recargar()}
+            alAnalizar={setUltimoAnalisis}
+            alPlanificar={
+              permitidas.includes("planificador")
+                ? (prediccion) => {
+                  setUltimoAnalisis(prediccion);
+                  navegar(`${rutaDe("planificador")}?analisis=${prediccion.id}`);
+                }
+                : undefined
+            }
+          />
+        )}
+        {s === "planificador" && (
+          <Planificador key={idPlanificador ?? "sin-analisis"} analisisId={idPlanificador} inicial={ultimoAnalisis} modelos={modelos} />
+        )}
+        {s === "pendientes" && <Pendientes />}
+        {s === "historial" && (
+          rol === "desarrollador"
+            ? <Historial titulo="Mi historial" descripcion="Desarrollador · sus análisis en sus repositorios asignados" mostrarDesarrollador={false} modelos={modelos} />
+            : rol === "administrador"
+              ? <Historial titulo="Historial de análisis" descripcion="Administrador · análisis de todos los repositorios" mostrarSeguimiento conOrigen modelos={modelos} />
+              : <Historial titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento modelos={modelos} />
+        )}
+        {s === "informes" && (
+          rol === "administrador"
+            ? <InformesRecibidos titulo="Informes de cumplimiento" descripcion="Administrador · informes de todos los desarrolladores y líderes" mostrarLider />
+            : <InformesRecibidos titulo="Informes recibidos" descripcion="Líder técnico · informes de cumplimiento de sus indicaciones, del más reciente al más antiguo" />
+        )}
+        {s === "usuarios" && <Usuarios />}
+        {s === "workflows" && <Workflows />}
+        {s === "modelos" && <Modelos modelos={modelos} esAdmin alCambiar={cargarModelos} />}
+        {s === "integraciones" && <Integraciones />}
+      </>
+    );
   }
 
   return (
     <UsuarioContexto.Provider value={usuario}>
+    <AbrirInformeContexto.Provider value={abrirInforme}>
     <div className="app">
       <aside className="lateral">
         <header className="lateral__cabecera">
@@ -148,16 +266,16 @@ export default function App() {
                 <span className="solo-lector"> (abre el administrador de Django)</span>
               </a>
             ) : (
-              <button
+              <Enlace
                 key={id}
-                type="button"
+                href={rutaMenu(id)}
                 className="menu__boton"
-                aria-current={!atendiendo && idActual === id ? "page" : undefined}
-                onClick={() => irA(id)}
+                aria-current={!atendiendo && destino.tipo === "seccion" && activa === id ? "page" : undefined}
+                alNavegar={() => setAtendiendo(null)}
               >
                 <svg viewBox="0 0 24 24" className="menu__icono" aria-hidden="true"><path d={icono} /></svg>
                 {texto}
-              </button>
+              </Enlace>
             ),
           )}
         </nav>
@@ -172,59 +290,21 @@ export default function App() {
       </aside>
 
       <div className="principal">
-        <header className="barra-superior"><div><span className="barra-superior__seccion">{rol ? NOMBRES_ROL[rol] : "Gestión de riesgo"}</span><span className="barra-superior__separador" aria-hidden="true">/</span><strong>{atendiendo ? "Atender asignación" : (actual ? actual.texto : "")}</strong></div><div className="panel__acciones">{rol === "desarrollador" && <Campana pendientes={alarma.pendientes} alAbrir={verAsignaciones} />}<span className="barra-superior__perfil">{usuario.usuario}</span></div></header><main className="contenido">
+        <header className="barra-superior"><div><span className="barra-superior__seccion">{rol ? NOMBRES_ROL[rol] : "Gestión de riesgo"}</span><span className="barra-superior__separador" aria-hidden="true">/</span><strong>{titulo}</strong></div><div className="panel__acciones">{rol === "desarrollador" && <Campana pendientes={alarma.pendientes} alAbrir={verAsignaciones} />}<span className="barra-superior__perfil">{usuario.usuario}</span></div></header><main className="contenido">
           {!rol && (
             <Alerta>Su cuenta no tiene un rol asignado. Contacte al administrador.</Alerta>
           )}
           {rol === "desarrollador" && !ventanaCerrada && alarma.pendientes.length > 0 && (
             <VentanaAsignaciones alarma={alarma} alAtender={atender} alCerrar={() => setVentanaCerrada(true)} />
           )}
-          {atendiendo ? (
-            <AtenderAsignacion
-              key={atendiendo.id}
-              asignacion={atendiendo}
-              modelos={modelos}
-              alNuevoAnalisis={nuevoAnalisisDeRespuesta}
-              alVolver={() => setAtendiendo(null)}
-            />
-          ) : (
-            <>
-              {idActual === "panel" && (
-                <Panel
-                  key={rol}
-                  perfil={PERFIL_PANEL[rol]}
-                  modelos={modelos}
-                  alNuevoAnalisis={rol === "administrador" ? undefined : () => irA("nuevo")}
-                  alActualizar={cargarModelos}
-                  alarma={rol === "desarrollador" ? alarma : undefined}
-                  alAtender={atender}
-                />
-              )}
-              {idActual === "nuevo" && (
-                <NuevoAnalisis
-                  key={respuesta ? respuesta.asignacion.id : "nuevo"}
-                  modelos={modelos}
-                  respuesta={respuesta}
-                  alResponder={() => alarma.recargar()}
-                />
-              )}
-              {idActual === "planificador" && <Planificador />}
-              {idActual === "pendientes" && <Pendientes modelos={modelos} />}
-              {idActual === "historial" && (
-                rol === "desarrollador"
-                  ? <Historial modelos={modelos} titulo="Mi historial" descripcion="Desarrollador · sus análisis en sus repositorios asignados" mostrarDesarrollador={false} />
-                  : <Historial modelos={modelos} titulo="Historial del equipo" descripcion="Líder técnico · análisis de los desarrolladores de sus repositorios asignados" mostrarSeguimiento />
-              )}
-              {idActual === "usuarios" && <Usuarios />}
-              {idActual === "workflows" && <Workflows />}
-              {idActual === "modelos" && <Modelos modelos={modelos} esAdmin alCambiar={cargarModelos} />}
-              {idActual === "integraciones" && <Integraciones />}
-            </>
-          )}
+          <LimiteErrores claveReinicio={atendiendo ? `atender-${atendiendo.id}` : `${ruta.pathname}${ruta.search}`}>
+            {contenido}
+          </LimiteErrores>
         </main>
 
       </div>
     </div>
+    </AbrirInformeContexto.Provider>
     </UsuarioContexto.Provider>
   );
 }

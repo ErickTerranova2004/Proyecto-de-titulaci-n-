@@ -117,3 +117,5 @@ Figuras: `figuras/curvas_evaluacion_v1_1.png`, `figuras/shap_resumen_v1_1.png`.
 - Historial limitado a un máximo de 5 ejecuciones por workflow en GHALogs.
 - Sin métricas del cambio de código (churn); se incorporarán con la API de GitHub.
 - La etiqueta mide si el intento de despliegue se completó, no incidentes en producción.
+
+> **Nota (2026-11-10), modelo v2.** El modelo v2 incorpora el tamaño del cambio (archivos modificados, líneas añadidas y borradas) y los checks del commit terminados antes del despliegue como aproximación a las pruebas fallidas. **Vulnerabilidades y cobertura no se pueden obtener** con un token de solo lectura en repositorios de terceros (ver `informes/fase2_variable_objetivo.md`, sección 7, y `informes/fase5_modelos_v2.md` cuando se entrene).

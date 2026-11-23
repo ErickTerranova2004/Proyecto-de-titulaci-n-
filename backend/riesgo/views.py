@@ -1,19 +1,21 @@
 import logging
-import math
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import F, Max
+from django.db.models import F, Max, OuterRef, Q, Subquery
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, mixins
 
-from riesgo.models import (AccesoRepositorio, EjecucionWorkflow,
-                           Prediccion, Repositorio,
+from riesgo.models import (AccesoRepositorio, DecisionDespliegue,
+                           EjecucionWorkflow, Prediccion, Repositorio,
                            VersionModelo, Workflow)
+from riesgo import paginacion
 from riesgo.permissions import (EsAdministrador, EsLiderOAdministrador,
                                 PuedePredecir, predicciones_visibles,
                                 repositorios_visibles, rol_principal, roles,
@@ -23,13 +25,17 @@ from riesgo.serializers import (AsignacionSerializer, PrediccionSerializer,
                                 SolicitudDecisionSerializer,
                                 SolicitudEscenarioSerializer,
                                 SolicitudFechaLimiteSerializer,
+                                SolicitudOficialSerializer,
                                 SolicitudPrediccionSerializer,
                                 SolicitudRegistroSerializer,
                                 VersionModeloSerializer)
-from riesgo.services import analisis_ia, asignaciones, github, planificador
+from riesgo.services import (analisis_ia, asignaciones, github, planificador,
+                             supervision)
+from riesgo.services import modelos as modelos_servicio
 from riesgo.services.sincronizacion import sincronizar_repositorio
-from riesgo.services.etiquetado import etiquetar_ejecucion
-from riesgo.services.features import calcular_variables, fecha
+from riesgo.services.pendientes import despliegue_previo
+from riesgo.services.verificacion import enlazar_resultado, etiquetar_run
+from riesgo.services.features import calcular_variables, json_seguro
 from riesgo.services.predictor import SinModeloActivo, predecir
 from riesgo.services.trazabilidad import (RepositorioNoRegistrado,
                                           guardar_commit, guardar_ejecucion,
@@ -38,10 +44,13 @@ from riesgo.services.trazabilidad import (RepositorioNoRegistrado,
 logger = logging.getLogger(__name__)
 
 
-def _json_seguro(variables):
-    """Convierte NaN en None para guardar JSON válido."""
-    return {k: (None if isinstance(v, float) and math.isnan(v) else v)
-            for k, v in variables.items()}
+def _error_no_interactivo():
+    # Una decisión se asigna al desarrollador que hizo el análisis: la de un
+    # análisis del lote no le llegaría a nadie.
+    return _error("Solo se decide sobre análisis hechos por un desarrollador "
+                  "antes de desplegar; los del lote evalúan despliegues que "
+                  "ya ocurrieron.", "no_es_interactivo",
+                  status.HTTP_400_BAD_REQUEST)
 
 
 def _error(mensaje, codigo, estado):
@@ -83,8 +92,10 @@ MOTIVOS_PENDIENTE = {
 
 def _verificacion_pendiente(runs, workflow, repo, sha, creada_en):
     """Motivo exacto por el que aún no hay ejecución real que enlazar."""
+    # Las omitidas (skipped) no son intentos de despliegue: no cuentan.
     del_commit = [r for r in runs
                   if r.get("head_sha") == sha
+                  and r.get("conclusion") != "skipped"
                   and (r.get("path") or workflow.path).split("@")[0]
                   == workflow.path]
     if not del_commit:
@@ -100,6 +111,20 @@ def _verificacion_pendiente(runs, workflow, repo, sha, creada_en):
             "sha_corto": sha[:7],
             "url_actions": f"https://github.com/{repo}/actions/workflows/"
                            f"{archivo}"}
+
+
+def _aviso_desplegado(previo, sha):
+    """409 de «Nuevo análisis»: el commit ya se desplegó o se está
+    desplegando; el desarrollador puede continuar de todos modos."""
+    en_curso = previo["estado"] != "completed"
+    detalle = (
+        f"Este commit ({sha[:7]}) se está desplegando ahora."
+        if en_curso else f"Este commit ({sha[:7]}) ya se desplegó.")
+    return {"detail": detalle + " El análisis no podrá compararse con un "
+                      "resultado real: solo se enlaza un despliegue que "
+                      "empiece después del análisis.",
+            "codigo": "commit_ya_desplegado", "en_curso": en_curso,
+            "sha": sha, "ejecucion": previo}
 
 
 def _ultima_ejecucion_commit(cliente, runs, workflow, repo, sha):
@@ -119,8 +144,7 @@ def _ultima_ejecucion_commit(cliente, runs, workflow, repo, sha):
     run = terminadas[-1]
     intento = run.get("run_attempt") or 1
     jobs = cliente.jobs_intento(repo, run["id"], intento)
-    etiqueta = etiquetar_ejecucion(run.get("conclusion"), jobs,
-                                   workflow.patron_paso_despliegue)
+    etiqueta = etiquetar_run(cliente, workflow, run, jobs)
     return {"run_id": run["id"], "run_attempt": intento,
             "evento": run.get("event", ""), "rama": run.get("head_branch", ""),
             "conclusion": run.get("conclusion", ""),
@@ -141,7 +165,9 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [PuedePredecir]
 
     def get_queryset(self):
-        visibles = repositorios_visibles(self.request.user)
+        # Los inactivos conservan su historial, pero no se ofrecen.
+        visibles = repositorios_visibles(self.request.user).filter(
+            est_registro="A")
         # ?todos=1: todos los repositorios visibles (asignados), aunque no
         # tengan workflows utilizables. Lo usan los paneles por rol.
         if self.request.query_params.get("todos") == "1":
@@ -151,7 +177,7 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
         return visibles.filter(
             workflows__despliegue_validado=True,
             workflows__disponible_github=True).distinct().prefetch_related(
-            "workflows")
+            "workflows", "workflows__pendiente_despliegue")
 
     @action(detail=True, methods=["post"],
             permission_classes=[EsAdministrador])
@@ -220,6 +246,8 @@ class RepositorioViewSet(mixins.ListModelMixin, GenericViewSet):
             repositorio.nombre_completo = nombre
             repositorio.propietario, _, repositorio.nombre = \
                 nombre.partition("/")
+            # Registrarlo de nuevo a mano lo vuelve a activar.
+            repositorio.est_registro = "A"
             repositorio.save()
             workflow, creado = Workflow.objects.get_or_create(
                 repositorio=repositorio, path=datos["workflow_path"])
@@ -268,12 +296,120 @@ def integraciones(request):
         "restantes": limite.get("remaining"),
         "reinicio": limite.get("reset"),
         "error": error,
-        "repositorios_registrados": Repositorio.objects.count(),
+        # Solo lo activo (est_registro='A'): sin los repositorios inactivos
+        # ni los datos desactivados de los casos de prueba.
+        "repositorios_registrados": Repositorio.objects.filter(
+            est_registro="A").count(),
         "workflows_validados": Workflow.objects.filter(
-            despliegue_validado=True).count(),
-        "ejecuciones_almacenadas": EjecucionWorkflow.objects.count(),
+            despliegue_validado=True, est_registro="A").count(),
+        "ejecuciones_almacenadas": EjecucionWorkflow.objects.filter(
+            est_registro="A").count(),
         "ultima_extraccion": ultima,
     }})
+
+
+def fecha_parametro(parametros, nombre):
+    """Fecha AAAA-MM-DD de la consulta (None si falta; 400 si no es
+    válida). La usan los historiales y los informes."""
+    valor = (parametros.get(nombre) or "").strip()
+    if not valor:
+        return None
+    try:
+        fecha = parse_date(valor)
+    except ValueError:
+        fecha = None
+    if fecha is None:
+        raise ValidationError({nombre: "Use una fecha con el formato "
+                                       "AAAA-MM-DD."})
+    return fecha
+
+
+def filtrar_historial(consulta, parametros):
+    """Filtros y orden de los historiales y de «Pendientes de decisión».
+
+    - desde / hasta (AAAA-MM-DD, ambos incluidos): día de creación del
+      análisis en la zona horaria de la plataforma (America/Guayaquil).
+    - nivel: bajo, medio o alto (varios separados por comas).
+    - sin_decision=1: solo los análisis que esperan la decisión del líder.
+    - decision: sin_decision, autorizar, posponer o solicitar_revision (tipo
+      de la última decisión).
+    - repo: parte del nombre del repositorio.
+    - modelo: código de la versión con que se hizo (v2, v2-xgb).
+    - origen: interactivo o lote (solo cambia algo para el administrador;
+      el resto ya ve solo los interactivos).
+    - orden: «reciente» (por defecto, del más reciente al más antiguo),
+      «antiguo» o «decision» (primero los análisis con decisión, de la
+      decisión más reciente a la más antigua; después el resto, del más
+      reciente al más antiguo). Va en el backend para que la paginación lo
+      respete.
+    """
+    desde = fecha_parametro(parametros, "desde")
+    hasta = fecha_parametro(parametros, "hasta")
+    if desde and hasta and desde > hasta:
+        raise ValidationError({"desde": "La fecha «desde» no puede ser "
+                                        "posterior a «hasta»."})
+    if desde:
+        consulta = consulta.filter(creada_en__date__gte=desde)
+    if hasta:
+        consulta = consulta.filter(creada_en__date__lte=hasta)
+
+    niveles = {n.strip() for n in (parametros.get("nivel") or "").split(",")
+               if n.strip()}
+    validos = {n for n, _ in Prediccion.NIVELES}
+    if niveles - validos:
+        raise ValidationError({"nivel": "Use bajo, medio o alto."})
+    if niveles:
+        consulta = consulta.filter(nivel__in=niveles)
+
+    if parametros.get("sin_decision") in ("1", "true"):
+        consulta = consulta.filter(decisiones__isnull=True)
+
+    # decision: sin_decision o el tipo de la ÚLTIMA decisión del líder.
+    decision = (parametros.get("decision") or "").strip()
+    if decision:
+        tipos = {d for d, _ in DecisionDespliegue.DECISIONES}
+        if decision == "sin_decision":
+            consulta = consulta.filter(decisiones__isnull=True)
+        elif decision in tipos:
+            ultima = (DecisionDespliegue.objects.filter(prediccion=OuterRef("pk"))
+                      .order_by("-creada_en", "-id").values("decision")[:1])
+            consulta = consulta.annotate(tipo_ultima_decision=Subquery(ultima)).filter(
+                tipo_ultima_decision=decision)
+        else:
+            raise ValidationError({"decision": "Use sin_decision, autorizar, "
+                                               "posponer o solicitar_revision."})
+
+    # repo: búsqueda por nombre del repositorio (sin distinguir mayúsculas).
+    repo = (parametros.get("repo") or "").strip()
+    if repo:
+        consulta = consulta.filter(workflow__repositorio__nombre_completo__icontains=repo)
+
+    # modelo: código de la versión (v2 = Random Forest, v2-xgb = XGBoost).
+    modelo = (parametros.get("modelo") or "").strip()
+    if modelo:
+        consulta = consulta.filter(version_modelo__version=modelo)
+
+    origen = parametros.get("origen")
+    if origen:
+        if origen not in ("interactivo", "lote"):
+            raise ValidationError({"origen": "Use interactivo o lote."})
+        consulta = consulta.filter(origen=origen)
+
+    orden = parametros.get("orden") or "reciente"
+    if orden not in ("reciente", "antiguo", "decision"):
+        raise ValidationError({"orden": "Use reciente, antiguo o decision."})
+    if orden == "antiguo":
+        return consulta.order_by("creada_en", "id")
+    if orden == "decision":
+        return consulta.annotate(ultima_decision=Max("decisiones__creada_en")).order_by(
+            F("ultima_decision").desc(nulls_last=True), "-creada_en", "-id")
+    return consulta.order_by("-creada_en", "-id")
+
+
+def _version_planificador(request):
+    """?modelo=v2|v2-xgb del Planificador (por defecto, el del análisis)."""
+    codigo = (request.query_params.get("modelo") or "").strip()
+    return modelos_servicio.por_codigo(codigo) if codigo else None
 
 
 class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
@@ -283,12 +419,24 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
     def get_queryset(self):
         consulta = predicciones_visibles(self.request.user).prefetch_related(
-            "ejecuciones_previas", "decisiones__usuario")
+            "ejecuciones_previas", "decisiones__usuario", "decisiones__informe")
         repositorio = self.request.query_params.get("repositorio")
         if repositorio:
             consulta = consulta.filter(
                 workflow__repositorio__nombre_completo=repositorio)
+        if self.action == "list":
+            consulta = filtrar_historial(consulta, self.request.query_params)
         return consulta
+
+    def list(self, request):
+        """Lista completa o, con ?pagina=N (y ?por_pagina=25|50|100), una
+        página con el total (paginacion.py)."""
+        consulta = self.get_queryset()
+        if paginacion.pedida(request.query_params):
+            return Response(paginacion.paginar(
+                consulta, request.query_params,
+                lambda filas: PrediccionSerializer(filas, many=True).data))
+        return Response(PrediccionSerializer(consulta, many=True).data)
 
     def create(self, request):
         solicitud = SolicitudPrediccionSerializer(data=request.data)
@@ -307,6 +455,11 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         if not tiene_acceso(request.user, repositorio):
             return _error("No tiene acceso asignado a este repositorio.",
                           "sin_acceso", status.HTTP_403_FORBIDDEN)
+        if repositorio.est_registro != "A":
+            return _error("El repositorio está inactivo en la plataforma: se "
+                          "conserva su historial, pero no admite nuevos "
+                          "análisis.", "repositorio_inactivo",
+                          status.HTTP_400_BAD_REQUEST)
         workflow = Workflow.objects.filter(
             repositorio=repositorio, path=datos["workflow_path"]).first()
         if workflow is not None and not workflow.disponible_github:
@@ -320,6 +473,15 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 "workflow de despliegue a una aplicación. Un administrador "
                 "debe validarlo y documentar la evidencia antes de usarlo.",
                 "workflow_no_validado", status.HTTP_400_BAD_REQUEST)
+        comparar = datos["modelo"] == modelos_servicio.COMPARAR
+        try:
+            versiones = modelos_servicio.versiones_para(datos["modelo"])
+        except modelos_servicio.ModeloNoDisponible as exc:
+            return _error(str(exc), "modelo_no_disponible",
+                          status.HTTP_400_BAD_REQUEST)
+        except SinModeloActivo:
+            return _error("No hay un modelo activo.", "sin_modelo",
+                          status.HTTP_503_SERVICE_UNAVAILABLE)
         atendida = None
         if datos["atiende_decision"] is not None:
             try:
@@ -335,10 +497,19 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             sha = datos["head_sha"]
             if not sha:
                 sha = cliente.ultimo_commit(nombre, datos["rama"])["sha"]
+            if not datos["confirmar_desplegado"]:
+                # Misma consulta que calcular_variables (queda en caché).
+                completo = cliente.commit(nombre, sha).get("sha") or sha
+                previo = despliegue_previo(cliente, nombre, workflow, completo)
+                if previo:
+                    return Response(_aviso_desplegado(previo, completo),
+                                    status=status.HTTP_409_CONFLICT)
             variables, extraido, contexto = calcular_variables(
                 cliente, nombre, workflow.path, sha, datos["rama"],
                 datos["evento"])
-            resultado = predecir(variables)
+            # Todo el análisis (probabilidad, nivel con los límites de ese
+            # modelo, recomendación y factores SHAP) sale del modelo elegido.
+            resultados = [predecir(variables, v) for v in versiones]
         except github.GitHubError as exc:
             if (isinstance(exc, github.NoEncontrado)
                     and "/actions/workflows/" in str(exc)):
@@ -351,37 +522,104 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         except SinModeloActivo:
             return _error("No hay un modelo activo.", "sin_modelo",
                           status.HTTP_503_SERVICE_UNAVAILABLE)
-        analisis, recomendaciones = analisis_ia.analizar(
-            variables, resultado, contexto, nombre, workflow.path,
-            datos["rama"], datos["evento"])
+        # El texto de la IA también se redacta con el resultado de cada modelo.
+        textos = [analisis_ia.analizar(variables, r, contexto, nombre,
+                                       workflow.path, datos["rama"],
+                                       datos["evento"]) for r in resultados]
 
         with transaction.atomic():
             commit = guardar_commit(repositorio, contexto["commit"].get("sha")
                                     or sha, contexto["commit"])
             previas = [guardar_ejecucion(workflow, run, extraido)
                        for run in contexto["previas"]]
-            prediccion = workflow.predicciones.create(
-                usuario=request.user,
-                commit=commit,
-                rama=datos["rama"],
-                evento=datos["evento"],
-                variables=_json_seguro(variables),
-                probabilidad=resultado["probabilidad"],
-                nivel=resultado["nivel"],
-                factores=resultado["factores"],
-                recomendaciones=recomendaciones,
-                analisis_ia=analisis,
-                version_modelo=resultado["version"],
-                datos_github_extraidos_en=extraido,
-            )
-            prediccion.ejecuciones_previas.set(previas)
+            creadas = []
+            for resultado, (analisis, recomendaciones) in zip(resultados,
+                                                               textos):
+                prediccion = workflow.predicciones.create(
+                    usuario=request.user,
+                    commit=commit,
+                    rama=datos["rama"],
+                    evento=datos["evento"],
+                    variables=json_seguro(variables),
+                    probabilidad=resultado["probabilidad"],
+                    nivel=resultado["nivel"],
+                    recomendacion=resultado["recomendacion"],
+                    factores=resultado["factores"],
+                    recomendaciones=recomendaciones,
+                    analisis_ia=analisis,
+                    version_modelo=resultado["version"],
+                    datos_github_extraidos_en=extraido,
+                    # «Comparar ambos»: ninguno es oficial (ni lo ve el
+                    # líder) hasta que el usuario elige uno (acción
+                    # «oficial»); el segundo queda enlazado al primero.
+                    est_registro="I" if comparar else "A",
+                    prediccion_base=creadas[0] if comparar and creadas
+                    else None,
+                )
+                prediccion.ejecuciones_previas.set(previas)
+                creadas.append(prediccion)
+            if atendida is not None and not comparar:
+                asignaciones.registrar_respuesta(
+                    atendida, creadas[0], datos["respuesta_desarrollador"])
+        logger.info("Predicción %s creada por %s para %s con %s",
+                    ", ".join(str(p.id) for p in creadas),
+                    request.user.username, nombre,
+                    ", ".join(v.version for v in versiones))
+        if comparar:
+            return Response(
+                {"comparacion": PrediccionSerializer(creadas, many=True).data},
+                status=status.HTTP_201_CREATED)
+        return Response(PrediccionSerializer(creadas[0]).data,
+                        status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"])
+    def oficial(self, request, pk=None):
+        """«Comparar ambos»: el autor elige cuál de los dos análisis queda
+        como oficial. Ese pasa a est_registro='A' (historiales, decisión del
+        líder, planificador); el otro se conserva oculto ('I')."""
+        solicitud = SolicitudOficialSerializer(data=request.data)
+        solicitud.is_valid(raise_exception=True)
+        datos = solicitud.validated_data
+        prediccion = (Prediccion.objects.filter(
+            pk=pk, usuario=request.user, origen="interactivo")
+            .select_related("workflow__repositorio", "version_modelo")
+            .first())
+        par = [] if prediccion is None else list(Prediccion.objects.filter(
+            Q(prediccion_base=prediccion) | Q(id=prediccion.prediccion_base_id),
+            usuario=request.user, origen="interactivo",
+            commit_id=prediccion.commit_id, workflow_id=prediccion.workflow_id))
+        if prediccion is None or not par:
+            return _error("No hay una comparación con ese análisis.",
+                          "sin_comparacion", status.HTTP_404_NOT_FOUND)
+        if prediccion.est_registro == "A" or any(
+                p.est_registro == "A" for p in par):
+            return _error("Ya se eligió el análisis oficial de esta "
+                          "comparación.", "oficial_ya_elegido",
+                          status.HTTP_409_CONFLICT)
+        repositorio = prediccion.workflow.repositorio
+        if (not tiene_acceso(request.user, repositorio)
+                or repositorio.est_registro != "A"):
+            return _error("No tiene acceso asignado a este repositorio.",
+                          "sin_acceso", status.HTTP_403_FORBIDDEN)
+        atendida = None
+        if datos["atiende_decision"] is not None:
+            try:
+                atendida = asignaciones.validar_respuesta(
+                    datos["atiende_decision"], request.user,
+                    repositorio.nombre_completo, prediccion.workflow.path)
+            except asignaciones.RespuestaNoValida as exc:
+                return _error(str(exc), exc.codigo,
+                              status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            prediccion.est_registro = "A"
+            prediccion.save(update_fields=["est_registro"])
             if atendida is not None:
                 asignaciones.registrar_respuesta(
                     atendida, prediccion, datos["respuesta_desarrollador"])
-        logger.info("Predicción %s creada por %s para %s", prediccion.id,
-                    request.user.username, nombre)
-        return Response(PrediccionSerializer(prediccion).data,
-                        status=status.HTTP_201_CREATED)
+        logger.info("Predicción %s (%s) elegida como oficial por %s",
+                    prediccion.id, prediccion.version_modelo.version,
+                    request.user.username)
+        return Response(PrediccionSerializer(prediccion).data)
 
     @action(detail=True, methods=["post"])
     def verificar(self, request, pk=None):
@@ -394,42 +632,15 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         sha = prediccion.commit.sha
         cliente = github.GitHubClient()
         try:
-            runs = cliente.ejecuciones_workflow(repo, workflow.path,
-                                                head_sha=sha)
-            candidatas = sorted(
-                (r for r in runs
-                 if r.get("head_sha") == sha
-                 and r.get("status") == "completed"
-                 and (r.get("path") or workflow.path).split("@")[0]
-                 == workflow.path
-                 and fecha(r.get("run_started_at"))
-                 and fecha(r["run_started_at"]) > prediccion.creada_en),
-                key=lambda r: r["run_started_at"])
-            if not candidatas:
+            enlazada, runs = enlazar_resultado(cliente, prediccion)
+            if not enlazada:
                 pendiente = _verificacion_pendiente(
                     runs, workflow, repo, sha, prediccion.creada_en)
                 pendiente["ejecucion_github"] = _ultima_ejecucion_commit(
                     cliente, runs, workflow, repo, sha)
                 return Response(pendiente)
-            run = candidatas[0]
-            jobs = cliente.jobs_intento(repo, run["id"],
-                                        run.get("run_attempt") or 1)
         except github.GitHubError as exc:
             return _error_github(exc)
-
-        etiqueta = etiquetar_ejecucion(run.get("conclusion"), jobs,
-                                       workflow.patron_paso_despliegue)
-        with transaction.atomic():
-            ejecucion = guardar_ejecucion(workflow, run)
-            for campo, valor in etiqueta.items():
-                setattr(ejecucion, campo, valor)
-            ejecucion.etiquetada_en = timezone.now()
-            ejecucion.save()
-            prediccion.ejecucion_real = ejecucion
-            prediccion.verificada_en = timezone.now()
-            prediccion.clean()
-            prediccion.save(update_fields=["ejecucion_real",
-                                           "verificada_en"])
         return Response(PrediccionSerializer(prediccion).data)
 
     @action(detail=True, methods=["post"])
@@ -438,23 +649,48 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         prediccion = self.get_object()
         solicitud = SolicitudEscenarioSerializer(data=request.data)
         solicitud.is_valid(raise_exception=True)
+        try:
+            version = _version_planificador(request)
+        except modelos_servicio.ModeloNoDisponible as exc:
+            return _error(str(exc), "modelo_no_disponible",
+                          status.HTTP_400_BAD_REQUEST)
         return Response(planificador.estimar_escenario(
-            prediccion, solicitud.validated_data))
+            prediccion, solicitud.validated_data, version))
 
     @action(detail=True, methods=["get"])
     def ventanas(self, request, pk=None):
-        """Franjas de menor riesgo de los 7 días siguientes al análisis."""
-        return Response(planificador.mejores_ventanas(self.get_object()))
+        """Hora de menor riesgo de cada uno de los próximos días, desde
+        mañana. ?dias=N (1–14; por defecto PLANIFICADOR_DIAS_VENTANAS)."""
+        dias = None
+        if request.query_params.get("dias"):
+            try:
+                dias = int(request.query_params["dias"])
+            except ValueError:
+                dias = 0
+            if not 1 <= dias <= planificador.MAX_DIAS:
+                return Response(
+                    {"dias": f"Debe ser un número entre 1 y "
+                             f"{planificador.MAX_DIAS}."}, status=400)
+        try:
+            version = _version_planificador(request)
+        except modelos_servicio.ModeloNoDisponible as exc:
+            return _error(str(exc), "modelo_no_disponible",
+                          status.HTTP_400_BAD_REQUEST)
+        return Response(planificador.mejores_ventanas(self.get_object(),
+                                                      dias, version))
 
     @action(detail=True, methods=["post"],
             permission_classes=[EsLiderOAdministrador])
     def decision(self, request, pk=None):
         """El líder técnico autoriza, pospone o pide revisión del cambio."""
         prediccion = self.get_object()
+        if prediccion.origen != "interactivo":
+            return _error_no_interactivo()
         solicitud = SolicitudDecisionSerializer(data=request.data)
         solicitud.is_valid(raise_exception=True)
-        decision = prediccion.decisiones.create(usuario=request.user,
-                                                **solicitud.validated_data)
+        datos = solicitud.validated_data
+        decision = asignaciones.registrar_decision(prediccion, request.user,
+                                                   **datos)
         logger.info("Decisión %s sobre la predicción %s por %s",
                     decision.decision, prediccion.id, request.user.username)
         if decision.fecha_limite:
@@ -466,6 +702,8 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             permission_classes=[EsLiderOAdministrador])
     def fecha_limite(self, request, pk=None):
         """Añade o cambia la fecha límite de la última decisión."""
+        if self.get_object().origen != "interactivo":
+            return _error_no_interactivo()
         prediccion = self.get_object()
         decision = prediccion.decisiones.order_by("-creada_en", "-id").first()
         if decision is None:
@@ -485,7 +723,10 @@ class PrediccionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
 
 class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
-    queryset = VersionModelo.objects.all()
+    # Las versiones ocultas (est_registro = 'I': v1 y v1.1) no salen en
+    # ninguna pantalla ni se pueden activar; sus filas y predicciones se
+    # conservan.
+    queryset = VersionModelo.objects.filter(est_registro="A")
     serializer_class = VersionModeloSerializer
     permission_classes = [PuedePredecir]
 
@@ -493,44 +734,71 @@ class VersionModeloViewSet(mixins.ListModelMixin, GenericViewSet):
     def supervision(self, request, pk=None):
         """Comparación de las predicciones con los resultados reales."""
         version = self.get_object()
-        predicciones = Prediccion.objects.filter(version_modelo=version)
+        todas, predicciones, corte, excluidas_corte = (
+            supervision.posteriores_al_corte(version))
+        # Una versión no activa no hace análisis nuevos: su supervisión suma
+        # sus predicciones en sombra (las mismas ejecuciones evaluables que
+        # la del modelo activo, ver services/sombra.py).
+        try:
+            de_lote = modelos_servicio.modelo_lote().id == version.id
+        except SinModeloActivo:
+            de_lote = version.activo
+        sombra = (Prediccion.con_sombra.filter(origen="sombra",
+                                               version_modelo=version)
+                  if not de_lote else Prediccion.con_sombra.none())
         evaluables = [
             (p.nivel, p.probabilidad, p.ejecucion_real.y)
-            for p in predicciones.filter(
-                ejecucion_real__etiqueta__in=["despliegue_completado",
-                                              "despliegue_no_completado"])
+            for consulta in (predicciones, sombra)
+            for p in supervision.evaluables(consulta)
             .select_related("ejecucion_real")]
-        por_nivel = {}
-        for nivel in ("bajo", "medio", "alto"):
-            casos = [y for n, _, y in evaluables if n == nivel]
-            por_nivel[nivel] = {
-                "evaluables": len(casos),
-                "no_completados": sum(casos),
-                "tasa": (sum(casos) / len(casos)) if casos else None,
-            }
-        brier = (sum((p - y) ** 2 for _, p, y in evaluables) / len(evaluables)
-                 if evaluables else None)
+        y = [y for _, _, y in evaluables]
+        por_nivel = supervision.tasas_por_nivel(
+            [n for n, _, _ in evaluables], y)
+        brier = supervision.brier([p for _, p, _ in evaluables], y)
+        n_sombra = sombra.count()
         return Response({
             "version": version.version,
-            "predicciones": predicciones.count(),
-            # Las de repositorios de demostración no son validación del modelo.
-            "predicciones_demostracion": predicciones.filter(
-                workflow__repositorio__es_demostracion=True).count(),
+            "predicciones": predicciones.count() + n_sombra,
+            "predicciones_sombra": n_sombra,
+            # Excluidas de todas las métricas anteriores.
+            "predicciones_demostracion": todas.de_demostracion().count(),
+            "predicciones_prueba": todas.de_prueba().count(),
+            "fecha_corte": corte,
+            "predicciones_anteriores_al_corte": excluidas_corte,
+            "predicciones_lote": predicciones.filter(origen="lote").count(),
             "verificadas": predicciones.filter(
-                ejecucion_real__isnull=False).count(),
+                ejecucion_real__isnull=False).count()
+            + sombra.filter(ejecucion_real__isnull=False).count(),
             "evaluables": len(evaluables),
             "por_nivel": por_nivel,
             "brier": brier,
         })
 
+    @action(detail=False, url_path="comparacion-sombra",
+            permission_classes=[EsAdministrador])
+    def comparacion_sombra(self, request):
+        """El modelo activo y las versiones no activas (evaluadas en sombra)
+        sobre exactamente las mismas ejecuciones evaluables."""
+        datos = supervision.comparacion()
+        if datos is None:
+            return _error("No hay un modelo activo.", "sin_modelo_activo",
+                          status.HTTP_409_CONFLICT)
+        return Response(datos)
+
     @action(detail=True, methods=["post"],
             permission_classes=[EsAdministrador])
     def activar(self, request, pk=None):
+        """Solo versiones con fecha de corte y escribiendo su nombre como
+        confirmación ({"confirmacion": "v2"}); queda en
+        trx_activacion_modelo (services/modelos.py)."""
         version = self.get_object()
-        with transaction.atomic():
-            VersionModelo.objects.update(activo=False)
-            version.activo = True
-            version.save(update_fields=["activo"])
+        try:
+            modelos_servicio.activar(version, request.user,
+                                     request.data.get("confirmacion"))
+        except modelos_servicio.NoActivable as e:
+            return _error(e.mensaje, e.codigo, status.HTTP_400_BAD_REQUEST)
+        logger.warning("Modelo %s activado por %s", version.version,
+                       request.user.username)
         return Response(VersionModeloSerializer(version).data)
 
 
@@ -544,11 +812,21 @@ class AsignacionViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_queryset(self):
         return (asignaciones.ultimas_decisiones(
                     predicciones_visibles(self.request.user))
-                .filter(asignaciones.ES_ASIGNACION)
+                .filter(asignaciones.ES_ASIGNACION, est_registro="A")
                 .select_related("usuario", "prediccion__usuario",
                                 "prediccion__workflow__repositorio",
-                                "prediccion_respuesta")
+                                "prediccion_respuesta", "informe")
                 .order_by(F("fecha_limite").asc(nulls_last=True), "id"))
+
+    def list(self, request):
+        """Lista completa (la alarma del desarrollador) o, con ?pagina=N,
+        una página (tabla de «Pendientes de decisión»)."""
+        consulta = self.get_queryset()
+        if paginacion.pedida(request.query_params):
+            return Response(paginacion.paginar(
+                consulta, request.query_params,
+                lambda filas: AsignacionSerializer(filas, many=True).data))
+        return Response(AsignacionSerializer(consulta, many=True).data)
 
     def _marcar(self, request, campo):
         decision = self.get_object()
@@ -565,6 +843,12 @@ class AsignacionViewSet(mixins.ListModelMixin, GenericViewSet):
         if cambios:
             decision.save(update_fields=sorted(cambios))
         return Response(AsignacionSerializer(decision).data)
+
+    @action(detail=True, methods=["post"])
+    def informe(self, request, pk=None):
+        """El desarrollador envía al líder el informe de cumplimiento."""
+        from riesgo.views_informes import enviar_informe
+        return enviar_informe(request, self.get_object())
 
     @action(detail=True, methods=["post"])
     def vista(self, request, pk=None):
@@ -597,7 +881,8 @@ def resumen_admin(request):
     for usuario in get_user_model().objects.prefetch_related("groups"):
         usuarios[rol_principal(usuario) or "sin_rol"] += 1
     usuarios["total"] = sum(usuarios.values())
-    workflows = Workflow.objects.all()
+    # Sin los workflows desactivados (p. ej. los de los casos de prueba).
+    workflows = Workflow.objects.filter(est_registro="A")
     validados = workflows.filter(despliegue_validado=True)
     return Response({
         "usuarios": usuarios,
@@ -608,4 +893,6 @@ def resumen_admin(request):
             "validados_disponibles_github": validados.filter(
                 disponible_github=True).count(),
         },
+        # Aviso si el activo no es el más reciente con fecha de corte.
+        "modelo": modelos_servicio.estado(),
     })

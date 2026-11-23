@@ -1,8 +1,9 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from riesgo.models import (DecisionDespliegue, EjecucionWorkflow, Prediccion,
-                           Repositorio, VersionModelo)
+from riesgo.models import (DecisionDespliegue, EjecucionWorkflow,
+                           PendienteDespliegue, Prediccion, Repositorio,
+                           VersionModelo)
 from riesgo.services import asignaciones
 from riesgo.services.github import REPO, SHA, WORKFLOW
 
@@ -26,6 +27,13 @@ class SolicitudPrediccionSerializer(serializers.Serializer):
                                                 allow_null=True, default=None)
     respuesta_desarrollador = serializers.CharField(
         max_length=1000, required=False, allow_blank=True, default="")
+    # El commit ya se desplegó (o se está desplegando): analizar igualmente.
+    confirmar_desplegado = serializers.BooleanField(required=False,
+                                                    default=False)
+    # Modelo del análisis: vacío = el principal; «v2», «v2-xgb»… o
+    # «comparar» (los dos lado a lado; el usuario elige el oficial).
+    modelo = serializers.CharField(max_length=20, required=False,
+                                   allow_blank=True, default="")
 
     def validate(self, datos):
         if not datos["head_sha"] and not datos["rama"]:
@@ -84,6 +92,19 @@ class SolicitudFechaLimiteSerializer(serializers.Serializer):
     fecha_limite = serializers.DateField(validators=[validar_fecha_limite])
 
 
+def informe_de(decision):
+    """Informe de cumplimiento enviado para la asignación, o None."""
+    try:
+        informe = decision.informe
+    except DecisionDespliegue.informe.RelatedObjectDoesNotExist:
+        return None
+    if informe is None or informe.est_registro != "A":
+        return None
+    return {"id": informe.id, "numero": informe.numero,
+            "enviado_en": informe.enviado_en,
+            "decision_final": informe.decision_final_id is not None}
+
+
 def respuesta(decision):
     """Nuevo análisis con el que el desarrollador atendió la decisión."""
     nueva = decision.prediccion_respuesta
@@ -97,15 +118,21 @@ class DecisionSerializer(serializers.ModelSerializer):
     usuario = serializers.CharField(source="usuario.username")
     estado = serializers.SerializerMethodField()
     prediccion_respuesta = serializers.SerializerMethodField()
+    informe = serializers.SerializerMethodField()
 
     class Meta:
         model = DecisionDespliegue
-        fields = ["id", "decision", "comentario", "usuario", "creada_en",
+        fields = ["id", "decision", "recomendacion", "acepta_recomendacion",
+                  "comentario", "usuario", "creada_en",
                   "fecha_limite", "vista_por_desarrollador_en", "cumplida_en",
-                  "estado", "prediccion_respuesta", "respuesta_desarrollador"]
+                  "estado", "prediccion_respuesta", "respuesta_desarrollador",
+                  "informe"]
 
     def get_estado(self, decision):
         return asignaciones.estado(decision)
+
+    def get_informe(self, decision):
+        return informe_de(decision)
 
     def get_prediccion_respuesta(self, decision):
         return respuesta(decision)
@@ -128,6 +155,7 @@ class AsignacionSerializer(serializers.ModelSerializer):
     dias_restantes = serializers.SerializerMethodField()
     estado = serializers.SerializerMethodField()
     vista = serializers.SerializerMethodField()
+    informe = serializers.SerializerMethodField()
 
     class Meta:
         model = DecisionDespliegue
@@ -136,10 +164,13 @@ class AsignacionSerializer(serializers.ModelSerializer):
                   "fecha_limite", "dias_restantes", "estado", "vista",
                   "vista_por_desarrollador_en", "cumplida_en", "creada_en",
                   "nivel_original", "prediccion_respuesta",
-                  "respuesta_desarrollador"]
+                  "respuesta_desarrollador", "informe"]
 
     def get_prediccion_respuesta(self, decision):
         return respuesta(decision)
+
+    def get_informe(self, decision):
+        return informe_de(decision)
 
     def get_dias_restantes(self, decision):
         return asignaciones.dias_restantes(decision)
@@ -151,24 +182,40 @@ class AsignacionSerializer(serializers.ModelSerializer):
         return decision.vista_por_desarrollador_en is not None
 
 
+class SolicitudOficialSerializer(serializers.Serializer):
+    """«Comparar ambos»: el análisis elegido como oficial y, si el análisis
+    atiende una asignación del líder, la respuesta del desarrollador."""
+
+    atiende_decision = serializers.IntegerField(required=False,
+                                                allow_null=True, default=None)
+    respuesta_desarrollador = serializers.CharField(
+        max_length=1000, required=False, allow_blank=True, default="")
+
+
 class SolicitudEscenarioSerializer(serializers.Serializer):
-    """Condiciones del escenario alternativo (día y hora locales).
+    """Condiciones del escenario alternativo (fecha y hora locales).
 
     Solo se aceptan las condiciones que decide el desarrollador; cualquier
-    otra variable del modelo se rechaza.
+    otra variable del modelo se rechaza. El momento va desde la hora en curso
+    hasta planificador.MAX_DIAS días después.
     """
 
-    dia = serializers.IntegerField(min_value=0, max_value=6)
+    fecha = serializers.DateField()
     hora = serializers.IntegerField(min_value=0, max_value=23)
     es_reintento = serializers.BooleanField()
     tiene_pr = serializers.BooleanField()
 
     def validate(self, datos):
+        from riesgo.services import planificador
+
         extra = sorted(set(self.initial_data) - set(self.fields))
         if extra:
             raise serializers.ValidationError(
                 {campo: "El planificador no permite cambiar esta variable."
                  for campo in extra})
+        error = planificador.validar_momento(datos["fecha"], datos["hora"])
+        if error:
+            raise serializers.ValidationError({"fecha": error})
         return datos
 
 
@@ -179,6 +226,15 @@ class PrediccionSerializer(serializers.ModelSerializer):
     workflow_path = serializers.CharField(source="workflow.path")
     head_sha = serializers.CharField(source="commit.sha")
     version_modelo = serializers.CharField(source="version_modelo.version")
+    # Algoritmo con el que se hizo el análisis (Random Forest o XGBoost).
+    modelo_nombre = serializers.CharField(
+        source="version_modelo.nombre_modelo", read_only=True)
+    # Repositorio de demostración: los dashboards no lo cuentan.
+    demostracion = serializers.BooleanField(
+        source="workflow.repositorio.es_demostracion", read_only=True)
+    # Repositorio de los casos de prueba: tampoco cuenta.
+    prueba = serializers.BooleanField(
+        source="workflow.repositorio.es_prueba", read_only=True)
     cambio = serializers.SerializerMethodField()
     ejecuciones_previas = serializers.SerializerMethodField()
     ejecucion_real = EjecucionSerializer(read_only=True)
@@ -186,10 +242,11 @@ class PrediccionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Prediccion
-        fields = ["id", "usuario", "repositorio", "workflow_path", "head_sha",
-                  "rama", "evento", "cambio", "variables", "probabilidad",
-                  "nivel", "factores", "recomendaciones", "analisis_ia",
-                  "version_modelo",
+        fields = ["id", "usuario", "repositorio", "workflow_path", "head_sha", "demostracion",
+                  "prueba", "rama", "evento", "cambio", "variables",
+                  "probabilidad", "nivel", "recomendacion", "factores",
+                  "origen", "momento_variables", "recomendaciones", "analisis_ia",
+                  "version_modelo", "modelo_nombre",
                   "ejecuciones_previas", "ejecucion_real", "decisiones",
                   "verificada_en", "datos_github_extraidos_en", "creada_en"]
 
@@ -211,20 +268,69 @@ class RepositorioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Repositorio
-        fields = ["id", "nombre_completo", "workflows", "workflows_validados"]
+        fields = ["id", "nombre_completo", "workflows", "workflows_validados",
+                  "es_demostracion", "es_prueba"]
 
     def get_workflows_validados(self, repositorio):
         return sum(1 for w in repositorio.workflows.all()
                    if w.despliegue_validado)
 
     def get_workflows(self, repositorio):
-        return [{"path": w.path, "nombre": w.nombre}
+        return [{"path": w.path, "nombre": w.nombre,
+                 "pendientes": _pendientes(w)}
                 for w in repositorio.workflows.all()
                 if w.despliegue_validado and w.disponible_github]
 
 
+def _pendientes(workflow):
+    """Commits sin desplegar según la última pasada del lote (sin consultar
+    GitHub); None si aún no se ha calculado."""
+    try:
+        p = workflow.pendiente_despliegue
+    except PendienteDespliegue.DoesNotExist:
+        return None
+    return {"commits": p.commits_pendientes, "sha": p.sha_cabeza,
+            "rama_principal": p.rama_principal, "rama": p.rama_sugerida,
+            "evento": p.ultimo_despliegue_evento,
+            "ultimo_despliegue_en": p.ultimo_despliegue_en,
+            "calculado_en": p.calculado_en}
+
+
 class VersionModeloSerializer(serializers.ModelSerializer):
+    # Solo se activan versiones con fecha de corte (services/modelos.py).
+    motivo_no_activable = serializers.SerializerMethodField()
+    activable = serializers.SerializerMethodField()
+    ultima_activacion = serializers.SerializerMethodField()
+    # «principal»: el activo (el lote y los análisis por defecto);
+    # «alternativo»: el otro modelo seleccionable (XGBoost).
+    rol = serializers.SerializerMethodField()
+    # Tasa de fallos por nivel con despliegues reales (resultado del análisis).
+    tasa_real_por_nivel = serializers.SerializerMethodField()
+
     class Meta:
         model = VersionModelo
         fields = ["id", "version", "nombre_modelo", "metadatos", "activo",
-                  "registrado_en"]
+                  "registrado_en", "activable", "motivo_no_activable",
+                  "ultima_activacion", "rol", "tasa_real_por_nivel"]
+
+    def get_tasa_real_por_nivel(self, version):
+        from riesgo.services.supervision import tasas_reales
+        return tasas_reales(version)
+
+    def get_rol(self, version):
+        return "principal" if version.activo else "alternativo"
+
+    def get_motivo_no_activable(self, version):
+        from riesgo.services.modelos import motivo_no_activable
+        return motivo_no_activable(version)
+
+    def get_activable(self, version):
+        return self.get_motivo_no_activable(version) is None
+
+    def get_ultima_activacion(self, version):
+        """Quién la activó por última vez y cuándo (trx_activacion_modelo)."""
+        fila = version.activaciones.order_by("-activado_en", "-id").first()
+        if fila is None:
+            return None
+        return {"usuario": fila.nombre_usuario, "fecha": fila.activado_en,
+                "origen": fila.origen}

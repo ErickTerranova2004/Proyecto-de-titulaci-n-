@@ -7,12 +7,15 @@
 - Errores tipificados para responder al usuario sin exponer detalles.
 """
 
+import base64
 import logging
 import re
 
 import requests
 from django.conf import settings
 from django.core.cache import cache
+
+from riesgo.services.features import PARAMS_CHECKS, PARAMS_PULLS
 
 logger = logging.getLogger(__name__)
 
@@ -66,14 +69,12 @@ class GitHubClient:
             cabeceras["Authorization"] = f"Bearer {self.token}"
         return cabeceras
 
-    def get(self, ruta, params=None, ttl=300):
-        clave = f"gh:{ruta}:{sorted((params or {}).items())}"
-        guardado = cache.get(clave)
-        if guardado is not None:
-            return guardado
+    def _pedir(self, ruta, params=None, cabeceras=None):
+        """Petición con los errores tipificados (304 se devuelve tal cual)."""
         try:
             respuesta = self.sesion.get(f"{self.base_url}{ruta}",
-                                        headers=self._cabeceras(),
+                                        headers={**self._cabeceras(),
+                                                 **(cabeceras or {})},
                                         params=params, timeout=20)
         except requests.RequestException as exc:
             logger.warning("Error de red con GitHub en %s: %s", ruta,
@@ -91,9 +92,28 @@ class GitHubClient:
                            respuesta.status_code, ruta)
             raise GitHubError(f"GitHub respondió {respuesta.status_code}",
                               respuesta.status_code)
-        datos = respuesta.json()
+        return respuesta
+
+    def get(self, ruta, params=None, ttl=300):
+        clave = f"gh:{ruta}:{sorted((params or {}).items())}"
+        guardado = cache.get(clave)
+        if guardado is not None:
+            return guardado
+        datos = self._pedir(ruta, params).json()
         cache.set(clave, datos, ttl)
         return datos
+
+    def get_condicional(self, ruta, params=None, etag=""):
+        """Petición condicional (If-None-Match), sin caché local.
+
+        Devuelve (datos, etag); datos es None si GitHub responde 304 (nada ha
+        cambiado), que no cuenta en el límite de la API.
+        """
+        respuesta = self._pedir(ruta, params,
+                                {"If-None-Match": etag} if etag else None)
+        if respuesta.status_code == 304:
+            return None, etag
+        return respuesta.json(), respuesta.headers.get("ETag", "")
 
     def repositorio(self, repo):
         # Un repositorio renombrado redirige (301) al nombre actual.
@@ -127,6 +147,15 @@ class GitHubClient:
                          params=params, ttl=60 if head_sha else 300)
         return datos.get("workflow_runs", [])
 
+    def contenido_workflow(self, repo, workflow_path, ref):
+        """Texto del YAML del workflow en un commit (para el etiquetado)."""
+        datos = self.get(f"/repos/{repo}/contents/{workflow_path}",
+                         params={"ref": ref}, ttl=86400)
+        if datos.get("encoding") == "base64":
+            return base64.b64decode(datos.get("content") or "").decode(
+                "utf-8", errors="replace")
+        return datos.get("content") or ""
+
     def limite(self):
         """Estado del límite de la API (esta consulta no consume cuota)."""
         respuesta = self.sesion.get(f"{self.base_url}/rate_limit",
@@ -140,6 +169,17 @@ class GitHubClient:
             f"/repos/{repo}/actions/runs/{run_id}/attempts/{intento}/jobs",
             params={"per_page": 100}, ttl=3600)
         return datos.get("jobs", [])
+
+    def pulls_commit(self, repo, sha):
+        """Pull requests que contienen el commit."""
+        return self.get(f"/repos/{repo}/commits/{sha}/pulls",
+                        params=PARAMS_PULLS, ttl=300)
+
+    def checks_commit(self, repo, sha):
+        """Check runs del commit (todos los intentos, no solo el último)."""
+        datos = self.get(f"/repos/{repo}/commits/{sha}/check-runs",
+                         params=PARAMS_CHECKS, ttl=60)
+        return datos.get("check_runs", [])
 
     def ejecuciones_repositorio(self, repo, n=100):
         datos = self.get(f"/repos/{repo}/actions/runs",

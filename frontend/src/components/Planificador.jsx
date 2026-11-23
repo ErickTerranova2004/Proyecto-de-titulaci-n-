@@ -1,32 +1,56 @@
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
-import { Alerta, NivelRiesgo, porcentaje } from "./comunes.jsx";
+import { opcionesModelo } from "../modeloActivo.js";
+import {
+  ajustarHora, condicionesIniciales, diasDisponibles, fechaGuion, horaMinima, masReciente,
+  NOMBRES_DIA, nombreDia, ordenarRepositorios, PRIMERA_HORA, textoPuntos, ULTIMA_HORA, ZONA,
+} from "../planificador.js";
+import { Alerta, NivelRiesgo, porcentaje, UsuarioContexto } from "./comunes.jsx";
 
 // Planificador de despliegue: estima el riesgo del mismo cambio con otras
-// condiciones que decide el desarrollador (día, hora, reintento y pull
-// request). Día y hora se muestran en hora de Ecuador; el backend los
-// convierte a UTC, que es lo que usa el modelo. Estimar no guarda nada.
+// condiciones que decide el desarrollador (fecha, hora, reintento y pull
+// request). Fecha y hora se muestran en hora de Ecuador; el backend las
+// convierte a UTC, que es lo que usa el modelo, y recalcula para ese momento
+// las variables que dependen del tiempo. Estimar no guarda nada.
 
-const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const DIAS_LARGOS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
-const ZONA = "America/Guayaquil";
 
 const hora = (h) => `${String(h).padStart(2, "0")}:00`;
 
-function fechaCorta(iso) {
-  return new Intl.DateTimeFormat("es-EC", { timeZone: ZONA, day: "2-digit", month: "short" }).format(new Date(iso));
+// "AAAA-MM-DD" se toma como día de Ecuador; un ISO con hora, tal cual. Sin
+// fecha válida devuelve null (nunca lanza «Invalid time value»).
+function aFecha(valor) {
+  if (!valor) return null;
+  const fecha = /^\d{4}-\d{2}-\d{2}$/.test(valor) ? new Date(`${valor}T12:00:00-05:00`) : new Date(valor);
+  return Number.isNaN(fecha.getTime()) ? null : fecha;
 }
 
-function puntos(valor) {
-  const signo = valor > 0 ? "+" : valor < 0 ? "−" : "±";
-  return `${signo}${Math.abs(valor).toFixed(1)} puntos`;
+function fechaCorta(valor) {
+  const fecha = aFecha(valor);
+  return fecha ? new Intl.DateTimeFormat("es-EC", { timeZone: ZONA, day: "2-digit", month: "short" }).format(fecha) : "";
 }
+
+function diaDe(valor) {
+  const fecha = aFecha(valor);
+  return fecha ? new Intl.DateTimeFormat("es-EC", { timeZone: ZONA, weekday: "long" }).format(fecha) : "";
+}
+
+const puntos = textoPuntos;
 
 function conSigno(valor) {
   return `${valor > 0 ? "+" : valor < 0 ? "−" : ""}${Math.abs(valor).toFixed(3)}`;
 }
 
-export default function Planificador() {
+// `analisisId` (de /planificador?analisis=<id>): análisis que se preselecciona,
+// también al recargar la página. `inicial`: el mismo análisis si ya se tiene
+// (el último «Nuevo análisis»); si no, se pide al backend.
+// `modelos`: los seleccionables (Random Forest y XGBoost). Por defecto se usa el
+// modelo del análisis base.
+export default function Planificador({ inicial: inicialDado, analisisId, modelos = [] }) {
+  const usuario = useContext(UsuarioContexto)?.usuario;
+  const [inicial, setInicial] = useState(
+    inicialDado && inicialDado.repositorio && (!analisisId || inicialDado.id === analisisId) ? inicialDado : null,
+  );
   const [analisis, setAnalisis] = useState(null);
   const [repositorio, setRepositorio] = useState("");
   const [workflow, setWorkflow] = useState("");
@@ -38,51 +62,84 @@ export default function Planificador() {
   const [resultado, setResultado] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+  // Modelo con el que se estima ("" = el del análisis base).
+  const [modeloPlan, setModeloPlan] = useState("");
+  const opciones = opcionesModelo(modelos);
 
   useEffect(() => {
     api.historial().then(setAnalisis).catch((e) => setError(e.message));
   }, []);
 
-  const repositorios = useMemo(
-    () => [...new Set((analisis || []).map((a) => a.repositorio))].sort(),
-    [analisis],
+  // Solo el id en la dirección: se pide el análisis para preseleccionarlo.
+  useEffect(() => {
+    if (!analisisId || inicial?.id === analisisId) return;
+    api.prediccion(analisisId).then(setInicial).catch(() => setInicial(null));
+  }, [analisisId]);
+
+  // Preselección (aunque el historial no lo incluya, el backend lo encuentra
+  // por su id).
+  useEffect(() => {
+    if (!analisis || !inicial?.id) return;
+    setRepositorio(inicial.repositorio);
+    setWorkflow(inicial.workflow_path);
+    elegirBase(String(inicial.id));
+  }, [analisis, inicial]);
+
+  // El análisis preseleccionado cuenta aunque el historial no lo traiga.
+  // (Debe declararse antes de los cálculos que lo usan.)
+  const todos = useMemo(
+    () => (inicial?.id && analisis && !analisis.some((a) => a.id === inicial.id) ? [inicial, ...analisis] : analisis || []),
+    [analisis, inicial],
   );
+  const repositorios = useMemo(() => {
+    const lista = ordenarRepositorios(todos, usuario);
+    return inicial?.repositorio && !lista.includes(inicial.repositorio) ? [inicial.repositorio, ...lista] : lista;
+  }, [todos, usuario, inicial]);
   const workflows = useMemo(
-    () => [...new Set((analisis || []).filter((a) => a.repositorio === repositorio).map((a) => a.workflow_path))].sort(),
-    [analisis, repositorio],
+    () => [...new Set(todos.filter((a) => a.repositorio === repositorio).map((a) => a.workflow_path))].sort(),
+    [todos, repositorio],
   );
   const candidatos = useMemo(
-    () => (analisis || []).filter((a) => a.repositorio === repositorio && a.workflow_path === workflow),
-    [analisis, repositorio, workflow],
+    () => todos
+      .filter((a) => a.repositorio === repositorio && a.workflow_path === workflow)
+      .sort((a, b) => (b.creada_en || "").localeCompare(a.creada_en || "")),
+    [todos, repositorio, workflow],
   );
 
   function elegirRepositorio(valor) {
     setRepositorio(valor);
-    const lista = [...new Set(analisis.filter((a) => a.repositorio === valor).map((a) => a.workflow_path))].sort();
-    elegirWorkflow(valor, lista[0] || "");
+    // El workflow del análisis más reciente de ese repositorio.
+    elegirWorkflow(valor, masReciente(todos, valor)?.workflow_path || "");
   }
 
   function elegirWorkflow(repo, valor) {
     setWorkflow(valor);
-    // El historial viene del más reciente al más antiguo.
-    const primero = analisis.find((a) => a.repositorio === repo && a.workflow_path === valor);
+    const primero = masReciente(todos, repo, valor);
     elegirBase(primero ? String(primero.id) : "");
   }
 
   async function elegirBase(id) {
     setBaseId(id);
+    setModeloPlan("");
     setResultado(null);
     setVentanas(null);
     setCondicionesBase(null);
     setCondiciones(null);
-    setBase(analisis?.find((a) => String(a.id) === id) || null);
+    setBase(todos.find((a) => String(a.id) === id) || null);
     if (!id) return;
     setError("");
     try {
       const respuesta = await api.ventanas(id);
+      // Un backend sin reiniciar devuelve el formato anterior (sin fechas).
+      if (!respuesta.condiciones_base?.fecha || respuesta.ventanas.some((v) => !v.fecha)) {
+        throw new Error(
+          "El servidor responde con una versión anterior del planificador. Reinicie el backend y recargue la página.",
+        );
+      }
       setCondicionesBase(respuesta.condiciones_base);
-      setCondiciones(respuesta.condiciones_base);
-      setVentanas(respuesta.ventanas);
+      // Por defecto, hoy a la siguiente hora en punto (no el día del análisis).
+      setCondiciones(condicionesIniciales(new Date(), respuesta.condiciones_base));
+      setVentanas(respuesta);
     } catch (e) {
       setError(e.message);
     }
@@ -92,7 +149,7 @@ export default function Planificador() {
     setCargando(true);
     setError("");
     try {
-      setResultado(await api.estimarEscenario(baseId, valores));
+      setResultado(await api.estimarEscenario(baseId, valores, modeloPlan));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -100,13 +157,28 @@ export default function Planificador() {
     }
   }
 
+  async function cambiarModelo(valor) {
+    setModeloPlan(valor === base?.version_modelo ? "" : valor);
+    setResultado(null);
+    setError("");
+    try {
+      setVentanas(await api.ventanas(baseId, undefined, valor));
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
   function usarVentana(v) {
-    const valores = { dia: v.dia, hora: v.hora, es_reintento: v.es_reintento, tiene_pr: v.tiene_pr };
+    const valores = { fecha: v.fecha, hora: v.hora, es_reintento: v.es_reintento, tiene_pr: v.tiene_pr };
     setCondiciones(valores);
     estimar(valores);
   }
 
-  const cambiar = (campo, valor) => setCondiciones((c) => ({ ...c, [campo]: valor }));
+  const modeloEstimacion = modeloPlan || base?.version_modelo || "";
+  const nombreModelo = modelos.find((m) => m.version === modeloEstimacion)?.nombre_modelo ?? modeloEstimacion;
+  const cambiar = (campo, valor) => setCondiciones((c) => ajustarHora({ ...c, [campo]: valor }));
+  const dias = diasDisponibles();
+  const minima = condiciones ? horaMinima(condiciones.fecha) : 0;
 
   return (
     <section className="vista planificador" aria-labelledby="titulo-planificador">
@@ -156,6 +228,22 @@ export default function Planificador() {
                 ))}
               </select>
             </div>
+            {opciones.length > 1 && (
+            <div className="campo planificador__modelo">
+              <label htmlFor="plan-modelo">Modelo</label>
+              <select
+                id="plan-modelo"
+                value={modeloEstimacion}
+                disabled={!base}
+                onChange={(e) => cambiarModelo(e.target.value)}
+              >
+                {!opciones.some((o) => o.valor === modeloEstimacion) && modeloEstimacion && (
+                  <option value={modeloEstimacion}>{modeloEstimacion}</option>
+                )}
+                {opciones.map((o) => <option key={o.valor} value={o.valor}>{o.texto}</option>)}
+              </select>
+            </div>
+            )}
           </div>
         )}
       </div>
@@ -173,16 +261,18 @@ export default function Planificador() {
             <fieldset className="planificador__grupo">
               <legend>Día</legend>
               <div className="planificador__dias">
-                {DIAS.map((d, i) => (
+                {dias.map((d) => (
                   <button
-                    key={d}
+                    key={d.fecha}
                     type="button"
                     className="planificador__dia"
-                    aria-pressed={condiciones.dia === i}
-                    aria-label={DIAS_LARGOS[i]}
-                    onClick={() => cambiar("dia", i)}
+                    aria-pressed={condiciones.fecha === d.fecha}
+                    aria-label={`${nombreDia(d.fecha)}${d.hoy ? " (hoy)" : ""}`}
+                    onClick={() => cambiar("fecha", d.fecha)}
                   >
-                    {d}
+                    <span>{NOMBRES_DIA[d.dia]}</span>
+                    <span className="planificador__fecha-dia">{fechaGuion(d.fecha)}</span>
+                    {d.hoy && <span className="planificador__hoy">(hoy)</span>}
                   </button>
                 ))}
               </div>
@@ -194,13 +284,16 @@ export default function Planificador() {
               <input
                 id="plan-hora"
                 type="range"
-                min="0"
+                min={minima}
                 max="23"
                 step="1"
                 value={condiciones.hora}
                 aria-valuetext={hora(condiciones.hora)}
                 onChange={(e) => cambiar("hora", Number(e.target.value))}
               />
+              {minima > 0 && (
+                <p className="secundario nota-pie">Hoy solo se puede planificar a partir de las {hora(minima)}.</p>
+              )}
             </div>
             <label className="planificador__casilla">
               <input
@@ -219,8 +312,15 @@ export default function Planificador() {
               Asociado a un pull request
             </label>
             <p className="secundario">
-              Solo se muestran las condiciones que usa el modelo {base?.version_modelo}. El resto (commit e historial del
-              workflow) se mantiene como en el análisis base.
+              Solo se muestran las condiciones que usa el modelo {nombreModelo}. Para la fecha y hora elegidas se
+              recalculan el día, la hora, los minutos desde el commit y las horas desde la ejecución previa; el resto
+              (commit e historial del workflow) se mantiene como en el análisis base
+              {condicionesBase && (
+                <>
+                  {" "}({DIAS_LARGOS[condicionesBase.dia]} {fechaCorta(condicionesBase.fecha)}, {hora(condicionesBase.hora)})
+                </>
+              )}
+              .
             </p>
             <div className="planificador__acciones">
               <button className="boton" type="submit" disabled={cargando}>
@@ -230,7 +330,7 @@ export default function Planificador() {
                 className="boton boton--secundario"
                 type="button"
                 onClick={() => {
-                  setCondiciones(condicionesBase);
+                  setCondiciones(condicionesIniciales(new Date(), condicionesBase || {}));
                   setResultado(null);
                 }}
               >
@@ -243,22 +343,33 @@ export default function Planificador() {
         </div>
       )}
 
-      {ventanas && (
+      {ventanas && ventanas.ventanas.length > 0 && (
         <div className="tarjeta">
-          <h2>Mejores ventanas para los próximos 7 días</h2>
+          <h2>Mejores ventanas para los próximos {ventanas.dias} días</h2>
           <p className="secundario">
-            Franjas de 07:00 a 20:00 (hora de Ecuador) en los 7 días siguientes al análisis base, con el resto de
-            condiciones iguales. Se muestra la de menor riesgo de cada día.
+            A partir de mañana, la hora de menor riesgo de cada uno de los próximos {ventanas.dias} días, entre las{" "}
+            {hora(PRIMERA_HORA)} y las {hora(ULTIMA_HORA)} (hora de Ecuador), con el resto de condiciones como en el
+            análisis base. «Mejor opción» marca la de menor riesgo.
           </p>
           <ol className="planificador__ventanas">
-            {ventanas.map((v) => (
-              <li key={v.momento_local} className="planificador__ventana">
+            {ventanas.ventanas.map((v) => (
+              <li key={v.momento_local} className={`planificador__ventana${v.mejor ? " planificador__ventana--mejor" : ""}`}>
+                {v.mejor && <span className="planificador__mejor">Mejor opción</span>}
                 <p className="planificador__cuando">
-                  <strong>{DIAS_LARGOS[v.dia]}</strong> {fechaCorta(v.momento_local)} · {hora(v.hora)}
+                  <strong>{NOMBRES_DIA[v.dia]}</strong> {fechaGuion(v.fecha)} · {hora(v.hora)}
                 </p>
                 <p>
                   {porcentaje(v.probabilidad)} <NivelRiesgo nivel={v.nivel} />
                 </p>
+                {v.diferencia_puntos !== undefined && (
+                  <p
+                    className={`planificador__diferencia planificador__cambio--${
+                      v.diferencia_puntos > 0 ? "sube" : v.diferencia_puntos < 0 ? "baja" : "igual"
+                    }`}
+                  >
+                    {puntos(v.diferencia_puntos)} <span className="secundario">frente al análisis base</span>
+                  </p>
+                )}
                 <button className="boton boton--secundario boton--pequeno" type="button" onClick={() => usarVentana(v)}>
                   Usar este escenario
                 </button>
@@ -268,6 +379,46 @@ export default function Planificador() {
         </div>
       )}
     </section>
+  );
+}
+
+const FILAS_TIEMPO = [
+  ["hora_utc", "Hora del despliegue (UTC)", (v) => hora(v)],
+  ["dia_semana", "Día de la semana (UTC)", (v) => DIAS_LARGOS[v]],
+  ["retraso_commit_run_min", "Minutos entre el commit y el despliegue", (v) => Math.round(v).toLocaleString("es-EC")],
+  ["wf_horas_desde_ultimo", "Horas desde la ejecución previa del workflow", (v) => v.toLocaleString("es-EC", { maximumFractionDigits: 1 })],
+];
+
+export function VariablesTiempo({ tiempo }) {
+  if (!tiempo) return null;
+  return (
+    <>
+    <table className="tabla planificador__tiempo">
+      <caption className="secundario">Variables de tiempo usadas por el modelo</caption>
+      <thead>
+        <tr>
+          <th scope="col">Variable</th>
+          <th scope="col">Análisis original</th>
+          <th scope="col">Escenario</th>
+        </tr>
+      </thead>
+      <tbody>
+        {FILAS_TIEMPO.map(([clave, nombre, formato]) => {
+          const fmt = (v) => (v === null || v === undefined ? "Sin dato" : formato(v));
+          return (
+            <tr key={clave}>
+              <th scope="row">{nombre}</th>
+              <td className="font-mono">{fmt(tiempo.base[clave])}</td>
+              <td className="font-mono">{fmt(tiempo.escenario[clave])}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+    <p className="secundario nota-pie planificador__nota-utc">
+      El modelo usa la hora UTC; por ejemplo, 20:00 en Ecuador corresponde a la 01:00 UTC del día siguiente.
+    </p>
+    </>
   );
 }
 
@@ -312,11 +463,13 @@ function Comparacion({ resultado }) {
         Cambio: <strong>{puntos(diferencia)}</strong>
         {escenario.momento_local && (
           <span className="secundario">
-            {" "}· escenario: {DIAS_LARGOS[resultado.condiciones.dia]} {fechaCorta(escenario.momento_local)},{" "}
+            {" "}· escenario: {diaDe(escenario.momento_local)} {fechaCorta(escenario.momento_local)},{" "}
             {hora(resultado.condiciones.hora)}
           </span>
         )}
       </p>
+
+      <VariablesTiempo tiempo={resultado.variables_tiempo} />
 
       <h3>Qué explica el cambio</h3>
       {explicacion.length === 0 ? (
