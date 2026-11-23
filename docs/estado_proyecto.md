@@ -377,6 +377,30 @@ de avrae/avrae, `deploy-pages.yml` de bdunderscore/modular-avatar y
     la lógica, no el navegador real.
 
 **Hecho del 18 al 23-nov**
+- **Revisión de limpieza (23-nov)**: etiqueta git `antes-limpieza`
+  (`86f520a`) y cuatro commits, con todas las pruebas y `vite build` en
+  verde tras cada uno (−100 líneas netas: 194 eliminadas, 94 añadidas, 29
+  archivos). (1) Código muerto: `planificador.CONDICIONES`, dos estilos sin
+  uso y un import. (2) Duplicados unificados: `SoloLectura` definida dos
+  veces en `admin.py`, `json_seguro` (features), `_error` y
+  `fecha_parametro` de `views.py` también en `views_informes.py`, el KPI del
+  Panel (`Indicador` de `gestion.jsx`), `CeldaModelo` y `textoTasa`
+  (`comunes.jsx`) y una sola `ZONA` (`src/zona.js`). (3) `lightgbm` pasa a
+  `backend/requirements-entrenamiento.txt` (solo `train_models.py`, v1 y
+  v1.1) y comentarios de la sombra al día. (4) Fuera del frontend lo que
+  solo usaban sus pruebas: `ordenHistorial.js` (el orden lo hace el
+  backend), `informeDelEnlace` (lo resuelve `rutas.js`) y
+  `PAGINACION_INICIAL`. Pruebas: 346 backend, 102 frontend (−4, las del
+  código eliminado). **Quedan como dudosos, sin tocar**: la rama
+  `metricas_prueba` de `metricas.js` (v1/v1.1), la columna
+  `es_disponible_analisis`, los comandos de una sola vez
+  (`validar_workflows_dataset`, `reetiquetar_lote`,
+  `aplicar_decisiones_repos`, `desactivar_datos_prueba`,
+  `limpiar_repos_inactivos`), las descripciones de variables de v1.1 en
+  `predictor.py` y el relleno con la mediana de `sombra.py`, `rama_bot`
+  en `features.py`, los scripts de GHALogs/v1 de la raíz,
+  `sincronizar_github`, `verificar_workflows_github`, los scripts manuales
+  y los imports sin uso de algunas pruebas.
 - **Correcciones del 23-nov (tarde)**: «Comparar ambos» con resumen de la
   diferencia arriba y los dos modelos lado a lado (uno debajo del otro en
   pantallas estrechas); sin el mensaje técnico de la tasa por nivel (ahora
