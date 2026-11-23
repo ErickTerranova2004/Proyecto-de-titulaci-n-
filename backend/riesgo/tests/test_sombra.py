@@ -293,3 +293,55 @@ class V1OcultaTest(Base):
             {"v1": "I", "v1.1": "A", "v2": "A"})
         migracion.estado("A")(apps, None)
         self.assertFalse(VersionModelo.objects.filter(est_registro="I").exists())
+
+
+class XGBoostEnSombraTest(Base):
+    """Configuración actual: v1 y v1.1 ocultas, Random Forest (v2) principal
+    y XGBoost (v2-xgb) alternativo en sombra sobre las mismas ejecuciones."""
+
+    def setUp(self):
+        VersionModelo.objects.filter(id__in=[self.v1.id, self.v11.id]).update(
+            est_registro="I")
+        call_command("registrar_modelo", "--modelo", "v2-xgb", "--sin-activar",
+                     stdout=StringIO())
+        self.xgb = VersionModelo.objects.get(version="v2-xgb")
+        admin = test_api.ApiTest._usuario("admin", "administrador", [])
+        self.api = test_api.ApiTest.cliente(self, admin)
+
+    def test_sombra_con_las_variables_guardadas_y_comparacion(self):
+        predicciones = [self.prediccion("despliegue_no_completado" if i % 2 else
+                                        "despliegue_completado", momento(12, i))
+                        for i in range(6)]
+        resumen = sombra.generar(self.lote)
+        self.assertEqual(list(resumen), ["v2-xgb"])
+        self.assertEqual(resumen["v2-xgb"]["creadas"], 6)
+        # Mismas variables que v2: no hace falta rellenar ninguna.
+        self.assertEqual(resumen["v2-xgb"]["rellenadas"], [])
+        filas = Prediccion.con_sombra.filter(origen="sombra",
+                                             version_modelo=self.xgb)
+        for p in predicciones:
+            s = filas.get(prediccion_base=p)
+            self.assertEqual(s.variables, p.variables)
+            self.assertAlmostEqual(
+                s.probabilidad, predictor.probabilidades([p.variables], self.xgb)[0])
+            self.assertEqual(s.ejecucion_real_id, p.ejecucion_real_id)
+        # Una segunda pasada no duplica.
+        self.assertEqual(sombra.generar(self.lote)["v2-xgb"]["creadas"], 0)
+        datos = self.api.get("/api/modelos/comparacion-sombra/").json()
+        self.assertEqual([(m["version"], m["nombre_modelo"], m["en_sombra"])
+                          for m in datos["modelos"]],
+                         [("v2", "Random Forest", False),
+                          ("v2-xgb", "XGBoost", True)])
+        self.assertEqual(datos["ejecuciones"], 6)
+        self.assertIn("diferencia_con_referencia", datos["modelos"][1])
+
+    def test_supervision_de_los_dos(self):
+        self.prediccion()
+        sombra.generar(self.lote)
+        modelos = self.api.get("/api/modelos/").json()
+        self.assertEqual([m["version"] for m in modelos], ["v2-xgb", "v2"])
+        for m in modelos:
+            datos = self.api.get(f"/api/modelos/{m['id']}/supervision/").json()
+            self.assertEqual(datos["evaluables"], 1, m["version"])
+        datos = self.api.get(f"/api/modelos/{self.xgb.id}/supervision/").json()
+        self.assertEqual(datos["predicciones_sombra"], 1)

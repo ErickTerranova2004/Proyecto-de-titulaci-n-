@@ -25,7 +25,7 @@ const TEXTOS = {
   sin_diferencia: "sin diferencia concluyente (el IC 95 % de la diferencia incluye el 0)",
 };
 
-export function textoComparacion(referencia, modelo) {
-  return `${referencia} frente a ${modelo.version}: Brier ${TEXTOS[resultadoReferencia(modelo, "brier")]}; PR-AUC ${
+export function textoComparacion(referencia, modelo, nombreModelo = modelo.version) {
+  return `${referencia} frente a ${nombreModelo}: Brier ${TEXTOS[resultadoReferencia(modelo, "brier")]}; PR-AUC ${
     TEXTOS[resultadoReferencia(modelo, "pr_auc")]}.`;
 }

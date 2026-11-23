@@ -4,9 +4,9 @@
   de una versión (sin demostración ni casos de prueba, y solo ejecuciones
   posteriores a metadatos.fecha_corte).
 - EVALUABLES: etiquetas con resultado (completado / no completado).
-- comparacion(): el modelo activo frente a sus predicciones en sombra (v1,
-  v1.1) sobre exactamente las mismas ejecuciones evaluables, con tasa de
-  fallo por nivel, Brier y PR-AUC con IC 95 %.
+- comparacion(): el modelo activo (Random Forest) frente a sus predicciones
+  en sombra (XGBoost) sobre exactamente las mismas ejecuciones evaluables,
+  con tasa de fallo por nivel, Brier y PR-AUC con IC 95 %.
 """
 
 import math

@@ -1,4 +1,9 @@
-"""Evaluación en sombra de las versiones no activas (v1, v1.1).
+"""Evaluación en sombra de las versiones visibles no activas.
+
+Hoy: XGBoost (v2-xgb, alternativo) frente a Random Forest (v2, principal),
+los dos del dataset v2. v1 y v1.1 están ocultas (est_registro = 'I') y ya
+no se evalúan; su comparación quedó en informes/comparacion_sombra_v1.md y
+comparacion_sombra_v2.md.
 
 Cada versión no activa predice las mismas ejecuciones evaluables que cuentan
 en la supervisión del modelo activo (posteriores a su fecha de corte), con

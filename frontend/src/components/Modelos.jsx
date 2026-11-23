@@ -3,7 +3,7 @@ import { api } from "../api.js";
 import { Alerta, Fecha, NIVELES, porcentaje } from "./comunes.jsx";
 
 import { formatoMetrica, METRICAS, metricasModelo } from "../metricas.js";
-import { formatoIntervalo } from "../sombra.js";
+import { formatoIntervalo, textoComparacion } from "../sombra.js";
 import { confirmacionValida } from "../modeloActivo.js";
 
 const ROLES = { principal: "Principal", alternativo: "Alternativo" };
@@ -256,7 +256,12 @@ function ComparacionSombra() {
 
   return (
     <section className="sombra" aria-labelledby="titulo-sombra">
-      <h3 id="titulo-sombra">Comparación con las versiones anteriores (mismas ejecuciones)</h3>
+      <h3 id="titulo-sombra">Comparación: Random Forest frente a XGBoost con despliegues reales</h3>
+      <p className="secundario">
+        Mismas ejecuciones y mismas variables: el principal analiza cada despliegue y el alternativo lo predice en
+        sombra con las variables guardadas, sin consultar GitHub. Solo cuentan los despliegues posteriores a la fecha de
+        corte del entrenamiento.
+      </p>
       <Alerta>{error}</Alerta>
       {!datos && !error && <p role="status" className="secundario">Calculando la comparación…</p>}
       {datos && (
@@ -281,7 +286,8 @@ function ComparacionSombra() {
                 {datos.modelos.map((m) => (
                   <tr key={m.version}>
                     <th scope="row">
-                      {m.version}
+                      {m.nombre_modelo}{" "}
+                      <span className="secundario">({m.en_sombra ? "Alternativo, en sombra" : "Principal"} · {m.version})</span>
                     </th>
                     {Object.keys(NIVELES).map((n) => (
                       <td key={n} className="numero">{tasa(m.por_nivel[n])}</td>
@@ -293,6 +299,15 @@ function ComparacionSombra() {
               </tbody>
             </table>
           </div>
+          {datos.modelos.filter((m) => m.en_sombra).map((m) => (
+            <p key={m.version} className="nota-pie">
+              {textoComparacion(datos.modelos[0].nombre_modelo, m, m.nombre_modelo)} Diferencia {m.nombre_modelo} −{" "}
+              {datos.modelos[0].nombre_modelo}: Brier {m.diferencia_con_referencia.brier.valor?.toFixed(4) ?? "—"}{" "}
+              {formatoIntervalo(m.diferencia_con_referencia.brier.ic95, 4)}; PR-AUC{" "}
+              {m.diferencia_con_referencia.pr_auc.valor?.toFixed(3) ?? "—"}{" "}
+              {formatoIntervalo(m.diferencia_con_referencia.pr_auc.ic95)}.
+            </p>
+          ))}
           {datos.sin_sombra > 0 && (
             <p className="secundario nota-pie">
               {datos.sin_sombra} ejecuciones evaluables recientes de {datos.referencia} aún no tienen predicción en sombra

@@ -365,10 +365,13 @@ class Prediccion(Auditoria):
     # «lote»: análisis de una ejecución ya ocurrida (validación prospectiva
     # de v2), con las variables calculadas en el momento en que empezó
     # (momento_variables) y solo con lo que existía antes de ese momento.
-    # «sombra»: predicción de una versión no activa (v1, v1.1) sobre la
+    # «sombra»: predicción de una versión no activa (hoy XGBoost) sobre la
     # misma ejecución evaluable que una predicción del modelo activo
     # (prediccion_base), con las variables guardadas en esta. No es un
     # análisis de usuario: el gestor por defecto la excluye.
+    # En «Comparar ambos» (interactivo), prediccion_base enlaza el segundo
+    # análisis con el primero; los dos quedan en est_registro='I' hasta que
+    # el autor elige el oficial.
     ORIGENES = [("interactivo", "Análisis en la plataforma"),
                 ("lote", "Análisis en lote de una ejecución posterior"),
                 ("sombra", "Evaluación en sombra de una versión no activa")]
