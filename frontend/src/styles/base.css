@@ -3709,6 +3709,14 @@ td>.gestion-insignia:first-child {
     pointer-events: none;
 }
 
+.filtros-historial__buscar {
+    width: 13em;
+}
+
+.filtros-historial__quitar {
+    align-self: center;
+}
+
 .filtros-historial__error {
     flex-basis: 100%;
     margin: 0;

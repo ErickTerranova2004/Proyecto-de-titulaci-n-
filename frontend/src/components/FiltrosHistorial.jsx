@@ -68,10 +68,49 @@ function CampoFecha({ id, valor, min, max, alCambiar, invalido }) {
   );
 }
 
-// Barra de filtros de los historiales y de «Pendientes de decisión»: rango de
-// fechas, nivel, origen (solo administrador) y orden. El filtrado lo hace el
-// backend; `alCambiar` recibe los filtros nuevos.
-export default function FiltrosHistorial({ id, filtros, alCambiar, conNivel = false, origenes, ordenes = ORDENES }) {
+// Búsqueda por repositorio: se aplica 400 ms después de dejar de escribir y
+// reemplaza la entrada del historial (no una por letra).
+function CampoBuscar({ id, valor, alCambiar }) {
+  const [texto, setTexto] = useState(valor || "");
+  const ultimo = useRef(valor || "");
+  useEffect(() => {
+    // Cambio desde fuera (Quitar filtros, atrás/adelante).
+    if ((valor || "") !== ultimo.current) {
+      ultimo.current = valor || "";
+      setTexto(valor || "");
+    }
+  }, [valor]);
+  useEffect(() => {
+    const espera = setTimeout(() => {
+      if (texto.trim() !== (ultimo.current || "").trim()) {
+        ultimo.current = texto.trim();
+        alCambiar(texto.trim());
+      }
+    }, 400);
+    return () => clearTimeout(espera);
+  }, [texto]);
+  return (
+    <input
+      id={id}
+      type="search"
+      className="filtros-historial__buscar"
+      placeholder="Nombre del repositorio"
+      value={texto}
+      onChange={(e) => setTexto(e.target.value)}
+      autoComplete="off"
+    />
+  );
+}
+
+// Barra de filtros común de los historiales, de «Pendientes de decisión» y de
+// los informes, siempre en el mismo orden: desde, hasta, nivel, [resultado],
+// [decisión], repositorio, orden, [origen] y «Quitar filtros». El filtrado lo
+// hace el backend; `alCambiar(filtros, opciones)` recibe los filtros nuevos
+// (con { reemplazar: true } al escribir en el buscador).
+export default function FiltrosHistorial({
+  id, filtros, alCambiar, conNivel = true, etiquetaNivel = "Nivel de riesgo", resultados, decisiones,
+  etiquetaDecision = "Decisión", conRepositorio = true, origenes, ordenes = ORDENES, alQuitar, puedeQuitar = false,
+}) {
   const cambiar = (campo) => (e) => alCambiar({ ...filtros, [campo]: e.target.value });
   const fijar = (campo) => (valor) => alCambiar({ ...filtros, [campo]: valor });
   const error = errorRango(filtros.desde, filtros.hasta);
@@ -99,18 +138,36 @@ export default function FiltrosHistorial({ id, filtros, alCambiar, conNivel = fa
       </label>
       {conNivel && (
         <label className="campo campo--en-linea" htmlFor={`${id}-nivel`}>
-          <span>Nivel de riesgo</span>
+          <span>{etiquetaNivel}</span>
           <select id={`${id}-nivel`} value={filtros.nivel} onChange={cambiar("nivel")}>
             {NIVELES_FILTRO.map(([valor, texto]) => <option key={valor} value={valor}>{texto}</option>)}
           </select>
         </label>
       )}
-      {origenes && (
-        <label className="campo campo--en-linea" htmlFor={`${id}-origen`}>
-          <span>Origen</span>
-          <select id={`${id}-origen`} value={filtros.origen} onChange={cambiar("origen")}>
-            {origenes.map(([valor, texto]) => <option key={valor} value={valor}>{texto}</option>)}
+      {resultados && (
+        <label className="campo campo--en-linea" htmlFor={`${id}-resultado`}>
+          <span>Resultado del cambio</span>
+          <select id={`${id}-resultado`} value={filtros.resultado} onChange={cambiar("resultado")}>
+            {resultados.map(([valor, texto]) => <option key={valor} value={valor}>{texto}</option>)}
           </select>
+        </label>
+      )}
+      {decisiones && (
+        <label className="campo campo--en-linea" htmlFor={`${id}-decision`}>
+          <span>{etiquetaDecision}</span>
+          <select id={`${id}-decision`} value={filtros.decision} onChange={cambiar("decision")}>
+            {decisiones.map(([valor, texto]) => <option key={valor} value={valor}>{texto}</option>)}
+          </select>
+        </label>
+      )}
+      {conRepositorio && (
+        <label className="campo campo--en-linea" htmlFor={`${id}-repo`}>
+          <span>Repositorio</span>
+          <CampoBuscar
+            id={`${id}-repo`}
+            valor={filtros.repo}
+            alCambiar={(repo) => alCambiar({ ...filtros, repo }, { reemplazar: true })}
+          />
         </label>
       )}
       <label className="campo campo--en-linea" htmlFor={`${id}-orden`}>
@@ -119,6 +176,19 @@ export default function FiltrosHistorial({ id, filtros, alCambiar, conNivel = fa
           {ordenes.map(([valor, texto]) => <option key={valor} value={valor}>{texto}</option>)}
         </select>
       </label>
+      {origenes && (
+        <label className="campo campo--en-linea" htmlFor={`${id}-origen`}>
+          <span>Origen</span>
+          <select id={`${id}-origen`} value={filtros.origen} onChange={cambiar("origen")}>
+            {origenes.map(([valor, texto]) => <option key={valor} value={valor}>{texto}</option>)}
+          </select>
+        </label>
+      )}
+      {alQuitar && (
+        <button className="boton boton--secundario filtros-historial__quitar" type="button" onClick={alQuitar} disabled={!puedeQuitar}>
+          Quitar filtros
+        </button>
+      )}
       {error && <p className="alerta filtros-historial__error" role="alert">{error}</p>}
     </div>
   );

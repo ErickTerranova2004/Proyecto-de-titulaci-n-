@@ -32,13 +32,13 @@ export default function Pendientes() {
   const [cargando, setCargando] = useState(false);
   const peticion = useRef(0);
 
-  function irA(f, pendientes, asignadas) {
+  function irA(f, pendientes, asignadas, opciones) {
     navegar(ruta.pathname + escribirEstado({
       filtros: f, iniciales: FILTROS_INICIALES,
       paginaciones: [["", pendientes], ["_asignaciones", asignadas]],
-    }));
+    }), opciones);
   }
-  const setFiltros = (nuevos) => irA(nuevos, { ...paginaPendientes, pagina: 1 }, paginaAsignaciones);
+  const setFiltros = (nuevos, opciones) => irA(nuevos, { ...paginaPendientes, pagina: 1 }, paginaAsignaciones, opciones);
   const setPaginaPendientes = (p) => irA(filtros, p, paginaAsignaciones);
   const setPaginaAsignaciones = (p) => irA(filtros, paginaPendientes, p);
 
@@ -62,7 +62,7 @@ export default function Pendientes() {
     cargarAsignaciones();
   }
   useEffect(cargarAsignaciones, [paginaAsignaciones.pagina, paginaAsignaciones.porPagina]);
-  useEffect(cargarPendientes, [filtros.desde, filtros.hasta, filtros.nivel, filtros.orden,
+  useEffect(cargarPendientes, [filtros.desde, filtros.hasta, filtros.nivel, filtros.repo, filtros.orden,
     paginaPendientes.pagina, paginaPendientes.porPagina]);
   const filtrado = hayFiltros(filtros);
   // Decidir o ver un análisis: su pantalla /analisis/<id>.
@@ -130,20 +130,16 @@ export default function Pendientes() {
         </div>
       </div>
       <div className="filtros-historial__barra">
+        {/* Mismos filtros que los historiales; sin «Decisión»: aquí todos
+            están sin decisión. */}
         <FiltrosHistorial
           id="pendientes"
           filtros={filtros}
           alCambiar={setFiltros}
-          conNivel
           ordenes={ORDENES_PENDIENTES}
+          alQuitar={() => setFiltros(FILTROS_INICIALES)}
+          puedeQuitar={filtrado}
         />
-        {filtrado && (
-          <div className="panel__acciones">
-            <button className="boton boton--secundario" type="button" onClick={() => setFiltros(FILTROS_INICIALES)}>
-              Quitar filtros
-            </button>
-          </div>
-        )}
       </div>
       <Alerta>{error}</Alerta>
       {!sinDecision && !error && <p role="status" className="secundario">Cargando pendientes…</p>}

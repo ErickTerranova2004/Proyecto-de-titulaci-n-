@@ -2,7 +2,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  consultaHistorial, errorRango, escribirFecha, fechaDesdeTexto, FILTROS_INICIALES, hayFiltros, NIVELES_FILTRO, textoFecha,
+  consultaHistorial, DECISIONES_FILTRO, errorRango, escribirFecha, fechaDesdeTexto, FILTROS_INICIALES, hayFiltros,
+  NIVELES_FILTRO, textoFecha,
 } from "../src/filtrosHistorial.js";
 
 test("sin filtros no se envían parámetros (el backend ordena del más reciente al más antiguo)", () => {
@@ -21,6 +22,19 @@ test("rango de fechas, nivel, origen y orden", () => {
   );
   assert.equal(consultaHistorial({ hasta: "2026-11-18", origen: "lote" }), "?hasta=2026-11-18&origen=lote");
   assert.equal(consultaHistorial({ nivel: "todos", origen: "todos" }), "");
+});
+
+test("decisión y repositorio", () => {
+  assert.equal(consultaHistorial({ ...FILTROS_INICIALES, decision: "posponer", repo: "  acme/tie " }),
+    "?decision=posponer&repo=acme%2Ftie");
+  assert.equal(consultaHistorial({ ...FILTROS_INICIALES, decision: "sin_decision" }), "?decision=sin_decision");
+  assert.equal(consultaHistorial({ ...FILTROS_INICIALES, decision: "todas", repo: "   " }), "");
+  // En Pendientes manda sin_decision y no se envía «decision».
+  assert.equal(consultaHistorial({ ...FILTROS_INICIALES, decision: "autorizar", sinDecision: true }), "?sin_decision=1");
+  assert.equal(hayFiltros({ ...FILTROS_INICIALES, decision: "posponer" }), true);
+  assert.equal(hayFiltros({ ...FILTROS_INICIALES, repo: "acme" }), true);
+  assert.equal(hayFiltros({ ...FILTROS_INICIALES, orden: "antiguo" }), false);
+  assert.deepEqual(DECISIONES_FILTRO.map(([, t]) => t), ["Todas", "Sin decisión", "Autorizar", "Posponer", "Solicitar revisión"]);
 });
 
 test("pendientes: solo los análisis sin decisión", () => {

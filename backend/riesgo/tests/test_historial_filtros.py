@@ -98,9 +98,33 @@ class FiltrosHistorialTest(TestCase):
             self.ids(self.lider, "?sin_decision=1&desde=2026-11-12"),
             [self.p14, self.p12])
 
+    def test_decision_por_la_ultima_decision(self):
+        # p12: posponer y después autorizar (cuenta la última); p14: posponer.
+        for pk, tipo, minutos in ((self.p12, "posponer", 2), (self.p12, "autorizar", 1),
+                                  (self.p14, "posponer", 1)):
+            d = DecisionDespliegue.objects.create(prediccion_id=pk, usuario=self.lider,
+                                                  decision=tipo)
+            DecisionDespliegue.objects.filter(pk=d.pk).update(
+                creada_en=timezone.now() - timedelta(minutes=minutos))
+        self.assertEqual(self.ids(self.lider, "?decision=autorizar"), [self.p16, self.p12])
+        self.assertEqual(self.ids(self.lider, "?decision=posponer"), [self.p14])
+        self.assertEqual(self.ids(self.lider, "?decision=solicitar_revision"), [])
+        self.assertEqual(self.ids(self.lider, "?decision=sin_decision"), [self.p10])
+        # Con nivel y paginación.
+        r = self.cliente(self.lider).get("/api/predicciones/?decision=autorizar&nivel=alto&pagina=1")
+        self.assertEqual([p["id"] for p in r.json()["resultados"]], [self.p16])
+
+    def test_busqueda_por_repositorio(self):
+        self.assertEqual(self.ids(self.lider, "?repo=TIENDA"),
+                         [self.p16, self.p14, self.p12, self.p10])
+        self.assertEqual(self.ids(self.lider, "?repo=acme/tie"), [self.p16, self.p14, self.p12, self.p10])
+        self.assertEqual(self.ids(self.lider, "?repo=otro"), [])
+        self.assertEqual(self.ids(self.lider, "?repo=%20%20"), [self.p16, self.p14, self.p12, self.p10])
+
     def test_parametros_no_validos(self):
         api = self.cliente(self.lider)
-        for consulta, campo in (("?desde=12/11/2026", "desde"),
+        for consulta, campo in (("?decision=aprobar", "decision"),
+                                ("?desde=12/11/2026", "desde"),
                                 ("?hasta=2026-02-30", "hasta"),
                                 ("?desde=2026-11-15&hasta=2026-11-10", "desde"),
                                 ("?nivel=critico", "nivel"),

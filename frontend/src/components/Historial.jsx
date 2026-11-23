@@ -7,7 +7,7 @@ import FiltrosHistorial from "./FiltrosHistorial.jsx";
 import { TablaPaginada } from "./TablaDesplazable.jsx";
 import { columnasHistorial } from "../columnasTablas.js";
 import { escribirEstado, leerFiltros, leerPaginacion } from "../estadoUrl.js";
-import { consultaHistorial, errorRango, FILTROS_INICIALES, hayFiltros } from "../filtrosHistorial.js";
+import { consultaHistorial, DECISIONES_FILTRO, errorRango, FILTROS_INICIALES, hayFiltros } from "../filtrosHistorial.js";
 import { Enlace, useNavegacion } from "../navegacion.jsx";
 import { consultaPaginada } from "../paginacion.js";
 
@@ -44,8 +44,6 @@ const ORIGENES = [
 export default function Historial({
   titulo = "Historial de análisis", descripcion, mostrarDesarrollador = true, mostrarSeguimiento = false,
   conOrigen = false,
-  // Desplegable de nivel de riesgo (Todos, Bajo, Medio, Alto); lo filtra el backend.
-  conNivel = false,
 }) {
   const { ruta, navegar } = useNavegacion();
   const inicial = conOrigen ? { ...FILTROS_INICIALES, origen: "interactivo" } : FILTROS_INICIALES;
@@ -57,13 +55,13 @@ export default function Historial({
   const peticion = useRef(0);
   const columnas = columnasHistorial({ mostrarSeguimiento, mostrarDesarrollador });
 
-  function irA(nuevosFiltros, nuevaPaginacion) {
+  function irA(nuevosFiltros, nuevaPaginacion, opciones) {
     navegar(ruta.pathname + escribirEstado({
       filtros: nuevosFiltros, iniciales: inicial, paginaciones: [["", nuevaPaginacion]],
-    }));
+    }), opciones);
   }
   // Cambiar un filtro vuelve a la primera página.
-  const setFiltros = (nuevos) => irA(nuevos, { ...paginacion, pagina: 1 });
+  const setFiltros = (nuevos, opciones) => irA(nuevos, { ...paginacion, pagina: 1 }, opciones);
   const setPaginacion = (nueva) => irA(filtros, nueva);
 
   function cargar() {
@@ -79,7 +77,7 @@ export default function Historial({
       .finally(() => id === peticion.current && setCargando(false));
   }
   useEffect(cargar, [filtros.desde, filtros.hasta, filtros.orden, filtros.origen, filtros.nivel,
-    paginacion.pagina, paginacion.porPagina]);
+    filtros.decision, filtros.repo, paginacion.pagina, paginacion.porPagina]);
   const filtrado = hayFiltros(filtros, inicial.origen);
   const filas = datos ? datos.resultados : null;
 
@@ -117,15 +115,12 @@ export default function Historial({
           id="historial"
           filtros={filtros}
           alCambiar={setFiltros}
-          conNivel={conNivel}
+          decisiones={DECISIONES_FILTRO}
           origenes={conOrigen ? ORIGENES : undefined}
+          alQuitar={() => setFiltros(inicial)}
+          puedeQuitar={filtrado}
         />
         <div className="panel__acciones">
-          {filtrado && (
-            <button className="boton boton--secundario" type="button" onClick={() => setFiltros(inicial)}>
-              Quitar filtros
-            </button>
-          )}
           <button className="boton boton--secundario" type="button" onClick={cargar} disabled={cargando}>
             {cargando ? "Actualizando…" : "Actualizar"}
           </button>

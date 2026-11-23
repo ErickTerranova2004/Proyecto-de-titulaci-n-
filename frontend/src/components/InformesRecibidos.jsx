@@ -79,7 +79,14 @@ export default function InformesRecibidos({ titulo = "Informes recibidos", descr
         {descripcion && <p className="secundario">{descripcion}</p>}
       </header>
       <div className="filtros-historial__barra">
-        <FiltrosHistorial id="informes" filtros={filtros} alCambiar={setFiltros} ordenes={ORDENES_INFORMES} />
+        <FiltrosHistorial
+          id="informes"
+          filtros={filtros}
+          alCambiar={setFiltros}
+          ordenes={ORDENES_INFORMES}
+          conNivel={false}
+          conRepositorio={false}
+        />
         <div className="panel__acciones">
           {hayFiltros(filtros) && (
             <button className="boton boton--secundario" type="button" onClick={() => setFiltros(FILTROS_INICIALES)}>

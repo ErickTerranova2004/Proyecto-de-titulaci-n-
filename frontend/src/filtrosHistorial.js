@@ -16,7 +16,22 @@ export const ORDENES = [
   ["decision", "Con decisión más reciente primero"],
 ];
 
-export const FILTROS_INICIALES = { desde: "", hasta: "", nivel: "todos", orden: "reciente" };
+// Decisión del líder (la última de cada análisis); no aplica en «Pendientes
+// de decisión», donde todos están sin decisión.
+export const DECISIONES_FILTRO = [
+  ["todas", "Todas"],
+  ["sin_decision", "Sin decisión"],
+  ["autorizar", "Autorizar"],
+  ["posponer", "Posponer"],
+  ["solicitar_revision", "Solicitar revisión"],
+];
+
+// Mismos filtros y en el mismo orden en los tres historiales y en Pendientes:
+// desde, hasta, nivel, decisión, repositorio, orden (y origen, el
+// administrador).
+export const FILTROS_INICIALES = {
+  desde: "", hasta: "", nivel: "todos", decision: "todas", repo: "", orden: "reciente",
+};
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -56,12 +71,14 @@ export function errorRango(desde, hasta) {
 }
 
 // Parámetros de /api/predicciones/ ("" sin filtros).
-export function consultaHistorial({ desde, hasta, nivel, orden, origen, sinDecision } = {}) {
+export function consultaHistorial({ desde, hasta, nivel, decision, repo, orden, origen, sinDecision } = {}) {
   const p = new URLSearchParams();
   if (desde) p.set("desde", desde);
   if (hasta) p.set("hasta", hasta);
   if (nivel && nivel !== "todos") p.set("nivel", nivel);
   if (sinDecision) p.set("sin_decision", "1");
+  else if (decision && decision !== "todas") p.set("decision", decision);
+  if (repo && repo.trim()) p.set("repo", repo.trim());
   if (origen && origen !== "todos") p.set("origen", origen);
   // El backend ya devuelve «reciente» por defecto.
   if (orden === "antiguo" || orden === "decision") p.set("orden", orden);
@@ -69,6 +86,8 @@ export function consultaHistorial({ desde, hasta, nivel, orden, origen, sinDecis
   return texto ? `?${texto}` : "";
 }
 
-export function hayFiltros({ desde, hasta, nivel, origen } = {}, origenInicial = "todos") {
-  return Boolean(desde || hasta || (nivel && nivel !== "todos") || (origen && origen !== origenInicial));
+// Hay algo que «Quitar filtros» pueda limpiar (el orden no cuenta).
+export function hayFiltros({ desde, hasta, nivel, decision, resultado, repo, origen } = {}, origenInicial = "todos") {
+  return Boolean(desde || hasta || (nivel && nivel !== "todos") || (decision && decision !== "todas")
+    || (resultado && resultado !== "todos") || (repo && repo.trim()) || (origen && origen !== origenInicial));
 }

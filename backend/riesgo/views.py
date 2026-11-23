@@ -4,7 +4,7 @@ import math
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import F, Max
+from django.db.models import F, Max, OuterRef, Subquery
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from rest_framework import status
@@ -334,6 +334,9 @@ def filtrar_historial(consulta, parametros):
       análisis en la zona horaria de la plataforma (America/Guayaquil).
     - nivel: bajo, medio o alto (varios separados por comas).
     - sin_decision=1: solo los análisis que esperan la decisión del líder.
+    - decision: sin_decision, autorizar, posponer o solicitar_revision (tipo
+      de la última decisión).
+    - repo: parte del nombre del repositorio.
     - origen: interactivo o lote (solo cambia algo para el administrador;
       el resto ya ve solo los interactivos).
     - orden: «reciente» (por defecto, del más reciente al más antiguo),
@@ -362,6 +365,26 @@ def filtrar_historial(consulta, parametros):
 
     if parametros.get("sin_decision") in ("1", "true"):
         consulta = consulta.filter(decisiones__isnull=True)
+
+    # decision: sin_decision o el tipo de la ÚLTIMA decisión del líder.
+    decision = (parametros.get("decision") or "").strip()
+    if decision:
+        tipos = {d for d, _ in DecisionDespliegue.DECISIONES}
+        if decision == "sin_decision":
+            consulta = consulta.filter(decisiones__isnull=True)
+        elif decision in tipos:
+            ultima = (DecisionDespliegue.objects.filter(prediccion=OuterRef("pk"))
+                      .order_by("-creada_en", "-id").values("decision")[:1])
+            consulta = consulta.annotate(tipo_ultima_decision=Subquery(ultima)).filter(
+                tipo_ultima_decision=decision)
+        else:
+            raise ValidationError({"decision": "Use sin_decision, autorizar, "
+                                               "posponer o solicitar_revision."})
+
+    # repo: búsqueda por nombre del repositorio (sin distinguir mayúsculas).
+    repo = (parametros.get("repo") or "").strip()
+    if repo:
+        consulta = consulta.filter(workflow__repositorio__nombre_completo__icontains=repo)
 
     origen = parametros.get("origen")
     if origen:

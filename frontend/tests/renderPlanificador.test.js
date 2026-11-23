@@ -10,26 +10,31 @@ import { cargarComponente } from "./compilarComponente.js";
 
 const cargar = async (componente) => (await cargarComponente(componente)).default;
 
-test("el historial del equipo muestra el desplegable de nivel (Todos, Bajo, Medio, Alto)", async () => {
-  const Historial = await cargar("Historial");
-  const conNivel = renderToString(h(Historial, { titulo: "Historial del equipo", conNivel: true }));
-  assert.match(conNivel, /Nivel de riesgo/);
-  for (const texto of ["Todos", "Bajo", "Medio", "Alto"]) assert.match(conNivel, new RegExp(`>${texto}<`));
-  assert.doesNotMatch(renderToString(h(Historial, { titulo: "Mi historial" })), /Nivel de riesgo/);
-  // Historial del administrador: nivel junto al origen.
-  const admin = renderToString(h(Historial, { titulo: "Historial de análisis", conNivel: true, conOrigen: true }));
-  assert.match(admin, /Nivel de riesgo/);
-  assert.match(admin, /Origen/);
-});
+// Etiquetas de los filtros en el orden en que aparecen.
+function etiquetas(html) {
+  return [...html.replace(/<!-- -->/g, "").matchAll(/<label class="campo campo--en-linea"[^>]*><span>([^<]+)<\/span>/g)]
+    .map((m) => m[1]);
+}
 
-test("App activa el nivel en el historial del equipo y en el del administrador", async () => {
-  const { readFileSync } = await import("node:fs");
-  const app = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
-  const historiales = app.match(/<Historial [^>]*\/>/g);
-  const de = (titulo) => historiales.find((linea) => linea.includes(`titulo="${titulo}"`));
-  assert.match(de("Historial del equipo"), /\bconNivel\b/);
-  assert.match(de("Historial de análisis"), /\bconNivel\b/);
-  assert.doesNotMatch(de("Mi historial"), /\bconNivel\b/);
+test("los tres historiales y Pendientes tienen los mismos filtros y en el mismo orden", async () => {
+  const Historial = await cargar("Historial");
+  const Pendientes = await cargar("Pendientes");
+  const comunes = ["Desde", "Hasta", "Nivel de riesgo", "Decisión", "Repositorio", "Orden"];
+  for (const props of [{ titulo: "Mi historial", mostrarDesarrollador: false }, { titulo: "Historial del equipo" }]) {
+    const html = renderToString(h(Historial, props));
+    assert.deepEqual(etiquetas(html), comunes, props.titulo);
+    assert.match(html, /Quitar filtros/);
+    for (const texto of ["Todos", "Bajo", "Medio", "Alto", "Todas", "Sin decisión", "Autorizar", "Posponer", "Solicitar revisión"]) {
+      assert.match(html, new RegExp(`>${texto}<`), texto);
+    }
+  }
+  // El administrador, además, el origen (plataforma o lote).
+  const admin = renderToString(h(Historial, { titulo: "Historial de análisis", conOrigen: true }));
+  assert.deepEqual(etiquetas(admin), [...comunes, "Origen"]);
+  // Pendientes: los mismos, sin «Decisión» (todos están sin decisión).
+  const pendientes = renderToString(h(Pendientes, {}));
+  assert.deepEqual(etiquetas(pendientes), comunes.filter((e) => e !== "Decisión"));
+  assert.match(pendientes, /Quitar filtros/);
 });
 
 test("el Planificador se renderiza sin análisis inicial y con uno preseleccionado", async () => {
