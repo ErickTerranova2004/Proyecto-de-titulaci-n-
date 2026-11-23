@@ -14,7 +14,12 @@ const MODELOS = [
   { id: 4, version: "v2-xgb", nombre_modelo: "XGBoost", activo: false, activable: true, rol: "alternativo",
     metadatos: { limites_riesgo: limites, escala_shap: "log-odds" } },
   { id: 3, version: "v2", nombre_modelo: "Random Forest", activo: true, activable: true, rol: "principal",
-    metadatos: { limites_riesgo: limites, escala_shap: "probabilidad" } },
+    metadatos: { limites_riesgo: limites, escala_shap: "probabilidad" },
+    tasa_real_por_nivel: {
+      bajo: { evaluables: 1197, no_completados: 64, tasa: 0.0535 },
+      medio: { evaluables: 12, no_completados: 3, tasa: null },
+      alto: { evaluables: 160, no_completados: 109, tasa: 0.68125 },
+    } },
 ];
 const analisis = (id, version, nombre, probabilidad, nivel) => ({
   id, version_modelo: version, modelo_nombre: nombre, probabilidad, nivel, recomendacion: "permitir",
@@ -61,7 +66,7 @@ test("Nuevo análisis: selector «Modelo» obligatorio, Random Forest por defect
   assert.match(html, /<legend>3\. Modelo<\/legend>/);
 });
 
-test("Comparar ambos: los dos lado a lado, sin decisión ni resultado real, y un botón para el oficial", async () => {
+test("Comparar ambos: resumen con la diferencia, los dos lado a lado con título y un botón para el oficial", async () => {
   const { ComparacionModelos } = await cargarComponente("NuevoAnalisis");
   const html = limpiar(renderToString(h(ComparacionModelos, {
     analisis: [analisis(10, "v2", "Random Forest", 0.05, "bajo"), analisis(11, "v2-xgb", "XGBoost", 0.25, "alto")],
@@ -69,17 +74,33 @@ test("Comparar ambos: los dos lado a lado, sin decisión ni resultado real, y un
   })));
   assert.match(html, /Comparación de modelos/);
   assert.match(html, /Ninguno es oficial todavía/);
+  // Resumen arriba: probabilidad, nivel, recomendación y diferencia.
+  assert.ok(html.indexOf("comparacion-modelos__resumen") < html.indexOf("comparacion-modelos__columnas"));
+  assert.match(html, /<th scope="col">Random Forest<\/th><th scope="col">XGBoost<\/th>/);
+  assert.match(html, /XGBoost estima 20,0 puntos más que Random Forest\./);
+  assert.match(html, /No coinciden en el nivel o en la recomendación/);
+  // Cada columna con un título claro y todo su análisis.
+  assert.match(html, /<h2 id="resultado-10">Random Forest · Principal<\/h2>/);
+  assert.match(html, /<h2 id="resultado-11">XGBoost · Alternativo<\/h2>/);
   assert.match(html, /Modelo: <strong>Random Forest \(v2\)<\/strong>/);
   assert.match(html, /Modelo: <strong>XGBoost \(v2-xgb\)<\/strong>/);
-  assert.match(html, />Usar Random Forest como análisis oficial</);
-  assert.match(html, />Usar XGBoost como análisis oficial</);
-  assert.ok(html.indexOf("Random Forest (v2)") < html.indexOf("XGBoost (v2-xgb)"));
-  assert.doesNotMatch(html, /Decisión del líder técnico|Resultado real/);
-  // Escala de SHAP solo en XGBoost.
-  assert.equal((html.match(/están en log-odds/g) || []).length, 1);
+  assert.equal((html.match(/Factores que más influyen/g) || []).length, 2);
+  assert.equal((html.match(/>Usar como análisis oficial</g) || []).length, 2);
+  assert.match(html, /Usar como análisis oficial<span class="solo-lector"> \(XGBoost\)<\/span>/);
+  assert.ok(html.indexOf("resultado-10") < html.indexOf("resultado-11"));
+  assert.doesNotMatch(html, /Decisión del líder técnico|Resultado real|log-odds/);
 });
 
-test("Resultado: muestra con qué modelo se hizo el análisis", async () => {
+test("Comparar ambos: mismo nivel y recomendación", async () => {
+  const { ResumenComparacion } = await cargarComponente("NuevoAnalisis");
+  const html = limpiar(renderToString(h(ResumenComparacion, {
+    analisis: [analisis(20, "v2", "Random Forest", 0.31, "alto"), analisis(21, "v2-xgb", "XGBoost", 0.264, "alto")],
+  })));
+  assert.match(html, /XGBoost estima 4,6 puntos menos que Random Forest\. <\/strong>|XGBoost estima 4,6 puntos menos que Random Forest\./);
+  assert.match(html, /Coinciden en el nivel y en la recomendación\./);
+});
+
+test("Resultado: modelo del análisis, tasa real del nivel y sin mensajes técnicos", async () => {
   const { default: Resultado } = await cargarComponente("Resultado");
   const html = limpiar(renderToString(h(Resultado, {
     prediccion: analisis(12, "v2-xgb", "XGBoost", 0.25, "alto"), modelos: MODELOS, mostrarResultadoReal: false,
@@ -87,6 +108,18 @@ test("Resultado: muestra con qué modelo se hizo el análisis", async () => {
   assert.match(html, /Resultado del análisis/);
   assert.match(html, /Modelo: <strong>XGBoost \(v2-xgb\)<\/strong>/);
   assert.match(html, /Decisión del líder técnico/);
+  // Sin la tasa del nivel no se muestra nada (ni el mensaje técnico).
+  assert.doesNotMatch(html, /no está registrada en los metadatos|log-odds|Con despliegues reales/);
+  assert.match(html, /en puntos de probabilidad/);
+  const rf = limpiar(renderToString(h(Resultado, {
+    prediccion: analisis(13, "v2", "Random Forest", 0.3, "alto"), modelos: MODELOS, mostrarResultadoReal: false,
+  })));
+  assert.match(rf, /Con despliegues reales, no se completó el 68[.,]1 ?% de los análisis de Random Forest con nivel alto \(109 de 160 despliegues verificados\)\./);
+  // Con pocos casos (medio: 12) tampoco se muestra.
+  const medio = limpiar(renderToString(h(Resultado, {
+    prediccion: analisis(14, "v2", "Random Forest", 0.12, "medio"), modelos: MODELOS, mostrarResultadoReal: false,
+  })));
+  assert.doesNotMatch(medio, /Con despliegues reales/);
 });
 
 test("Planificador: selector de modelo que usa por defecto el del análisis base", async () => {

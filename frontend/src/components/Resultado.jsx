@@ -30,15 +30,13 @@ function contribucion(valor) {
   return `${valor > 0 ? "+" : ""}${valor.toFixed(3)}`;
 }
 
-function Factores({ factores, escala }) {
+function Factores({ factores }) {
   const maximo = Math.max(...factores.map((f) => Math.abs(f.contribucion)), 1e-6);
   return (
     <figure className="factores">
       <figcaption className="secundario">
         Rojo: el factor sube el riesgo. Verde: el factor baja el riesgo. La longitud de cada barra es proporcional a su
-        contribución (valor SHAP) en esta predicción.
-        {escala === "log-odds" &&
-          " En XGBoost los valores SHAP están en log-odds (no en puntos de probabilidad): no se comparan con los de Random Forest."}
+        contribución (valor SHAP, en puntos de probabilidad) en esta predicción.
       </figcaption>
       <ul>
         {factores.map((f) => (
@@ -326,16 +324,21 @@ export default function Resultado({ prediccion, modelos, mostrarResultadoReal = 
   const [p, setP] = useState(prediccion);
   useEffect(() => setP(prediccion), [prediccion]);
 
-  const meta = modelos.find((m) => m.version === p.version_modelo)?.metadatos;
+  const modelo = modelos.find((m) => m.version === p.version_modelo);
+  const meta = modelo?.metadatos;
   const limites = meta?.limites_riesgo;
-  // Tasa de fallos observada por nivel en la evaluación del modelo. Solo se
-  // muestra si VersionModelo.metadatos la contiene.
-  const tasaNivel = meta?.tasa_fallos_por_nivel?.[p.nivel];
+  // Tasa de fallos observada en este nivel con despliegues reales (supervisión
+  // del modelo). Sin casos suficientes no se muestra nada.
+  const tasaNivel = modelo?.tasa_real_por_nivel?.[p.nivel];
 
   return (
     <article className="tarjeta resultado" aria-labelledby={`resultado-${p.id}`}>
       <header>
-        <h2 id={`resultado-${p.id}`}>{enComparacion ? p.modelo_nombre ?? p.version_modelo : "Resultado del análisis"}</h2>
+        <h2 id={`resultado-${p.id}`}>
+          {enComparacion
+            ? `${p.modelo_nombre ?? p.version_modelo}${modelo ? (modelo.activo ? " · Principal" : " · Alternativo") : ""}`
+            : "Resultado del análisis"}
+        </h2>
         <p className="secundario resultado__modelo">
           Modelo: <strong>{etiquetaModelo(p)}</strong>
         </p>
@@ -379,14 +382,11 @@ export default function Resultado({ prediccion, modelos, mostrarResultadoReal = 
       </dl>
 
       <div className="resultado__explicacion">
-      {tasaNivel ? (
+      {tasaNivel?.tasa != null && (
         <p>
-          En la evaluación, falló el {porcentaje(tasaNivel.tasa)} de los casos con este nivel ({tasaNivel.n} ejecuciones
-          de prueba del modelo {p.version_modelo}).
-        </p>
-      ) : (
-        <p className="secundario">
-          La tasa de fallos observada por nivel no está registrada en los metadatos del modelo {p.version_modelo}.
+          Con despliegues reales, no se completó el {porcentaje(tasaNivel.tasa)} de los análisis de{" "}
+          {modelo.nombre_modelo} con nivel {NIVELES[p.nivel]?.toLowerCase() ?? p.nivel} ({tasaNivel.no_completados} de{" "}
+          {tasaNivel.evaluables} despliegues verificados).
         </p>
       )}
       {limites && (
@@ -410,7 +410,7 @@ export default function Resultado({ prediccion, modelos, mostrarResultadoReal = 
 
       <section aria-labelledby={`factores-${p.id}`}>
         <h3 id={`factores-${p.id}`}>Factores que más influyen</h3>
-        <Factores factores={p.factores} escala={meta?.escala_shap} />
+        <Factores factores={p.factores} />
       </section>
 
       <section aria-labelledby={`recomendaciones-${p.id}`}>

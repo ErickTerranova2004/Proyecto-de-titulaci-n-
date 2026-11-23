@@ -146,8 +146,8 @@ export function Documento({ informe: c, alActualizar }) {
         <h2>Factores que más cambiaron</h2>
         {o.version_modelo !== n.version_modelo && (
           <p className="secundario">
-            Los dos análisis se hicieron con modelos distintos: para comparar en la misma escala, los factores de ambos se
-            calculan con el modelo del análisis nuevo ({n.modelo_nombre ?? n.version_modelo}).
+            Los dos análisis se hicieron con modelos distintos: para que la diferencia refleje solo el cambio del commit,
+            los factores de ambos se calculan con el modelo del análisis nuevo ({n.modelo_nombre ?? n.version_modelo}).
           </p>
         )}
         {c.factores.length === 0 ? (

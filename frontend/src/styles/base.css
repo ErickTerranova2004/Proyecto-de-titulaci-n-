@@ -4252,3 +4252,11 @@ td>.gestion-insignia:first-child {
 .planificador__modelo {
     max-width: 320px;
 }
+
+.comparacion-modelos__resumen {
+    margin-bottom: var(--esp-3);
+}
+
+.comparacion-modelos__diferencia {
+    margin: var(--esp-2) 0 0;
+}

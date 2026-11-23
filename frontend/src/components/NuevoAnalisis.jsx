@@ -9,7 +9,10 @@ import {
   textoPendientes,
   workflowInicial,
 } from "../pendientes.js";
-import { Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, textoPlazo } from "./comunes.jsx";
+import {
+  Alerta, DECISIONES, EstadoAsignacion, Fecha, FechaDia, NivelRiesgo, porcentaje, textoPlazo,
+} from "./comunes.jsx";
+import { RECOMENDACIONES } from "../recomendacion.js";
 import { TEXTO_SECUNDARIO_DESPLEGADO, textoDesplegado } from "../desplegado.js";
 import EnviarInforme from "./EnviarInforme.jsx";
 import Resultado from "./Resultado.jsx";
@@ -122,6 +125,7 @@ export function ComparacionModelos({ analisis, modelos, eligiendo = null, alEleg
           análisis oficial. Ese es el que verá el líder técnico; el otro se guarda oculto.
         </p>
       </header>
+      <ResumenComparacion analisis={analisis} />
       <div className="comparacion-modelos__columnas">
         {analisis.map((a) => (
           <div key={a.id} className="comparacion-modelos__columna">
@@ -132,12 +136,62 @@ export function ComparacionModelos({ analisis, modelos, eligiendo = null, alEleg
               disabled={eligiendo !== null}
               onClick={() => alElegir(a)}
             >
-              {eligiendo === a.id ? "Guardando…" : `Usar ${a.modelo_nombre ?? a.version_modelo} como análisis oficial`}
+              {eligiendo === a.id ? "Guardando…" : "Usar como análisis oficial"}
+              <span className="solo-lector"> ({a.modelo_nombre ?? a.version_modelo})</span>
             </button>
           </div>
         ))}
       </div>
     </section>
+  );
+}
+
+const nombre = (a) => a.modelo_nombre ?? a.version_modelo;
+
+// Resumen arriba de la comparación: probabilidad, nivel y recomendación de
+// cada modelo y la diferencia entre los dos.
+export function ResumenComparacion({ analisis }) {
+  if (analisis.length < 2) return null;
+  const [a, b] = analisis;
+  const puntos = (b.probabilidad - a.probabilidad) * 100;
+  const diferencia = Math.abs(puntos) < 0.05
+    ? `${nombre(a)} y ${nombre(b)} estiman la misma probabilidad.`
+    : `${nombre(b)} estima ${Math.abs(puntos).toFixed(1).replace(".", ",")} puntos ${puntos > 0 ? "más" : "menos"} que ${nombre(a)}.`;
+  const coinciden = a.nivel === b.nivel && a.recomendacion === b.recomendacion;
+  return (
+    <div className="tarjeta comparacion-modelos__resumen">
+      <div className="tabla-contenedor">
+        <table>
+          <caption className="solo-lector">Resumen de la comparación de modelos</caption>
+          <thead>
+            <tr>
+              <th scope="col"><span className="solo-lector">Dato</span></th>
+              {analisis.map((x) => <th key={x.id} scope="col">{nombre(x)}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Probabilidad</th>
+              {analisis.map((x) => <td key={x.id} className="destacado">{porcentaje(x.probabilidad)}</td>)}
+            </tr>
+            <tr>
+              <th scope="row">Nivel</th>
+              {analisis.map((x) => <td key={x.id}><NivelRiesgo nivel={x.nivel} /></td>)}
+            </tr>
+            <tr>
+              <th scope="row">Recomendación</th>
+              {analisis.map((x) => <td key={x.id}>{RECOMENDACIONES[x.recomendacion] ?? "—"}</td>)}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="comparacion-modelos__diferencia">
+        <strong>{diferencia}</strong>{" "}
+        {coinciden
+          ? "Coinciden en el nivel y en la recomendación."
+          : "No coinciden en el nivel o en la recomendación: revise los factores de cada uno antes de elegir."}
+      </p>
+    </div>
   );
 }
 
@@ -224,6 +278,13 @@ export default function NuevoAnalisis({ modelos, respuesta, alResponder, alAnali
         // Ninguno es oficial hasta que el usuario elige uno.
         setComparacion(nuevo.comparacion);
         return;
+      }
+      if (modeloElegido === COMPARAR) {
+        // Un backend sin reiniciar ignora «Comparar ambos» y hace un solo análisis.
+        setError(
+          `El servidor no devolvió la comparación: hizo un solo análisis con ${nuevo.modelo_nombre ?? nuevo.version_modelo}. ` +
+            "Reinicie el backend (scripts\\iniciar_demo.ps1) y vuelva a intentarlo.",
+        );
       }
       terminar(nuevo);
     } catch (err) {
