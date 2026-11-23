@@ -37,6 +37,24 @@ test("los tres historiales y Pendientes tienen los mismos filtros y en el mismo 
   assert.match(pendientes, /Quitar filtros/);
 });
 
+test("variables de tiempo con la nota de la hora UTC", async () => {
+  const { VariablesTiempo } = await cargarComponente("Planificador");
+  const tiempo = { hora_utc: 1, dia_semana: 3, retraso_commit_run_min: 30, wf_horas_desde_ultimo: 5 };
+  const html = renderToString(h(VariablesTiempo, { tiempo: { base: tiempo, escenario: tiempo } }));
+  assert.match(html, /Variables de tiempo usadas por el modelo/);
+  assert.match(html, /El modelo usa la hora UTC; por ejemplo, 20:00 en Ecuador corresponde a la 01:00 UTC del día siguiente\./);
+  // La nota va debajo de la tabla.
+  assert.ok(html.indexOf("</table>") < html.indexOf("El modelo usa la hora UTC"));
+});
+
+test("mejores ventanas sin el cuadro de aviso: tarjetas, «Mejor opción» y diferencia", async () => {
+  const { readFileSync } = await import("node:fs");
+  const fuente = readFileSync(new URL("../src/components/Planificador.jsx", import.meta.url), "utf8");
+  assert.doesNotMatch(fuente, /AvisoSinMejora|alerta--aviso|apenas modifica el riesgo/);
+  assert.match(fuente, /Mejor opción/);
+  assert.match(fuente, /frente al análisis base/);
+});
+
 test("el Planificador se renderiza sin análisis inicial y con uno preseleccionado", async () => {
   const Planificador = await cargar("Planificador");
   assert.match(renderToString(h(Planificador, {})), /Planificador de despliegue/);

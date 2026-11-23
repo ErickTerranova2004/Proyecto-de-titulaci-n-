@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
 import {
-  ajustarHora, avisoVentanas, condicionesIniciales, diasDisponibles, enumerar, fechaGuion, horaMinima, masReciente,
+  ajustarHora, condicionesIniciales, diasDisponibles, fechaGuion, horaMinima, masReciente,
   NOMBRES_DIA, nombreDia, ordenarRepositorios, PRIMERA_HORA, textoPuntos, ULTIMA_HORA, ZONA,
 } from "../planificador.js";
 import { Alerta, NivelRiesgo, porcentaje, UsuarioContexto } from "./comunes.jsx";
@@ -315,7 +315,6 @@ export default function Planificador({ inicial: inicialDado, analisisId }) {
             {hora(PRIMERA_HORA)} y las {hora(ULTIMA_HORA)} (hora de Ecuador), con el resto de condiciones como en el
             análisis base. «Mejor opción» marca la de menor riesgo.
           </p>
-          <AvisoSinMejora ventanas={ventanas} />
           <ol className="planificador__ventanas">
             {ventanas.ventanas.map((v) => (
               <li key={v.momento_local} className={`planificador__ventana${v.mejor ? " planificador__ventana--mejor" : ""}`}>
@@ -347,22 +346,6 @@ export default function Planificador({ inicial: inicialDado, analisisId }) {
   );
 }
 
-// Si ninguna ventana cambia el nivel del análisis base, elegir otro momento
-// no basta: el riesgo viene de otros factores del cambio.
-function AvisoSinMejora({ ventanas }) {
-  const aviso = avisoVentanas(ventanas.ventanas, ventanas.base);
-  if (!aviso) return null;
-  const variacion = aviso.variacion.toLocaleString("es-EC", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  const factores = (ventanas.factores_base || []).map((f) => f.descripcion.charAt(0).toLowerCase() + f.descripcion.slice(1));
-  return (
-    <p className="alerta alerta--aviso planificador__aviso" role="status">
-      Cambiar el día o la hora apenas modifica el riesgo de este despliegue (variación máxima: {variacion} puntos).
-      {factores.length > 0 && <> El riesgo depende sobre todo de: <strong>{enumerar(factores)}</strong>.</>} Se recomienda
-      corregir esos factores y volver a analizar antes de elegir una fecha.
-    </p>
-  );
-}
-
 const FILAS_TIEMPO = [
   ["hora_utc", "Hora del despliegue (UTC)", (v) => hora(v)],
   ["dia_semana", "Día de la semana (UTC)", (v) => DIAS_LARGOS[v]],
@@ -370,9 +353,10 @@ const FILAS_TIEMPO = [
   ["wf_horas_desde_ultimo", "Horas desde la ejecución previa del workflow", (v) => v.toLocaleString("es-EC", { maximumFractionDigits: 1 })],
 ];
 
-function VariablesTiempo({ tiempo }) {
+export function VariablesTiempo({ tiempo }) {
   if (!tiempo) return null;
   return (
+    <>
     <table className="tabla planificador__tiempo">
       <caption className="secundario">Variables de tiempo usadas por el modelo</caption>
       <thead>
@@ -395,6 +379,10 @@ function VariablesTiempo({ tiempo }) {
         })}
       </tbody>
     </table>
+    <p className="secundario nota-pie planificador__nota-utc">
+      El modelo usa la hora UTC; por ejemplo, 20:00 en Ecuador corresponde a la 01:00 UTC del día siguiente.
+    </p>
+    </>
   );
 }
 

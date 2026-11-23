@@ -80,16 +80,6 @@ export function textoPuntos(valor) {
   return `${signo}${numero} puntos`;
 }
 
-// Aviso de «Mejores ventanas»: solo si ninguna ventana cambia el nivel del
-// análisis base. `variacion`: puntos entre la ventana de menor y la de mayor
-// riesgo.
-export function avisoVentanas(ventanas, base) {
-  if (!ventanas?.length || !base?.nivel) return null;
-  if (ventanas.some((v) => v.nivel !== base.nivel)) return null;
-  const probs = ventanas.map((v) => v.probabilidad);
-  return { variacion: (Math.max(...probs) - Math.min(...probs)) * 100 };
-}
-
 // Repositorios del selector: primero los que tienen análisis más recientes del
 // usuario; después, los demás (análisis de otros), también por recencia.
 export function ordenarRepositorios(analisis, usuario) {
@@ -113,12 +103,6 @@ export function masReciente(analisis, repositorio, workflow) {
   return (analisis || [])
     .filter((a) => a.repositorio === repositorio && (!workflow || a.workflow_path === workflow))
     .reduce((mejor, a) => (!mejor || (a.creada_en || "") > (mejor.creada_en || "") ? a : mejor), null);
-}
-
-// "a, b y c".
-export function enumerar(textos) {
-  if (textos.length <= 1) return textos.join("");
-  return `${textos.slice(0, -1).join(", ")} y ${textos[textos.length - 1]}`;
 }
 
 // Al cambiar de día, la hora no puede quedar antes de la mínima de ese día.

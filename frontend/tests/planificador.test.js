@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  ajustarHora, avisoVentanas, condicionesIniciales, diaSemana, diasDisponibles, enumerar, horaMinima, masReciente,
+  ajustarHora, condicionesIniciales, diaSemana, diasDisponibles, horaMinima, masReciente,
   momentoLocal, nombreDia, ordenarRepositorios, sumarDias, textoPuntos,
 } from "../src/planificador.js";
 
@@ -65,22 +65,6 @@ test("diferencia frente al análisis base en puntos con coma decimal", () => {
   assert.equal(textoPuntos(0.01), "±0,0 puntos");
 });
 
-test("aviso solo si ninguna ventana cambia el nivel del análisis base", () => {
-  const base = { probabilidad: 0.62, nivel: "alto" };
-  const altas = [
-    { probabilidad: 0.612, nivel: "alto" },
-    { probabilidad: 0.605, nivel: "alto" },
-    { probabilidad: 0.618, nivel: "alto" },
-  ];
-  const aviso = avisoVentanas(altas, base);
-  assert.ok(aviso);
-  assert.ok(Math.abs(aviso.variacion - 1.3) < 1e-9);
-  // Una ventana baja de nivel: no hay aviso.
-  assert.equal(avisoVentanas([...altas.slice(0, 2), { probabilidad: 0.4, nivel: "medio" }], base), null);
-  assert.equal(avisoVentanas([], base), null);
-  assert.equal(avisoVentanas(altas, undefined), null);
-});
-
 test("repositorios: primero los de análisis más recientes del usuario", () => {
   const analisis = [
     { repositorio: "org/viejo", usuario: "ana", creada_en: "2026-11-01T10:00:00Z" },
@@ -104,12 +88,6 @@ test("análisis más reciente de un repositorio y workflow", () => {
   assert.equal(masReciente(analisis, "org/a").id, 2);
   assert.equal(masReciente(analisis, "org/a", "deploy.yml").id, 3);
   assert.equal(masReciente(analisis, "org/b"), null);
-});
-
-test("enumeración de factores", () => {
-  assert.equal(enumerar(["a"]), "a");
-  assert.equal(enumerar(["a", "b"]), "a y b");
-  assert.equal(enumerar(["a", "b", "c"]), "a, b y c");
 });
 
 test("fechas auxiliares", () => {

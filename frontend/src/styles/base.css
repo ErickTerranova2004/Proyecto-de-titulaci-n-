@@ -3367,8 +3367,8 @@ td>.gestion-insignia:first-child {
     font-size: var(--texto-xs);
 }
 
-.planificador__aviso {
-    margin: 0 0 var(--esp-3);
+.planificador__nota-utc {
+    margin-top: 6px;
 }
 
 /* La ventana de menor riesgo de los próximos días. */
